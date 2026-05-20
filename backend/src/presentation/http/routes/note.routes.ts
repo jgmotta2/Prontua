@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authRequired } from '@presentation/http/middlewares/auth.middleware';
 import { tenantContext } from '@presentation/http/middlewares/tenant.middleware';
+import { requireSubscription } from '@presentation/http/middlewares/subscription.middleware';
 import { requireClinicalAccess } from '@presentation/http/middlewares/rbac.middleware';
 import { audit } from '@presentation/http/middlewares/audit.middleware';
 import { validate } from '@presentation/http/middlewares/validation.middleware';
@@ -21,7 +22,7 @@ import { shareProntuarioUseCase }    from '@application/use-cases/notes/share-pr
 const router = Router();
 
 // All clinical note routes require PROFESSIONAL+ access
-router.use(authRequired(), tenantContext(), requireClinicalAccess);
+router.use(authRequired(), requireSubscription(), tenantContext(), requireClinicalAccess);
 
 // GET /notes/session/:sessionId
 router.get(

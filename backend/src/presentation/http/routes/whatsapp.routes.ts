@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authRequired } from '@presentation/http/middlewares/auth.middleware';
 import { tenantContext } from '@presentation/http/middlewares/tenant.middleware';
+import { requireSubscription } from '@presentation/http/middlewares/subscription.middleware';
 import { requireClinicalAccess } from '@presentation/http/middlewares/rbac.middleware';
 import { audit } from '@presentation/http/middlewares/audit.middleware';
 import { validate } from '@presentation/http/middlewares/validation.middleware';
@@ -20,7 +21,7 @@ const sessionNotifyBody   = z
 
 const router = Router();
 
-router.use(authRequired(), tenantContext(), requireClinicalAccess);
+router.use(authRequired(), requireSubscription(), tenantContext(), requireClinicalAccess);
 
 // POST /whatsapp/notify/session/:sessionId
 // body: { type: "SCHEDULE_CONFIRM" | "REMINDER_24H" }

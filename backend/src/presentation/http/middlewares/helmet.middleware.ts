@@ -39,6 +39,6 @@ export const helmetMiddleware = helmet({
   referrerPolicy: { policy: 'no-referrer' },
   frameguard: { action: 'deny' },
   noSniff: true,
-  xssFilter: true,
+  xssFilter: false,   // X-XSS-Protection está deprecated; a CSP acima é a defesa correta
   hidePoweredBy: true,
 });

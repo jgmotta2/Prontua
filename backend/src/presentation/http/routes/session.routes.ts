@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authRequired } from '@presentation/http/middlewares/auth.middleware';
 import { tenantContext } from '@presentation/http/middlewares/tenant.middleware';
+import { requireSubscription } from '@presentation/http/middlewares/subscription.middleware';
 import { requireClinicalAccess } from '@presentation/http/middlewares/rbac.middleware';
 import { audit } from '@presentation/http/middlewares/audit.middleware';
 import { validate } from '@presentation/http/middlewares/validation.middleware';
@@ -20,7 +21,7 @@ const router = Router();
 
 // List is accessible to any authenticated role (assistants manage agenda).
 // Create/update requires PROFESSIONAL+.
-router.use(authRequired(), tenantContext());
+router.use(authRequired(), requireSubscription(), tenantContext());
 
 // GET /sessions  —  query: date, from, to, patientId, status
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {

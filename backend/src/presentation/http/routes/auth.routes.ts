@@ -5,6 +5,7 @@ import { authRequired } from '@presentation/http/middlewares/auth.middleware';
 import {
   loginRateLimiter,
   registerRateLimiter,
+  sensitiveRateLimiter,
 } from '@presentation/http/middlewares/rate-limit.middleware';
 import {
   registerSchema,
@@ -29,7 +30,10 @@ router.post(
   authController.login,
 );
 
-// POST /auth/logout — limpa cookies + revoga refresh
+// POST /auth/refresh — renova access token usando refresh token (rotação obrigatória)
+router.post('/refresh', sensitiveRateLimiter, authController.refresh);
+
+// POST /auth/logout — revoga refresh token + limpa cookies
 router.post('/logout', authController.logout);
 
 // GET /auth/me — retorna identidade do usuário autenticado

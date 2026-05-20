@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authRequired } from '@presentation/http/middlewares/auth.middleware';
 import { tenantContext } from '@presentation/http/middlewares/tenant.middleware';
+import { requireSubscription } from '@presentation/http/middlewares/subscription.middleware';
 import { requireClinicalAccess } from '@presentation/http/middlewares/rbac.middleware';
 import { audit } from '@presentation/http/middlewares/audit.middleware';
 import { validate } from '@presentation/http/middlewares/validation.middleware';
@@ -17,7 +18,7 @@ import { encryptionService } from '@infrastructure/crypto/encryption.service';
 
 const router = Router();
 
-router.use(authRequired(), tenantContext(), requireClinicalAccess);
+router.use(authRequired(), requireSubscription(), tenantContext(), requireClinicalAccess);
 
 // GET /patients
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
@@ -75,17 +76,31 @@ router.post(
           })()
         : {};
 
+      const ccFields = body.chiefComplaint
+        ? (() => {
+            const enc = encryptionService.encrypt(body.chiefComplaint as string);
+            return {
+              chiefComplaintEnc: enc.ciphertext,
+              chiefComplaintIv:  enc.iv,
+              chiefComplaintTag: enc.tag,
+              chiefComplaintKv:  enc.keyVersion ?? 1,
+            };
+          })()
+        : {};
+
       const patient = await req.db!.patient.create({
         data: {
-          fullName: body.fullName,
-          birthDate: body.birthDate,
-          email: body.email,
-          whatsapp: body.whatsapp,
+          fullName:     body.fullName,
+          city:         body.city,
+          birthDate:    body.birthDate,
+          email:        body.email,
+          whatsapp:     body.whatsapp,
           notesGeneral: body.notesGeneral,
-          tags: body.tags,
+          tags:         body.tags,
           sessionValue: body.sessionValue,
           frequencyTag: body.frequencyTag,
           ...docFields,
+          ...ccFields,
         } as any,
       });
 
@@ -118,11 +133,23 @@ router.patch(
           })()
         : {};
 
-      const { document: _doc, ...rest } = body;
+      const ccPatchFields = body.chiefComplaint
+        ? (() => {
+            const enc = encryptionService.encrypt(body.chiefComplaint as string);
+            return {
+              chiefComplaintEnc: enc.ciphertext,
+              chiefComplaintIv:  enc.iv,
+              chiefComplaintTag: enc.tag,
+              chiefComplaintKv:  enc.keyVersion ?? 1,
+            };
+          })()
+        : {};
+
+      const { document: _doc, chiefComplaint: _cc, ...rest } = body;
 
       const patient = await req.db!.patient.update({
         where: { id },
-        data: { ...rest, ...docFields } as any,
+        data: { ...rest, ...docFields, ...ccPatchFields } as any,
       });
 
       res.json(patient);

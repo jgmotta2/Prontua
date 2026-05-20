@@ -7,15 +7,17 @@ const uuid = z.string().uuid();
 
 export const createPatientSchema = z
   .object({
-    fullName:     z.string().trim().min(2).max(160),
-    birthDate:    z.coerce.date().optional(),
-    email:        z.string().trim().toLowerCase().email().max(255).optional(),
-    whatsapp:     z.string().trim().regex(/^\+?\d{10,15}$/),
-    document:     z.string().trim().regex(/^\d{11}$/, 'CPF inválido').optional(),
-    notesGeneral: z.string().max(1000).optional(),
-    tags:         z.array(z.string().max(30)).max(20).default([]),
-    sessionValue: z.number().nonnegative().max(99999.99),
-    frequencyTag: z.enum(['Semanal', 'Quinzenal', 'Mensal']).optional(),
+    fullName:       z.string().trim().min(2).max(160),
+    city:           z.string().trim().min(2).max(80),
+    birthDate:      z.coerce.date().optional(),
+    email:          z.string().trim().toLowerCase().email().max(255).optional(),
+    whatsapp:       z.string().trim().regex(/^\+?\d{10,15}$/),
+    document:       z.string().trim().regex(/^\d{11}$/, 'CPF inválido').optional(),
+    chiefComplaint: z.string().trim().min(3).max(2000),
+    notesGeneral:   z.string().max(1000).optional(),
+    tags:           z.array(z.string().max(30)).max(20).default([]),
+    sessionValue:   z.number().nonnegative().max(99999.99),
+    frequencyTag:   z.enum(['Semanal', 'Quinzenal', 'Mensal']).optional(),
   })
   .strict();
 
@@ -23,16 +25,18 @@ export const patientIdParams = z.object({ id: uuid }).strict();
 
 export const updatePatientSchema = z
   .object({
-    fullName:     z.string().trim().min(2).max(160),
-    birthDate:    z.coerce.date(),
-    email:        z.string().trim().toLowerCase().email().max(255),
-    whatsapp:     z.string().trim().regex(/^\+?\d{10,15}$/),
-    document:     z.string().trim().regex(/^\d{11}$/, 'CPF inválido'),
-    notesGeneral: z.string().max(1000),
-    tags:         z.array(z.string().max(30)).max(20),
-    sessionValue: z.number().nonnegative().max(99999.99),
-    frequencyTag: z.enum(['Semanal', 'Quinzenal', 'Mensal']),
-    active:       z.boolean(),
+    fullName:       z.string().trim().min(2).max(160),
+    city:           z.string().trim().min(2).max(80),
+    birthDate:      z.coerce.date(),
+    email:          z.string().trim().toLowerCase().email().max(255),
+    whatsapp:       z.string().trim().regex(/^\+?\d{10,15}$/),
+    document:       z.string().trim().regex(/^\d{11}$/, 'CPF inválido'),
+    chiefComplaint: z.string().trim().min(3).max(2000),
+    notesGeneral:   z.string().max(1000),
+    tags:           z.array(z.string().max(30)).max(20),
+    sessionValue:   z.number().nonnegative().max(99999.99),
+    frequencyTag:   z.enum(['Semanal', 'Quinzenal', 'Mensal']),
+    active:         z.boolean(),
   })
   .partial()
   .strict();
@@ -108,10 +112,18 @@ export const updateUserSchema = z
   .partial()
   .strict();
 
+const passwordPolicy = z
+  .string()
+  .min(8, 'Senha deve ter no mínimo 8 caracteres')
+  .max(128, 'Senha excede o tamanho máximo')
+  .refine((s) => /[a-z]/.test(s), 'Senha deve conter letra minúscula')
+  .refine((s) => /[A-Z]/.test(s), 'Senha deve conter letra maiúscula')
+  .refine((s) => /\d/.test(s), 'Senha deve conter número');
+
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1),
-    newPassword:     z.string().min(8).max(128),
+    newPassword:     passwordPolicy,
   })
   .strict();
 

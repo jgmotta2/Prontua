@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authRequired } from '@presentation/http/middlewares/auth.middleware';
 import { tenantContext } from '@presentation/http/middlewares/tenant.middleware';
+import { requireSubscription } from '@presentation/http/middlewares/subscription.middleware';
 import { dashboardController } from '@presentation/http/controllers/dashboard.controller';
 
 /**
@@ -11,7 +12,7 @@ import { dashboardController } from '@presentation/http/controllers/dashboard.co
  */
 const router = Router();
 
-router.use(authRequired(), tenantContext());
+router.use(authRequired(), requireSubscription(), tenantContext());
 
 router.get('/overview', dashboardController.overview);
 

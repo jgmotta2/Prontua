@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authRequired } from '@presentation/http/middlewares/auth.middleware';
 import { tenantContext } from '@presentation/http/middlewares/tenant.middleware';
+import { requireSubscription } from '@presentation/http/middlewares/subscription.middleware';
 import { audit } from '@presentation/http/middlewares/audit.middleware';
 import { validate } from '@presentation/http/middlewares/validation.middleware';
 import {
@@ -16,7 +17,7 @@ import { updatePaymentUseCase }     from '@application/use-cases/payments/update
 const router = Router();
 
 // Financial data is visible to any authenticated role in the clinic
-router.use(authRequired(), tenantContext());
+router.use(authRequired(), requireSubscription(), tenantContext());
 
 // GET /finance/payments  —  query: status, month (YYYY-MM)
 router.get('/payments', async (req: Request, res: Response, next: NextFunction) => {

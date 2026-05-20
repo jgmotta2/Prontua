@@ -65,3 +65,9 @@ export const apiRateLimiter: RequestHandler = lazyLimiter(60 * 1000, env.RATE_LI
 
 /** Ações sensíveis (delete, export LGPD): 10 por hora. */
 export const sensitiveRateLimiter: RequestHandler = lazyLimiter(60 * 60 * 1000, 10);
+
+/** Billing (checkout/portal): 10 tentativas por hora por IP — evita abuso da API Stripe. */
+export const billingRateLimiter: RequestHandler = lazyLimiter(60 * 60 * 1000, 10);
+
+/** Webhook Stripe: 120 por minuto por IP — webhooks legítimos chegam em burst no máximo. */
+export const webhookRateLimiter: RequestHandler = lazyLimiter(60 * 1000, 120);
