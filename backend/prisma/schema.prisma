@@ -127,6 +127,14 @@ enum WhatsappStatus {
   FAILED
 }
 
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
 // ============================================================================
 // TENANT — raiz do isolamento multi-tenant
 // ============================================================================
@@ -138,6 +146,11 @@ model Tenant {
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  trialEndsAt          DateTime           @default(now())
+  subscriptionStatus   SubscriptionStatus @default(TRIAL)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
 
   users        User[]
   patients     Patient[]
@@ -239,6 +252,14 @@ model Patient {
   documentIv      String?
   documentTag     String?
   documentHash    String?   @unique               // SHA-256 com pepper para lookup
+
+  city            String?                         // Cidade do paciente
+
+  // Queixa principal — dado clínico sensível → criptografado AES-256-GCM
+  chiefComplaintEnc  String?
+  chiefComplaintIv   String?
+  chiefComplaintTag  String?
+  chiefComplaintKv   Int?    @default(1)           // keyVersion
 
   // Notas gerais administrativas (NÃO clínicas) — contato emergência, etc.
   notesGeneral    String?

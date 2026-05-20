@@ -45,11 +45,14 @@ export async function registerUseCase(
   const passwordHash = await passwordService.hash(input.password);
   const tenantSlug = await generateUniqueSlug(input.clinicName ?? input.name);
 
+  const trialEndsAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days
+
   const result = await prisma.$transaction(async (tx) => {
     const tenant = await tx.tenant.create({
       data: {
-        name: input.clinicName ?? `Consultório ${input.name.split(' ')[0]}`,
-        slug: tenantSlug,
+        name:        input.clinicName ?? `Consultório ${input.name.split(' ')[0]}`,
+        slug:        tenantSlug,
+        trialEndsAt,
       },
     });
 

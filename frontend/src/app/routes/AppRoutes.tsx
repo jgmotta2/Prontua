@@ -12,6 +12,7 @@ import { ClinicalRecordPage } from '@features/patients/components/ClinicalRecord
 import { AgendaPage } from '@features/schedule/components/AgendaPage';
 import { FinancePage } from '@features/finance/components/FinancePage';
 import { SettingsPage } from '@features/settings/components/SettingsPage';
+import { PaywallPage } from '@features/billing/components/PaywallPage';
 
 function Private({ children }: { children: ReactNode }) {
   const { isLoading, isError } = useSession();
@@ -54,6 +55,7 @@ export function AppRoutes() {
       <Route path="/agenda"        element={<Private><AgendaPage /></Private>} />
       <Route path="/financeiro"    element={<Private><FinancePage /></Private>} />
       <Route path="/config"        element={<Private><SettingsPage /></Private>} />
+      <Route path="/assinar"       element={<Private><PaywallPage /></Private>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

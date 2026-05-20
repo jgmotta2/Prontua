@@ -52,3 +52,9 @@ export class ForbiddenError extends AppError {
     super('FORBIDDEN', message, 403);
   }
 }
+
+export class PaymentRequiredError extends AppError {
+  constructor(message = 'Assinatura necessária para continuar') {
+    super('PAYMENT_REQUIRED', message, 402);
+  }
+}

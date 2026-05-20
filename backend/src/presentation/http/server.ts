@@ -21,6 +21,7 @@ import { noteRoutes } from '@presentation/http/routes/note.routes';
 import { financeRoutes } from '@presentation/http/routes/finance.routes';
 import { userRoutes } from '@presentation/http/routes/user.routes';
 import { whatsappRoutes } from '@presentation/http/routes/whatsapp.routes';
+import { billingRoutes } from '@presentation/http/routes/billing.routes';
 
 export function buildServer(): Express {
   const app = express();
@@ -31,6 +32,10 @@ export function buildServer(): Express {
   app.use(helmetMiddleware);
   app.use(corsMiddleware);
   app.use(cookieParser());
+
+  // Webhook do Stripe precisa de raw body ANTES do express.json()
+  app.use('/billing/webhook', express.raw({ type: 'application/json' }));
+
   app.use(express.json({ limit: '100kb' }));
   app.use(express.urlencoded({ extended: false, limit: '100kb' }));
   app.use(sanitizeBody());
@@ -59,6 +64,7 @@ export function buildServer(): Express {
 
   app.use('/auth',      authRoutes);
   app.use('/users',     userRoutes);
+  app.use('/billing',   billingRoutes);
   app.use('/patients',  patientRoutes);
   app.use('/sessions',  sessionRoutes);
   app.use('/notes',     noteRoutes);
