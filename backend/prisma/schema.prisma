@@ -1,0 +1,417 @@
+// ============================================================================
+// SERENO — Prisma Schema
+// ----------------------------------------------------------------------------
+// Multi-tenancy: Shared DB / Shared Schema with `tenantId` column.
+//   Isolamento garantido em runtime pelo Prisma Client estendido
+//   (src/config/prisma.ts -> forTenant()), que injeta tenantId em todas as
+//   queries dos modelos marcados como TENANT_SCOPED. Em produção,
+//   recomenda-se ativar Row-Level Security (RLS) no PostgreSQL como segunda
+//   camada de defesa em profundidade.
+//
+// Criptografia em repouso:
+//   `SessionNote` (prontuário clínico) NUNCA armazena texto plano.
+//   Conteúdo é encriptado com AES-256-GCM em camada de aplicação
+//   (src/infrastructure/crypto/encryption.service.ts) antes do persist.
+//
+// PII (CPF, telefone) é armazenado encriptado em campos `*Enc` quando
+// classificado como dado sensível.
+//
+// Audit log é append-only — não há mutação após insert.
+// ============================================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+  // native     -> dev local
+  // linux-musl -> Alpine Linux (Docker)
+  // debian     -> caso troque para node:20-slim
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")        // PgBouncer (pooled) connection
+  directUrl  = env("DIRECT_URL")          // Direct connection (migrations)
+  extensions = [pgcrypto, citext]
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  OWNER           // dono da clínica (acesso total)
+  ADMIN           // gestor administrativo
+  PROFESSIONAL    // psicólogo / fisioterapeuta / fono...
+  ASSISTANT       // recepção / agenda (sem acesso a prontuário clínico)
+}
+
+enum Specialty {
+  PSICOLOGIA
+  FISIOTERAPIA
+  FONOAUDIOLOGIA
+  PSICOPEDAGOGIA
+  NUTRICAO
+  TERAPIA_OCUPACIONAL
+  OUTRA
+}
+
+enum SessionStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELED
+  NO_SHOW
+}
+
+enum SessionMode {
+  PRESENCIAL
+  ONLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  CANCELED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  PIX
+  CARD
+  CASH
+  TRANSFER
+  OTHER
+}
+
+enum AuditAction {
+  AUTH_LOGIN
+  AUTH_LOGIN_FAILED
+  AUTH_LOGOUT
+  AUTH_REGISTER
+  AUTH_PASSWORD_RESET_REQUEST
+  AUTH_PASSWORD_RESET_CONFIRM
+  AUTH_TOKEN_REFRESH
+  PATIENT_VIEW
+  PATIENT_CREATE
+  PATIENT_UPDATE
+  PATIENT_DELETE
+  SESSION_CREATE
+  SESSION_UPDATE
+  SESSION_DELETE
+  NOTE_VIEW
+  NOTE_CREATE
+  NOTE_UPDATE
+  NOTE_DELETE
+  PAYMENT_CREATE
+  PAYMENT_UPDATE
+  WHATSAPP_SEND
+  EXPORT_REQUEST       // LGPD Art. 18 — direito do titular
+  ACCOUNT_DELETE
+  RBAC_DENIED          // tentativa de acesso negada
+}
+
+enum WhatsappKind {
+  SCHEDULE_CONFIRM
+  REMINDER_24H
+  PAYMENT_DUE
+  WELCOME
+  CLINICAL_EXPORT
+}
+
+enum WhatsappStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+// ============================================================================
+// TENANT — raiz do isolamento multi-tenant
+// ============================================================================
+
+model Tenant {
+  id           String   @id @default(uuid()) @db.Uuid
+  slug         String   @unique
+  name         String
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  users        User[]
+  patients     Patient[]
+  sessions     Session[]
+  payments     Payment[]
+  notes        SessionNote[]
+  auditLogs    AuditLog[]
+  whatsappLogs WhatsappLog[]
+
+  @@map("tenants")
+}
+
+// ============================================================================
+// USER — profissionais e equipe administrativa
+// ============================================================================
+
+model User {
+  id              String     @id @default(uuid()) @db.Uuid
+  tenantId        String     @db.Uuid
+
+  email           String     @db.Citext           // case-insensitive
+  passwordHash    String                          // Argon2id
+  name            String
+  whatsapp        String                          // E.164: +5511987654321
+  city            String
+  state           String     @db.Char(2)          // UF
+  specialty       Specialty
+  registry        String?                         // CRP, CREFITO, etc.
+
+  role            UserRole   @default(OWNER)
+  active          Boolean    @default(true)
+
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+
+  // MFA (TOTP). secret encriptado em camada de aplicação.
+  mfaEnabled      Boolean    @default(false)
+  mfaSecretEnc    String?
+  mfaSecretIv     String?
+  mfaSecretTag    String?
+
+  // Política de senha
+  passwordChangedAt DateTime @default(now())
+  failedLoginCount  Int      @default(0)
+  lockedUntil       DateTime?
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  tenant          Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions        Session[]  @relation("ProfessionalSessions")
+  refreshTokens   RefreshToken[]
+  auditLogs       AuditLog[]
+  authoredNotes   SessionNote[] @relation("NoteAuthor")
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@index([email])
+  @@map("users")
+}
+
+// ============================================================================
+// REFRESH TOKEN — armazenamos apenas o hash, nunca o token bruto
+// ============================================================================
+
+model RefreshToken {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  tokenHash   String    @unique                  // SHA-256 do token rotacionável
+  family      String    @db.Uuid                 // refresh token rotation family
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  ipHash      String?                            // SHA-256 do IP (anonimizado)
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([family])
+  @@map("refresh_tokens")
+}
+
+// ============================================================================
+// PATIENT — dados cadastrais. PII sensível encriptada.
+// ============================================================================
+
+model Patient {
+  id              String    @id @default(uuid()) @db.Uuid
+  tenantId        String    @db.Uuid              // TENANT-SCOPED
+
+  fullName        String
+  birthDate       DateTime?
+  email           String?
+  whatsapp        String                          // E.164
+
+  // CPF criptografado (AES-256-GCM) — busca via hash determinístico separado
+  documentEnc     String?
+  documentIv      String?
+  documentTag     String?
+  documentHash    String?   @unique               // SHA-256 com pepper para lookup
+
+  // Notas gerais administrativas (NÃO clínicas) — contato emergência, etc.
+  notesGeneral    String?
+
+  tags            String[]  @default([])
+  sessionValue    Decimal   @default(0) @db.Decimal(10, 2)
+  frequencyTag    String?                         // "Semanal" | "Quinzenal" | "Mensal"
+
+  active          Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  // Soft delete arquitetural; LGPD Art. 18 exige hard delete sob solicitação
+  // (executado via job dedicado que apaga registros e seus dependentes).
+  deletedAt       DateTime?
+
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessions        Session[]
+  payments        Payment[]
+
+  @@index([tenantId])
+  @@index([tenantId, fullName])
+  @@index([tenantId, deletedAt])
+  @@map("patients")
+}
+
+// ============================================================================
+// SESSION — agendamento + execução
+// ============================================================================
+
+model Session {
+  id             String        @id @default(uuid()) @db.Uuid
+  tenantId       String        @db.Uuid           // TENANT-SCOPED
+  patientId      String        @db.Uuid
+  professionalId String        @db.Uuid
+
+  scheduledAt    DateTime
+  durationMin    Int           @default(50)
+  mode           SessionMode   @default(PRESENCIAL)
+  value          Decimal       @db.Decimal(10, 2)
+  status         SessionStatus @default(SCHEDULED)
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient        Patient       @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  professional   User          @relation("ProfessionalSessions", fields: [professionalId], references: [id], onDelete: Restrict)
+  note           SessionNote?
+  payment        Payment?
+
+  @@index([tenantId])
+  @@index([tenantId, scheduledAt])
+  @@index([tenantId, patientId])
+  @@index([tenantId, professionalId, scheduledAt])
+  @@map("sessions")
+}
+
+// ============================================================================
+// SESSION NOTE — PRONTUÁRIO CLÍNICO (CRIPTOGRAFADO)
+// ----------------------------------------------------------------------------
+// Conteúdo encriptado em camada de aplicação com AES-256-GCM.
+// Tabela isolada para reduzir superfície de query e simplificar auditoria.
+// Mesmo com acesso direto ao banco, conteúdo é ilegível sem a master key.
+// ============================================================================
+
+model SessionNote {
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @db.Uuid               // TENANT-SCOPED
+  sessionId      String   @unique @db.Uuid
+  authorId       String   @db.Uuid
+
+  contentEnc     String                          // base64 do ciphertext
+  contentIv      String                          // base64 do IV (12 bytes)
+  contentTag     String                          // base64 da auth tag (16 bytes)
+  keyVersion     Int      @default(1)            // permite rotação de chave
+
+  // Campos adicionais do prontuário — todos nullable para não quebrar registros existentes
+  nextStepsEnc   String?                         // "Próximos Passos" (criptografado)
+  nextStepsIv    String?
+  nextStepsTag   String?
+  techniqueUsed  String?                         // ex: "TCC", "EMDR", "ACT" (tag não-clínica)
+  patientMood    Int?                            // escala 1-5
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  session        Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  author         User     @relation("NoteAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId])
+  @@map("session_notes")
+}
+
+// ============================================================================
+// PAYMENT
+// ============================================================================
+
+model Payment {
+  id          String         @id @default(uuid()) @db.Uuid
+  tenantId    String         @db.Uuid             // TENANT-SCOPED
+  patientId   String         @db.Uuid
+  sessionId   String?        @unique @db.Uuid
+
+  amount      Decimal        @db.Decimal(10, 2)
+  status      PaymentStatus  @default(PENDING)
+  method      PaymentMethod?
+  paidAt      DateTime?
+  dueDate     DateTime?
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient     Patient        @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  session     Session?       @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, dueDate])
+  @@map("payments")
+}
+
+// ============================================================================
+// AUDIT LOG — append-only, sem PII/PHI no metadata
+// ============================================================================
+
+model AuditLog {
+  id            String      @id @default(uuid()) @db.Uuid
+  tenantId      String?     @db.Uuid              // null apenas em eventos pré-auth
+  userId        String?     @db.Uuid              // null em login falho
+
+  action        AuditAction
+  resourceType  String?
+  resourceId    String?
+
+  ipHash        String?                           // SHA-256 do IP + pepper
+  userAgent     String?
+  // metadata operacional (e.g. {"reason": "expired_token"}) — JAMAIS PII/PHI
+  metadata      Json?
+
+  createdAt     DateTime    @default(now())
+
+  tenant        Tenant?     @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  user          User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+// ============================================================================
+// WHATSAPP LOG — registro de envios. JAMAIS contém conteúdo clínico.
+// ============================================================================
+
+model WhatsappLog {
+  id          String         @id @default(uuid()) @db.Uuid
+  tenantId    String         @db.Uuid              // TENANT-SCOPED
+  patientId   String?        @db.Uuid
+
+  kind        WhatsappKind
+  template    String                                // nome do template (sem conteúdo)
+  status      WhatsappStatus @default(QUEUED)
+  externalId  String?                               // ID retornado pela Z-API
+  error       String?
+  sentAt      DateTime?
+  createdAt   DateTime       @default(now())
+
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([patientId])
+  @@index([tenantId, status])
+  @@map("whatsapp_logs")
+}

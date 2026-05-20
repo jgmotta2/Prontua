@@ -1,0 +1,21 @@
+node_modules/
+dist/
+dist-ssr/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+coverage/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.tsbuildinfo
+.tsbuildinfo
+
+# Volumes locais (caso o user use docker-compose com bind mounts)
+sereno_pg_data/
+
+# OS
+Thumbs.db

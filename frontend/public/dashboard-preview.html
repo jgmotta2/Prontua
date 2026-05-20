@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Prontua — Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#F5F1E8;--sage:#6B8E7F;--sage-dark:#4A6B5E;
+  --terracotta:#C97B5C;--ink:#2D3B36;--muted:#7A8B85;--warm:#E8DDC8;
+}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
+button,input,select,textarea{font-family:inherit}
+
+/* ── SCREENS ── */
+.screen{display:none}
+.screen.active{display:flex}
+#screen-login.active{min-height:100vh;align-items:center;justify-content:center;background:var(--cream)}
+#app-shell.active{min-height:100vh;flex-direction:row}
+.app-page{display:none;flex:1;overflow-y:auto}
+.app-page.active{display:block}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:220px;min-height:100vh;background:#fff;
+  border-right:1px solid #e5ede9;display:flex;flex-direction:column;
+  padding:20px 12px;flex-shrink:0;position:sticky;top:0;
+}
+.sidebar-logo{
+  display:flex;align-items:center;gap:9px;
+  padding:0 6px 20px;border-bottom:1px solid #e5ede9;margin-bottom:16px;
+  font-family:'Fraunces',serif;font-size:20px;font-weight:700;
+  color:#2D6347;letter-spacing:-0.02em;
+}
+.nav-item{
+  display:flex;align-items:center;gap:9px;padding:10px 10px;
+  border-radius:12px;font-size:14px;font-weight:500;color:var(--muted);
+  cursor:pointer;transition:background .15s;user-select:none;margin-bottom:2px;
+}
+.nav-item.active{background:#6B8E7F18;color:var(--sage-dark)}
+.nav-item:hover:not(.active){background:#f5f1e8}
+.nav-icon{width:16px;height:16px;opacity:.8;flex-shrink:0}
+.sidebar-footer{
+  margin-top:auto;padding-top:14px;border-top:1px solid #e5ede9;
+  display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);
+}
+.avatar{
+  width:30px;height:30px;border-radius:50%;background:#6B8E7F22;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;font-weight:700;font-size:12px;
+  color:var(--sage-dark);flex-shrink:0;
+}
+
+/* ── CONTENT AREA ── */
+.content-area{flex:1;overflow-y:auto;max-height:100vh}
+.page-inner{max-width:1060px;margin:0 auto;padding:28px 28px}
+
+/* ── LOGIN ── */
+.login-card{
+  background:#fff;border-radius:24px;padding:48px 40px;
+  box-shadow:0 8px 32px -4px rgba(45,59,54,.12);width:100%;max-width:420px;
+}
+.login-logo{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  margin-bottom:6px;
+}
+.login-logo-wordmark{
+  font-family:'Fraunces',serif;font-size:30px;font-weight:700;
+  color:#2D6347;letter-spacing:-0.02em;line-height:1;
+}
+.login-sub{text-align:center;font-size:14px;color:var(--muted);margin-bottom:32px}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px}
+.field input{
+  width:100%;padding:12px 14px;border:1.5px solid #e5ede9;border-radius:12px;
+  font-size:14px;color:var(--ink);outline:none;transition:border-color .15s;background:#fff;
+}
+.field input:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(107,142,127,.15)}
+.btn-primary{
+  width:100%;padding:13px;background:var(--sage);color:var(--cream);
+  border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;
+  transition:background .15s;
+}
+.btn-primary:hover{background:var(--sage-dark)}
+.btn-secondary-sm{
+  padding:8px 16px;background:#fff;color:var(--ink);border:1.5px solid rgba(107,142,127,.25);
+  border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn-secondary-sm:hover{border-color:var(--sage);background:#f9fbfa}
+.btn-primary-sm{
+  padding:8px 16px;background:var(--sage);color:var(--cream);border:none;
+  border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn-primary-sm:hover{background:var(--sage-dark)}
+.btn-primary-sm:disabled{opacity:.6;cursor:not-allowed}
+.login-footer{text-align:center;font-size:13px;color:var(--muted);margin-top:18px}
+.login-footer a{color:var(--sage);cursor:pointer;text-decoration:none}
+
+/* ── TYPOGRAPHY ── */
+.page-date{font-size:13px;color:var(--muted);text-transform:capitalize}
+.page-title{font-family:'Fraunces',serif;font-size:30px;font-weight:600;letter-spacing:-0.02em;margin-top:4px}
+.page-title span{color:var(--sage-dark)}
+.page-sub{font-size:14px;color:var(--muted);margin-top:3px}
+.section-title{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--ink)}
+.section-sub{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* ── CARDS ── */
+.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 14px -2px rgba(45,59,54,.08)}
+
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px}
+.kpi-card{background:#fff;border-radius:16px;padding:18px 20px;box-shadow:0 4px 14px -2px rgba(45,59,54,.08)}
+.kpi-top{display:flex;align-items:center;justify-content:space-between}
+.kpi-label{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.kpi-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.kpi-icon svg{width:15px;height:15px}
+.kpi-icon.sage{background:#6B8E7F18;color:var(--sage-dark)}
+.kpi-icon.terracotta{background:#C97B5C18;color:var(--terracotta)}
+.kpi-icon.warm{background:var(--warm);color:var(--ink)}
+.kpi-value{font-family:'Fraunces',serif;font-size:28px;font-weight:600;color:var(--ink);letter-spacing:-0.02em;margin-top:14px;line-height:1}
+.kpi-hint{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* ── CHART ── */
+.content-row{display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-top:14px}
+.chart-area{display:flex;align-items:flex-end;gap:8px;height:160px;margin-top:18px;padding-bottom:26px;border-bottom:1px solid var(--warm)}
+.chart-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.bar{width:100%;max-width:38px;border-radius:7px 7px 0 0;background:var(--sage);position:relative;transition:background .15s;cursor:pointer}
+.bar:hover{background:var(--sage-dark)}
+.bar-tip{
+  position:absolute;top:-34px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:#fff;font-size:11px;font-weight:600;
+  padding:4px 8px;border-radius:7px;white-space:nowrap;opacity:0;transition:opacity .15s;pointer-events:none;
+}
+.bar-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:var(--ink)}
+.bar:hover .bar-tip{opacity:1}
+.bar-label{font-size:11px;color:var(--muted);white-space:nowrap}
+
+/* ── AGENDA ITEMS ── */
+.agenda-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.agenda-link{font-size:12px;font-weight:500;color:var(--sage);cursor:pointer;background:none;border:none;padding:0}
+.agenda-link:hover{color:var(--sage-dark)}
+.agenda-item{
+  display:flex;align-items:center;gap:12px;padding:11px 13px;
+  border:1px solid rgba(232,221,200,.5);border-radius:12px;margin-bottom:8px;
+  cursor:pointer;transition:all .15s;
+}
+.agenda-item:hover{border-color:rgba(107,142,127,.3);background:#F5F1E850}
+.a-time .time{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--sage-dark);line-height:1;min-width:44px}
+.a-time .dur{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-top:2px}
+.a-name{flex:1;font-weight:500;font-size:14px;color:var(--ink)}
+.a-mode{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:3px}
+.badge{border-radius:20px;padding:3px 9px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge.scheduled{background:var(--warm);color:var(--ink)}
+.badge.confirmed{background:#6B8E7F22;color:var(--sage-dark)}
+.badge.completed{background:var(--sage);color:#F5F1E8}
+.badge.canceled{background:#C97B5C1A;color:var(--terracotta)}
+.badge.noshow{background:#C97B5C22;color:var(--terracotta)}
+
+/* ── STATUS DROPDOWN ── */
+.status-select{
+  padding:3px 8px;border-radius:20px;border:none;font-size:11px;font-weight:500;
+  cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%237A8B85' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 6px center;
+  padding-right:22px;
+}
+.status-select.scheduled{background-color:var(--warm);color:var(--ink)}
+.status-select.confirmed{background-color:#6B8E7F22;color:var(--sage-dark)}
+.status-select.completed{background-color:var(--sage);color:#F5F1E8}
+.status-select.canceled{background-color:#C97B5C1A;color:var(--terracotta)}
+.status-select.noshow{background-color:#C97B5C22;color:var(--terracotta)}
+
+/* ── PATIENT CARDS ── */
+.patient-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:16px}
+.patient-card{background:#fff;border-radius:16px;padding:18px 20px;box-shadow:0 4px 14px -2px rgba(45,59,54,.08);cursor:pointer;transition:all .15s}
+.patient-card:hover{box-shadow:0 8px 24px -4px rgba(45,59,54,.14);transform:translateY(-1px)}
+.p-header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.p-avatar{width:40px;height:40px;border-radius:50%;background:#6B8E7F22;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;font-size:16px;color:var(--sage-dark);flex-shrink:0}
+.p-name{font-weight:600;font-size:15px;color:var(--ink)}
+.p-tag{font-size:11px;padding:2px 8px;border-radius:20px;background:#6B8E7F18;color:var(--sage-dark);display:inline-block;margin-top:2px}
+.p-meta{display:flex;gap:16px;font-size:13px;color:var(--muted);padding-top:12px;border-top:1px solid #f0ede8}
+.p-actions{display:flex;gap:8px;margin-top:12px}
+.p-btn{padding:6px 12px;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid;transition:all .15s}
+.p-btn.outline{background:#fff;color:var(--ink);border-color:rgba(107,142,127,.22)}
+.p-btn.outline:hover{border-color:var(--sage);color:var(--sage-dark)}
+.p-btn.fill{background:var(--sage);color:var(--cream);border-color:var(--sage)}
+.p-btn.fill:hover{background:var(--sage-dark)}
+
+/* ── SEARCH ── */
+.search-bar{
+  display:flex;align-items:center;gap:10px;
+  background:#fff;border:1.5px solid rgba(107,142,127,.2);border-radius:12px;
+  padding:10px 14px;margin-bottom:16px;
+}
+.search-bar svg{width:15px;height:15px;color:var(--muted);flex-shrink:0}
+.search-bar input{flex:1;border:none;outline:none;font-size:14px;color:var(--ink);background:transparent}
+.search-bar input::placeholder{color:var(--muted)}
+
+/* ── PATIENT DETAIL ── */
+.detail-back{display:flex;align-items:center;gap:8px;margin-bottom:18px}
+.back-btn{width:34px;height:34px;border-radius:10px;border:1.5px solid rgba(107,142,127,.2);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:all .15s;flex-shrink:0}
+.back-btn:hover{border-color:var(--sage);color:var(--sage-dark)}
+.detail-header{display:flex;align-items:center;gap:12px;flex:1}
+.detail-name{font-family:'Fraunces',serif;font-size:24px;font-weight:600;color:var(--ink)}
+.detail-actions{display:flex;gap:8px}
+.detail-info-card{background:#fff;border-radius:16px;padding:18px 20px;box-shadow:0 4px 14px -2px rgba(45,59,54,.08);margin-bottom:16px}
+.detail-meta-row{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--muted)}
+.detail-meta-row a{color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:5px;transition:color .15s}
+.detail-meta-row a:hover{color:var(--sage)}
+.detail-meta-row span{display:flex;align-items:center;gap:5px}
+.detail-divider{border-top:1px solid rgba(107,142,127,.1);margin:12px 0;padding-top:12px;display:flex;align-items:center;gap:16px}
+.detail-sessions-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.detail-session-row{
+  background:#fff;border-radius:12px;padding:14px 16px;
+  box-shadow:0 2px 8px -2px rgba(45,59,54,.06);margin-bottom:8px;
+  display:flex;align-items:center;gap:12px;
+}
+.ds-date{font-weight:500;font-size:14px;color:var(--ink)}
+.ds-meta{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:2px}
+
+/* ── PRONTUÁRIO ── */
+.pron-toolbar{
+  display:flex;align-items:center;gap:10px;padding:14px 20px;
+  background:rgba(255,255,255,.95);border-bottom:1px solid rgba(107,142,127,.1);
+  position:sticky;top:0;z-index:10;backdrop-filter:blur(8px);
+}
+.pron-toolbar-back{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;border-radius:8px;display:flex}
+.pron-toolbar-back:hover{color:var(--ink);background:#f5f1e8}
+.pron-toolbar-title{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--ink)}
+.pron-toolbar-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.pron-body{padding:20px;max-width:none}
+.pron-stat-card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 4px 14px -2px rgba(45,59,54,.08);margin-bottom:12px}
+.pron-stat-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.pron-stat-avatar{width:36px;height:36px;border-radius:50%;background:#6B8E7F22;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;font-size:14px;color:var(--sage-dark)}
+.pron-stat-name{font-weight:600;font-size:14px;color:var(--ink)}
+.pron-stat-role{font-size:11px;color:var(--muted)}
+.pron-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pron-stat-item{background:rgba(107,142,127,.06);border-radius:10px;padding:10px;text-align:center}
+.pron-stat-n{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--sage-dark)}
+.pron-stat-l{font-size:10px;color:var(--muted);line-height:1.3;margin-top:2px}
+.pron-stat-wide{grid-column:1/-1}
+
+/* ── EVOLUTION CARD ── */
+.evolution-card{
+  background:#fff;border-radius:16px;border:1px solid rgba(107,142,127,.12);
+  border-left:3px solid var(--sage);box-shadow:0 4px 14px -2px rgba(45,59,54,.08);
+  overflow:hidden;margin-bottom:14px;
+}
+.evo-header{background:#FDFCF0;border-bottom:1px solid rgba(107,142,127,.1);padding:14px 18px;display:flex;align-items:flex-start;justify-content:space-between}
+.evo-session-n{font-family:'Fraunces',serif;font-size:13px;font-weight:600;color:var(--ink)}
+.evo-date{font-size:13px;color:var(--ink);margin-top:2px}
+.evo-meta{font-size:12px;color:var(--muted);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap}
+.evo-meta span{display:flex;align-items:center;gap:3px}
+.evo-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.save-status{font-size:11px;min-width:80px;text-align:right}
+.save-status .saving{color:var(--muted)}
+.save-status .saved{color:var(--sage-dark)}
+
+.technique-row{
+  background:rgba(245,241,232,.5);border-bottom:1px solid rgba(107,142,127,.1);
+  padding:10px 18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+}
+.technique-label{font-size:11px;color:var(--muted);font-weight:500;margin-right:2px}
+.technique-chip{
+  padding:3px 10px;border-radius:20px;border:1.5px solid rgba(107,142,127,.2);
+  background:#fff;font-size:11.5px;color:var(--muted);cursor:pointer;transition:all .15s;
+  user-select:none;
+}
+.technique-chip:hover{border-color:var(--sage);color:var(--sage-dark)}
+.technique-chip.active{background:var(--sage);color:var(--cream);border-color:var(--sage)}
+.mood-row{display:flex;align-items:center;gap:6px;padding-left:8px;border-left:1px solid rgba(107,142,127,.15)}
+.mood-lbl{font-size:11px;color:var(--muted);font-weight:500}
+.mood-btn{
+  width:26px;height:26px;border-radius:8px;border:none;background:transparent;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:16px;transition:all .15s;line-height:1;
+}
+.mood-btn:hover{background:rgba(107,142,127,.1)}
+.mood-btn.active{background:rgba(107,142,127,.15);transform:scale(1.15)}
+.mood-val{font-size:11px;color:var(--sage-dark);font-weight:500;min-width:60px}
+
+.evo-body{padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.field-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(45,59,54,.6);margin-bottom:6px}
+.evo-textarea{
+  width:100%;border:1.5px solid rgba(107,142,127,.18);border-radius:12px;
+  padding:12px 14px;font-size:13.5px;color:var(--ink);resize:vertical;outline:none;
+  transition:border-color .15s;line-height:1.7;font-family:inherit;
+}
+.evo-textarea.content-area-ta{background:#FDFCF0;min-height:120px}
+.evo-textarea.nextsteps-ta{background:rgba(107,142,127,.05);min-height:80px;color:var(--sage-dark)}
+.evo-textarea::placeholder{color:rgba(122,139,133,.45)}
+.evo-textarea:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(107,142,127,.1)}
+
+/* ── AGENDA PAGE ── */
+.agenda-nav{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.date-nav-btn{width:34px;height:34px;border-radius:10px;border:1.5px solid rgba(107,142,127,.2);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:all .15s}
+.date-nav-btn:hover{border-color:var(--sage);color:var(--sage-dark)}
+.date-display{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--ink);flex:1}
+.agenda-session-row{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  border-bottom:1px solid rgba(232,221,200,.4);transition:background .15s;
+}
+.agenda-session-row:last-child{border-bottom:none}
+.agenda-session-row:hover{background:#faf8f4}
+
+/* ── FINANCE PAGE ── */
+.payments-table{width:100%;border-collapse:collapse;margin-top:4px}
+.payments-table th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:10px 14px;text-align:left;border-bottom:1px solid var(--warm)}
+.payments-table td{padding:12px 14px;font-size:13.5px;border-bottom:1px solid rgba(232,221,200,.4);color:var(--ink)}
+.payments-table tr:hover td{background:#faf8f4}
+.pay-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.pay-dot.paid{background:var(--sage)}
+.pay-dot.pending{background:var(--terracotta)}
+.pay-dot.overdue{background:#b91c1c}
+.pay-method{font-size:12px;color:var(--muted)}
+.mark-paid-select{
+  padding:4px 8px;border-radius:8px;border:1.5px solid rgba(107,142,127,.25);
+  font-size:12px;color:var(--ink);background:#fff;cursor:pointer;outline:none;
+  transition:border-color .15s;
+}
+.mark-paid-select:focus{border-color:var(--sage)}
+
+/* ── SETTINGS ── */
+.settings-section{background:#fff;border-radius:16px;box-shadow:0 4px 14px -2px rgba(45,59,54,.08);overflow:hidden;margin-bottom:16px}
+.settings-head{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid rgba(107,142,127,.1)}
+.settings-head-icon{width:32px;height:32px;border-radius:10px;background:rgba(107,142,127,.1);display:flex;align-items:center;justify-content:center}
+.settings-head-icon svg{width:14px;height:14px;color:var(--sage-dark)}
+.settings-body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.settings-body.full{grid-template-columns:1fr}
+.s-field{display:flex;flex-direction:column;gap:5px}
+.s-field label{font-size:13px;font-weight:500;color:var(--ink)}
+.s-field input,.s-field select{
+  padding:10px 12px;border:1.5px solid rgba(107,142,127,.2);border-radius:11px;
+  font-size:14px;color:var(--ink);outline:none;background:#fff;transition:border-color .15s;
+}
+.s-field input:focus,.s-field select:focus{border-color:var(--sage)}
+.settings-footer{display:flex;justify-content:flex-end;padding:14px 20px;border-top:1px solid rgba(107,142,127,.1)}
+
+/* ── MODAL (generic) ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(45,59,54,.4);
+  backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;padding:16px;
+}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:20px;padding:28px;width:100%;max-width:420px;box-shadow:0 20px 60px -8px rgba(45,59,54,.25)}
+.modal-lg{max-width:560px}
+.modal-title{font-family:'Fraunces',serif;font-size:19px;font-weight:600;color:var(--ink)}
+.modal-body{font-size:14px;color:var(--muted);line-height:1.6;margin:12px 0 20px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.modal-success{text-align:center;padding:12px 0}
+.modal-success-icon{font-size:48px;margin-bottom:8px}
+.modal-success p{font-size:14px;color:var(--muted)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--muted);padding:4px;border-radius:8px;display:flex}
+.modal-close:hover{color:var(--ink);background:#f5f1e8}
+
+/* ── FORM GRID (inside modals) ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid.col1{grid-template-columns:1fr}
+.form-field{display:flex;flex-direction:column;gap:5px}
+.form-field.span2{grid-column:1/-1}
+.form-field label{font-size:13px;font-weight:500;color:var(--ink)}
+.form-input{
+  padding:10px 12px;border:1.5px solid rgba(107,142,127,.2);border-radius:11px;
+  font-size:14px;color:var(--ink);outline:none;background:#fff;transition:border-color .15s;width:100%;
+}
+.form-input:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(107,142,127,.1)}
+.form-input::placeholder{color:var(--muted)}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:200;
+  background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;
+  font-size:14px;font-weight:500;transform:translateY(80px);opacity:0;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 8px 24px -4px rgba(45,59,54,.35);max-width:320px;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{background:var(--sage-dark)}
+.toast.error{background:var(--terracotta)}
+
+/* ── EMPTY STATE ── */
+.empty-state{border:2px dashed rgba(107,142,127,.25);border-radius:16px;padding:40px;text-align:center}
+.empty-state p{font-size:14px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+
+<!-- ════════ LOGIN ════════ -->
+<div id="screen-login" class="screen active">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg width="58" height="72" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="13" height="38" rx="6.5" fill="#2D6347"/>
+        <circle cx="20.5" cy="15.5" r="11.5" fill="#2D6347"/>
+        <rect x="7" y="4" width="14" height="23" fill="#2D6347"/>
+        <rect x="17.5" y="7.5" width="5" height="16" rx="2.5" fill="white"/>
+        <rect x="11.5" y="12.5" width="17" height="5" rx="2.5" fill="white"/>
+      </svg>
+      <span class="login-logo-wordmark">Prontua</span>
+    </div>
+    <p class="login-sub">Evoluindo sua gestão clínica</p>
+    <div class="field">
+      <label>E-mail</label>
+      <input type="email" id="login-email" value="ana@clinica.com.br" placeholder="seu@email.com"/>
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="login-pwd" value="senha123" placeholder="••••••••"/>
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Entrar</button>
+    <p class="login-footer">Não tem conta? <a onclick="showToast('Cadastro disponível em breve!','success')">Criar conta grátis</a></p>
+  </div>
+</div>
+
+<!-- ════════ APP SHELL ════════ -->
+<div id="app-shell" class="screen">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="22" height="27" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="13" height="38" rx="6.5" fill="#2D6347"/>
+        <circle cx="20.5" cy="15.5" r="11.5" fill="#2D6347"/>
+        <rect x="7" y="4" width="14" height="23" fill="#2D6347"/>
+        <rect x="17.5" y="7.5" width="5" height="16" rx="2.5" fill="white"/>
+        <rect x="11.5" y="12.5" width="17" height="5" rx="2.5" fill="white"/>
+      </svg>
+      Prontua
+    </div>
+    <div class="nav-item active" data-nav="dashboard" onclick="navigate('dashboard',this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" data-nav="pacientes" onclick="navigate('pacientes',this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      Pacientes
+    </div>
+    <div class="nav-item" data-nav="agenda" onclick="navigate('agenda',this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Agenda
+    </div>
+    <div class="nav-item" data-nav="financeiro" onclick="navigate('financeiro',this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Financeiro
+    </div>
+    <div class="nav-item" data-nav="config" onclick="navigate('config',this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Configurações
+    </div>
+    <div class="sidebar-footer">
+      <div class="avatar">A</div>
+      <span>Dra. Ana Lima</span>
+    </div>
+  </nav>
+
+  <!-- CONTENT AREA -->
+  <div class="content-area">
+
+    <!-- ─── DASHBOARD ─── -->
+    <div id="screen-dashboard" class="app-page active">
+      <div class="page-inner">
+        <p class="page-date">terça-feira, 19 de maio de 2026</p>
+        <h1 class="page-title">Olá, <span>Dra. Ana</span></h1>
+        <p class="page-sub">Aqui está um resumo do que está acontecendo na sua clínica.</p>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-top"><span class="kpi-label">Sessões hoje</span>
+              <span class="kpi-icon sage"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="m9 16 2 2 4-4"/></svg></span>
+            </div>
+            <div class="kpi-value">4</div><div class="kpi-hint">agendadas para hoje</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-top"><span class="kpi-label">Esta semana</span>
+              <span class="kpi-icon sage"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+            </div>
+            <div class="kpi-value">18</div><div class="kpi-hint">sessões ativas</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-top"><span class="kpi-label">Faturado no mês</span>
+              <span class="kpi-icon warm"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span>
+            </div>
+            <div class="kpi-value">R$&nbsp;6.400</div><div class="kpi-hint">32 sessões no mês</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-top"><span class="kpi-label">A receber</span>
+              <span class="kpi-icon terracotta"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></span>
+            </div>
+            <div class="kpi-value">R$&nbsp;1.800</div><div class="kpi-hint">pagamentos em aberto</div>
+          </div>
+        </div>
+
+        <div class="content-row">
+          <div class="card">
+            <div class="section-title">Receita mensal</div>
+            <div class="section-sub">Últimos 6 meses</div>
+            <div class="chart-area">
+              <div class="chart-col"><div class="bar" style="height:52%"><span class="bar-tip">R$ 3.300</span></div><span class="bar-label">Dez</span></div>
+              <div class="chart-col"><div class="bar" style="height:68%"><span class="bar-tip">R$ 4.300</span></div><span class="bar-label">Jan</span></div>
+              <div class="chart-col"><div class="bar" style="height:59%"><span class="bar-tip">R$ 3.740</span></div><span class="bar-label">Fev</span></div>
+              <div class="chart-col"><div class="bar" style="height:75%"><span class="bar-tip">R$ 4.750</span></div><span class="bar-label">Mar</span></div>
+              <div class="chart-col"><div class="bar" style="height:88%"><span class="bar-tip">R$ 5.600</span></div><span class="bar-label">Abr</span></div>
+              <div class="chart-col"><div class="bar" style="height:100%"><span class="bar-tip">R$ 6.400</span></div><span class="bar-label">Mai</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="agenda-header">
+              <div><div class="section-title">Agenda de hoje</div><div class="section-sub">4 sessões</div></div>
+              <button class="agenda-link" onclick="navigate('agenda')">Ver agenda →</button>
+            </div>
+            <div class="agenda-item" onclick="navigate('agenda')">
+              <div class="a-time"><div class="time">08:00</div><div class="dur">50min</div></div>
+              <div class="a-name">Juliana Ferreira</div>
+              <div class="a-mode"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 10l4.553-2.069A1 1 0 0 1 21 8.882v6.236a1 1 0 0 1-1.447.894L15 14"/><rect x="1" y="6" width="14" height="12" rx="2"/></svg>Online</div>
+              <span class="badge confirmed">Confirmada</span>
+            </div>
+            <div class="agenda-item" onclick="navigate('agenda')">
+              <div class="a-time"><div class="time">10:00</div><div class="dur">50min</div></div>
+              <div class="a-name">Carlos Mendes</div>
+              <div class="a-mode"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Presencial</div>
+              <span class="badge scheduled">Agendada</span>
+            </div>
+            <div class="agenda-item" onclick="navigate('agenda')">
+              <div class="a-time"><div class="time">14:00</div><div class="dur">50min</div></div>
+              <div class="a-name">Beatriz Costa</div>
+              <div class="a-mode"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 10l4.553-2.069A1 1 0 0 1 21 8.882v6.236a1 1 0 0 1-1.447.894L15 14"/><rect x="1" y="6" width="14" height="12" rx="2"/></svg>Online</div>
+              <span class="badge scheduled">Agendada</span>
+            </div>
+            <div class="agenda-item" onclick="navigate('agenda')">
+              <div class="a-time"><div class="time">16:00</div><div class="dur">50min</div></div>
+              <div class="a-name">Ricardo Alves</div>
+              <div class="a-mode"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Presencial</div>
+              <span class="badge completed">Concluída</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /dashboard -->
+
+    <!-- ─── PACIENTES ─── -->
+    <div id="screen-pacientes" class="app-page">
+      <div class="page-inner">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div><h1 class="page-title" style="font-size:26px">Pacientes</h1><p class="page-sub">4 pacientes ativos</p></div>
+          <button class="btn-primary-sm" onclick="openPatientModal()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Novo paciente
+          </button>
+        </div>
+        <div class="search-bar">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Buscar por nome ou WhatsApp..." oninput="filterPatients(this.value)"/>
+        </div>
+        <div class="patient-grid" id="patient-grid"></div>
+      </div>
+    </div><!-- /pacientes -->
+
+    <!-- ─── PACIENTE DETALHE ─── -->
+    <div id="screen-paciente-detail" class="app-page">
+      <div class="page-inner" style="max-width:760px">
+        <!-- Back + header -->
+        <div class="detail-back">
+          <button class="back-btn" onclick="navigate('pacientes')">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          </button>
+          <div class="detail-header">
+            <div class="detail-name" id="detail-name">Juliana Ferreira</div>
+          </div>
+          <div class="detail-actions">
+            <button class="btn-secondary-sm" onclick="navigate('prontuario')">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              Prontuário
+            </button>
+            <button class="btn-secondary-sm" onclick="openPatientModal(true)">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Editar
+            </button>
+          </div>
+        </div>
+
+        <!-- Info card -->
+        <div class="detail-info-card">
+          <div class="detail-meta-row" id="detail-meta-row">
+            <a href="#"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.7 13.6a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.62 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.6a16 16 0 0 0 6.29 6.29l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 18.92z"/></svg>(11) 9 8765-4321</a>
+            <a href="#"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>juliana@email.com</a>
+            <span><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>12/03/1990</span>
+          </div>
+          <div class="detail-divider">
+            <span style="display:flex;align-items:center;gap:5px;font-size:13px">
+              <svg width="13" height="13" fill="none" stroke="var(--muted)" stroke-width="1.8" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <strong style="color:var(--ink)">R$ 200,00</strong>
+              <span style="color:var(--muted)">/ sessão</span>
+            </span>
+            <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:#6B8E7F18;color:var(--sage-dark);font-weight:500">Semanal</span>
+          </div>
+        </div>
+
+        <!-- Sessions section -->
+        <div>
+          <div class="detail-sessions-header">
+            <div style="font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--ink)">Sessões</div>
+            <button class="btn-secondary-sm" onclick="openSessionModal()" style="font-size:12px;padding:6px 12px">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nova sessão
+            </button>
+          </div>
+          <div id="detail-sessions-list">
+            <div class="detail-session-row">
+              <div style="flex:1;min-width:0">
+                <div class="ds-date">Segunda, 19 de maio de 2026</div>
+                <div class="ds-meta">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>08:00 · 50min · Online · R$ 200,00
+                </div>
+              </div>
+              <span class="badge confirmed">Confirmada</span>
+              <span style="font-size:11px;padding:3px 8px;border-radius:20px;background:#6B8E7F22;color:var(--sage-dark)">Pago</span>
+            </div>
+            <div class="detail-session-row">
+              <div style="flex:1;min-width:0">
+                <div class="ds-date">Segunda, 12 de maio de 2026</div>
+                <div class="ds-meta">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>08:00 · 50min · Online · R$ 200,00
+                </div>
+              </div>
+              <span class="badge completed">Concluída</span>
+              <span style="font-size:11px;padding:3px 8px;border-radius:20px;background:#C97B5C1A;color:var(--terracotta)">Pendente</span>
+            </div>
+            <div class="detail-session-row">
+              <div style="flex:1;min-width:0">
+                <div class="ds-date">Segunda, 5 de maio de 2026</div>
+                <div class="ds-meta">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>08:00 · 50min · Online · R$ 200,00
+                </div>
+              </div>
+              <span class="badge completed">Concluída</span>
+              <span style="font-size:11px;padding:3px 8px;border-radius:20px;background:#6B8E7F22;color:var(--sage-dark)">Pago</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /paciente-detail -->
+
+    <!-- ─── PRONTUÁRIO ─── -->
+    <div id="screen-prontuario" class="app-page" style="background:#FDFCF0">
+      <div class="pron-toolbar">
+        <button class="pron-toolbar-back" onclick="navigate('paciente-detail')">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        </button>
+        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+          <svg width="16" height="16" fill="none" stroke="#6B8E7F" stroke-width="1.8" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          <div>
+            <div class="pron-toolbar-title">Prontuário — Juliana Ferreira</div>
+            <div class="pron-toolbar-sub">3 sessões registradas · Auto-save ativo</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-secondary-sm" onclick="openShareModal()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Compartilhar
+          </button>
+          <button class="btn-primary-sm" onclick="exportPdf()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar PDF
+          </button>
+        </div>
+      </div>
+
+      <div class="pron-body">
+        <div style="display:flex;gap:20px;align-items:flex-start">
+          <!-- Sidebar -->
+          <div style="width:210px;flex-shrink:0">
+            <div style="position:sticky;top:74px">
+              <div class="pron-stat-card">
+                <div class="pron-stat-header">
+                  <div class="pron-stat-avatar">J</div>
+                  <div>
+                    <div class="pron-stat-name">Juliana Ferreira</div>
+                    <div class="pron-stat-role">Prontuário clínico</div>
+                  </div>
+                </div>
+                <div class="pron-stats-grid">
+                  <div class="pron-stat-item"><div class="pron-stat-n">3</div><div class="pron-stat-l">sessões</div></div>
+                  <div class="pron-stat-item"><div class="pron-stat-n">3</div><div class="pron-stat-l">concluídas</div></div>
+                  <div class="pron-stat-item pron-stat-wide"><div class="pron-stat-n">2</div><div class="pron-stat-l">com anotação</div></div>
+                </div>
+              </div>
+              <div class="pron-stat-card" style="font-size:12px;color:var(--muted)">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(45,59,54,.5);margin-bottom:10px">Legenda</div>
+                <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><div style="width:10px;height:10px;border-radius:50%;background:var(--sage);opacity:.6"></div>Concluída</div>
+                <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><div style="width:10px;height:10px;border-radius:50%;background:var(--warm)"></div>Agendada</div>
+                <div style="display:flex;align-items:center;gap:7px"><div style="width:10px;height:10px;border-radius:50%;background:var(--terracotta);opacity:.4"></div>Cancelada / Falta</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div style="flex:1">
+
+            <!-- Card 3 (mais recente) -->
+            <div class="evolution-card" id="card-1">
+              <div class="evo-header">
+                <div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span class="evo-session-n">Sessão 3</span>
+                    <span class="badge completed">Concluída</span>
+                  </div>
+                  <div class="evo-date">segunda-feira, 15 de dezembro de 2024 · 10:00</div>
+                  <div class="evo-meta">
+                    <span>Dra. Ana Lima</span><span>·</span>
+                    <span><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>50min</span>
+                    <span>·</span><span>Online</span><span>·</span><span>R$ 200,00</span>
+                  </div>
+                </div>
+                <div class="evo-right">
+                  <div class="save-status" id="save-1"></div>
+                </div>
+              </div>
+              <div class="technique-row">
+                <span class="technique-label">Técnica:</span>
+                <span class="technique-chip active" onclick="selectTechnique(this,'1')">TCC</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'1')">ACT</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'1')">EMDR</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'1')">DBT</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'1')">Psicanálise</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'1')">Gestalt</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'1')">Sistêmica</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'1')">Outra</span>
+                <div class="mood-row">
+                  <span class="mood-lbl">Humor:</span>
+                  <button class="mood-btn" onclick="selectMood(this,1,'1')" title="Muito triste">😞</button>
+                  <button class="mood-btn" onclick="selectMood(this,2,'1')" title="Triste">😔</button>
+                  <button class="mood-btn" onclick="selectMood(this,3,'1')" title="Neutro">😐</button>
+                  <button class="mood-btn active" onclick="selectMood(this,4,'1')" title="Bem">🙂</button>
+                  <button class="mood-btn" onclick="selectMood(this,5,'1')" title="Muito bem">😊</button>
+                  <span class="mood-val" id="mood-label-1">Bem</span>
+                </div>
+              </div>
+              <div class="evo-body">
+                <div>
+                  <div class="field-lbl">Evolução clínica</div>
+                  <textarea class="evo-textarea content-area-ta" oninput="scheduleAutoSave('1')" placeholder="Descreva a evolução da sessão...">Paciente relata melhora significativa no manejo da ansiedade antecipatória. Utilizamos a técnica de reestruturação cognitiva para trabalhar os pensamentos automáticos negativos relacionados ao ambiente de trabalho. Juliana demonstrou boa capacidade de insight e engajamento nas tarefas propostas.
+
+Observou-se redução da ruminação durante a sessão. Humor geral melhor que na semana anterior.</textarea>
+                </div>
+                <div>
+                  <div class="field-lbl">Próximos Passos</div>
+                  <textarea class="evo-textarea nextsteps-ta" oninput="scheduleAutoSave('1')" placeholder="Planejamento estratégico para a próxima sessão...">- Revisar o diário de pensamentos preenchido durante a semana
+- Introduzir técnica de exposição gradual para situações de conflito no trabalho
+- Avaliar evolução do sono e aplicar técnica de higiene do sono</textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="evolution-card" id="card-2">
+              <div class="evo-header">
+                <div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span class="evo-session-n">Sessão 2</span>
+                    <span class="badge completed">Concluída</span>
+                  </div>
+                  <div class="evo-date">sábado, 8 de novembro de 2024 · 14:00</div>
+                  <div class="evo-meta">
+                    <span>Dra. Ana Lima</span><span>·</span>
+                    <span><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>50min</span>
+                    <span>·</span><span>Presencial</span><span>·</span><span>R$ 200,00</span>
+                  </div>
+                </div>
+                <div class="evo-right"><div class="save-status" id="save-2"></div></div>
+              </div>
+              <div class="technique-row">
+                <span class="technique-label">Técnica:</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'2')">TCC</span>
+                <span class="technique-chip active" onclick="selectTechnique(this,'2')">ACT</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'2')">EMDR</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'2')">DBT</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'2')">Psicanálise</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'2')">Gestalt</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'2')">Sistêmica</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'2')">Outra</span>
+                <div class="mood-row">
+                  <span class="mood-lbl">Humor:</span>
+                  <button class="mood-btn" onclick="selectMood(this,1,'2')">😞</button>
+                  <button class="mood-btn" onclick="selectMood(this,2,'2')">😔</button>
+                  <button class="mood-btn active" onclick="selectMood(this,3,'2')">😐</button>
+                  <button class="mood-btn" onclick="selectMood(this,4,'2')">🙂</button>
+                  <button class="mood-btn" onclick="selectMood(this,5,'2')">😊</button>
+                  <span class="mood-val" id="mood-label-2">Neutro</span>
+                </div>
+              </div>
+              <div class="evo-body">
+                <div>
+                  <div class="field-lbl">Evolução clínica</div>
+                  <textarea class="evo-textarea content-area-ta" oninput="scheduleAutoSave('2')" placeholder="Descreva a evolução da sessão...">Segunda sessão. Paciente chegou com queixas de dificuldade em estabelecer limites no ambiente familiar e profissional. Trabalhamos com a matriz ACT para mapear valores versus comportamentos evitativos. Juliana identificou que o medo de rejeição está na base da maioria dos seus conflitos relacionais.</textarea>
+                </div>
+                <div>
+                  <div class="field-lbl">Próximos Passos</div>
+                  <textarea class="evo-textarea nextsteps-ta" oninput="scheduleAutoSave('2')" placeholder="Planejamento estratégico para a próxima sessão...">- Pedir que registre situações de esquiva durante a semana
+- Iniciar psicoeducação sobre TCC na próxima sessão
+- Avaliar nível de ansiedade com escala GAD-7</textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 1 (sessão vazia) -->
+            <div class="evolution-card" id="card-3">
+              <div class="evo-header">
+                <div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span class="evo-session-n">Sessão 1</span>
+                    <span class="badge completed">Concluída</span>
+                  </div>
+                  <div class="evo-date">sábado, 12 de outubro de 2024 · 10:00</div>
+                  <div class="evo-meta">
+                    <span>Dra. Ana Lima</span><span>·</span>
+                    <span><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>50min</span>
+                    <span>·</span><span>Presencial</span><span>·</span><span>R$ 200,00</span>
+                  </div>
+                </div>
+                <div class="evo-right"><div class="save-status" id="save-3"></div></div>
+              </div>
+              <div class="technique-row">
+                <span class="technique-label">Técnica:</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'3')">TCC</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'3')">ACT</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'3')">EMDR</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'3')">DBT</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'3')">Psicanálise</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'3')">Gestalt</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'3')">Sistêmica</span>
+                <span class="technique-chip" onclick="selectTechnique(this,'3')">Outra</span>
+                <div class="mood-row">
+                  <span class="mood-lbl">Humor:</span>
+                  <button class="mood-btn" onclick="selectMood(this,1,'3')">😞</button>
+                  <button class="mood-btn" onclick="selectMood(this,2,'3')">😔</button>
+                  <button class="mood-btn" onclick="selectMood(this,3,'3')">😐</button>
+                  <button class="mood-btn" onclick="selectMood(this,4,'3')">🙂</button>
+                  <button class="mood-btn" onclick="selectMood(this,5,'3')">😊</button>
+                  <span class="mood-val" id="mood-label-3"></span>
+                </div>
+              </div>
+              <div class="evo-body">
+                <div>
+                  <div class="field-lbl">Evolução clínica</div>
+                  <textarea class="evo-textarea content-area-ta" oninput="scheduleAutoSave('3')" placeholder="Sessão de anamnese. Descreva a evolução..."></textarea>
+                </div>
+                <div>
+                  <div class="field-lbl">Próximos Passos</div>
+                  <textarea class="evo-textarea nextsteps-ta" oninput="scheduleAutoSave('3')" placeholder="Planejamento para a próxima sessão..."></textarea>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /timeline -->
+        </div>
+      </div>
+    </div><!-- /prontuario -->
+
+    <!-- ─── AGENDA ─── -->
+    <div id="screen-agenda" class="app-page">
+      <div class="page-inner">
+        <div class="agenda-nav">
+          <button class="date-nav-btn" onclick="changeDay(-1)">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div class="date-display" id="agenda-date-display">terça, 19 de maio</div>
+          <button class="date-nav-btn" onclick="changeDay(1)">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <button class="btn-secondary-sm" onclick="openSessionModal()">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova sessão
+          </button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="agenda-session-row">
+            <div class="a-time"><div class="time">08:00</div><div class="dur">50min</div></div>
+            <div style="flex:1;min-width:0">
+              <div class="a-name" style="cursor:pointer" onclick="navigate('paciente-detail')">Juliana Ferreira</div>
+              <div class="a-mode" style="margin-top:2px">
+                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 10l4.553-2.069A1 1 0 0 1 21 8.882v6.236a1 1 0 0 1-1.447.894L15 14"/><rect x="1" y="6" width="14" height="12" rx="2"/></svg>
+                Online · R$ 200,00
+              </div>
+            </div>
+            <select class="status-select confirmed" onchange="changeStatus(this)">
+              <option value="SCHEDULED">Agendada</option>
+              <option value="CONFIRMED" selected>Confirmada</option>
+              <option value="COMPLETED">Concluída</option>
+              <option value="CANCELED">Cancelada</option>
+              <option value="NO_SHOW">Falta</option>
+            </select>
+          </div>
+          <div class="agenda-session-row">
+            <div class="a-time"><div class="time">10:00</div><div class="dur">50min</div></div>
+            <div style="flex:1;min-width:0">
+              <div class="a-name" style="cursor:pointer" onclick="showToast('Perfil de Carlos Mendes','success')">Carlos Mendes</div>
+              <div class="a-mode" style="margin-top:2px">
+                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Presencial · R$ 250,00
+              </div>
+            </div>
+            <select class="status-select scheduled" onchange="changeStatus(this)">
+              <option value="SCHEDULED" selected>Agendada</option>
+              <option value="CONFIRMED">Confirmada</option>
+              <option value="COMPLETED">Concluída</option>
+              <option value="CANCELED">Cancelada</option>
+              <option value="NO_SHOW">Falta</option>
+            </select>
+          </div>
+          <div class="agenda-session-row">
+            <div class="a-time"><div class="time">14:00</div><div class="dur">50min</div></div>
+            <div style="flex:1;min-width:0">
+              <div class="a-name" style="cursor:pointer" onclick="showToast('Perfil de Beatriz Costa','success')">Beatriz Costa</div>
+              <div class="a-mode" style="margin-top:2px">
+                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 10l4.553-2.069A1 1 0 0 1 21 8.882v6.236a1 1 0 0 1-1.447.894L15 14"/><rect x="1" y="6" width="14" height="12" rx="2"/></svg>
+                Online · R$ 180,00
+              </div>
+            </div>
+            <select class="status-select scheduled" onchange="changeStatus(this)">
+              <option value="SCHEDULED" selected>Agendada</option>
+              <option value="CONFIRMED">Confirmada</option>
+              <option value="COMPLETED">Concluída</option>
+              <option value="CANCELED">Cancelada</option>
+              <option value="NO_SHOW">Falta</option>
+            </select>
+          </div>
+          <div class="agenda-session-row">
+            <div class="a-time"><div class="time">16:00</div><div class="dur">50min</div></div>
+            <div style="flex:1;min-width:0">
+              <div class="a-name" style="cursor:pointer" onclick="showToast('Perfil de Ricardo Alves','success')">Ricardo Alves</div>
+              <div class="a-mode" style="margin-top:2px">
+                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Presencial · R$ 300,00
+              </div>
+            </div>
+            <select class="status-select completed" onchange="changeStatus(this)">
+              <option value="SCHEDULED">Agendada</option>
+              <option value="CONFIRMED">Confirmada</option>
+              <option value="COMPLETED" selected>Concluída</option>
+              <option value="CANCELED">Cancelada</option>
+              <option value="NO_SHOW">Falta</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div><!-- /agenda -->
+
+    <!-- ─── FINANCEIRO ─── -->
+    <div id="screen-financeiro" class="app-page">
+      <div class="page-inner">
+        <h1 class="page-title" style="font-size:26px;margin-bottom:20px">Financeiro</h1>
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="kpi-card">
+            <div class="kpi-top"><span class="kpi-label">Recebido no mês</span><span class="kpi-icon sage"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg></span></div>
+            <div class="kpi-value">R$&nbsp;6.400</div><div class="kpi-hint">32 sessões pagas</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-top"><span class="kpi-label">A receber</span><span class="kpi-icon warm"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></span></div>
+            <div class="kpi-value">R$&nbsp;1.800</div><div class="kpi-hint">9 sessões pendentes</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-top"><span class="kpi-label">Em atraso</span><span class="kpi-icon terracotta"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span></div>
+            <div class="kpi-value">R$&nbsp;400</div><div class="kpi-hint">2 sessões vencidas</div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px;padding:0;overflow:hidden">
+          <table class="payments-table">
+            <thead><tr><th>Status</th><th>Paciente</th><th>Data</th><th>Valor</th><th>Ação</th></tr></thead>
+            <tbody id="payments-tbody">
+              <tr>
+                <td><span class="pay-dot paid"></span>Pago</td>
+                <td>Juliana Ferreira</td><td>15/12/2024</td><td>R$ 200,00</td>
+                <td class="pay-method">PIX</td>
+              </tr>
+              <tr>
+                <td><span class="pay-dot pending"></span>Pendente</td>
+                <td>Carlos Mendes</td><td>19/05/2026</td><td>R$ 200,00</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <select class="mark-paid-select" id="method-1">
+                      <option value="">Método...</option>
+                      <option>PIX</option><option>Cartão</option><option>Dinheiro</option><option>Transferência</option>
+                    </select>
+                    <button class="btn-primary-sm" style="font-size:11px;padding:4px 10px" onclick="markPaid('method-1','Carlos Mendes',this)">Marcar pago</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="pay-dot paid"></span>Pago</td>
+                <td>Beatriz Costa</td><td>18/05/2026</td><td>R$ 200,00</td>
+                <td class="pay-method">Cartão</td>
+              </tr>
+              <tr>
+                <td><span class="pay-dot pending"></span>Pendente</td>
+                <td>Ricardo Alves</td><td>17/05/2026</td><td>R$ 200,00</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <select class="mark-paid-select" id="method-2">
+                      <option value="">Método...</option>
+                      <option>PIX</option><option>Cartão</option><option>Dinheiro</option><option>Transferência</option>
+                    </select>
+                    <button class="btn-primary-sm" style="font-size:11px;padding:4px 10px" onclick="markPaid('method-2','Ricardo Alves',this)">Marcar pago</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="pay-dot overdue"></span><span style="color:#b91c1c">Em atraso</span></td>
+                <td>Juliana Ferreira</td><td>05/05/2026</td><td>R$ 200,00</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <select class="mark-paid-select" id="method-3">
+                      <option value="">Método...</option>
+                      <option>PIX</option><option>Cartão</option><option>Dinheiro</option><option>Transferência</option>
+                    </select>
+                    <button class="btn-primary-sm" style="font-size:11px;padding:4px 10px" onclick="markPaid('method-3','Juliana Ferreira',this)">Marcar pago</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /financeiro -->
+
+    <!-- ─── CONFIG ─── -->
+    <div id="screen-config" class="app-page">
+      <div class="page-inner" style="max-width:700px">
+        <h1 class="page-title" style="font-size:26px;margin-bottom:20px">Configurações</h1>
+        <div class="settings-section">
+          <div class="settings-head">
+            <div class="settings-head-icon"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <div><div style="font-weight:600;font-size:14px;color:var(--ink)">Perfil</div><div style="font-size:12px;color:var(--muted)">Dados pessoais e da clínica</div></div>
+          </div>
+          <div class="settings-body">
+            <div class="s-field"><label>Nome completo</label><input value="Dra. Ana Lima"/></div>
+            <div class="s-field"><label>WhatsApp</label><input value="(11) 9 8765-4321"/></div>
+            <div class="s-field"><label>Cidade</label><input value="São Paulo"/></div>
+            <div class="s-field"><label>Estado</label><select><option>SP</option><option>RJ</option><option>MG</option></select></div>
+            <div class="s-field"><label>Especialidade</label><select><option>Psicologia</option><option>Fisioterapia</option><option>Psiquiatria</option></select></div>
+            <div class="s-field"><label>CRP / Registro</label><input value="CRP 06/12345"/></div>
+          </div>
+          <div class="settings-footer"><button class="btn-primary-sm" onclick="showToast('Perfil salvo com sucesso!','success')">Salvar perfil</button></div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-head">
+            <div class="settings-head-icon"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+            <div><div style="font-weight:600;font-size:14px;color:var(--ink)">Alterar senha</div></div>
+          </div>
+          <div class="settings-body full">
+            <div class="s-field"><label>Senha atual</label><input type="password" value="••••••••"/></div>
+            <div class="s-field"><label>Nova senha</label><input type="password" placeholder="mínimo 8 caracteres"/></div>
+            <div class="s-field"><label>Confirmar nova senha</label><input type="password" placeholder="repita a senha"/></div>
+          </div>
+          <div class="settings-footer"><button class="btn-primary-sm" onclick="showToast('Senha alterada com sucesso!','success')">Alterar senha</button></div>
+        </div>
+      </div>
+    </div><!-- /config -->
+
+  </div><!-- /content-area -->
+</div><!-- /app-shell -->
+
+<!-- ════════ MODAL COMPARTILHAR PRONTUÁRIO ════════ -->
+<div class="modal-overlay" id="share-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Compartilhar Prontuário</div>
+      <button class="modal-close" onclick="closeShareModal()">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="share-content-initial">
+      <div class="modal-body">O prontuário completo de <strong>Juliana Ferreira</strong> será gerado como PDF e enviado pelo WhatsApp cadastrado da paciente <strong>(11) 9 8765-4321</strong>.</div>
+      <div class="modal-actions">
+        <button class="btn-secondary-sm" onclick="closeShareModal()">Cancelar</button>
+        <button class="btn-primary-sm" id="send-btn" onclick="sendWhatsApp()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Enviar pelo WhatsApp
+        </button>
+      </div>
+    </div>
+    <div id="share-content-success" style="display:none">
+      <div class="modal-success">
+        <div class="modal-success-icon">✅</div>
+        <p><strong>Prontuário enviado com sucesso!</strong></p>
+        <p style="margin-top:4px">O PDF foi enviado pelo WhatsApp para Juliana Ferreira.</p>
+      </div>
+      <div class="modal-actions"><button class="btn-primary-sm" onclick="closeShareModal()">Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ MODAL NOVA / EDITAR SESSÃO ════════ -->
+<div class="modal-overlay" id="session-modal">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <div class="modal-title" id="session-modal-title">Nova sessão</div>
+      <button class="modal-close" onclick="closeSessionModal()">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field span2">
+        <label>Paciente</label>
+        <select class="form-input">
+          <option value="">Selecionar paciente...</option>
+          <option selected>Juliana Ferreira</option>
+          <option>Carlos Mendes</option>
+          <option>Beatriz Costa</option>
+          <option>Ricardo Alves</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Data</label>
+        <input type="date" class="form-input" value="2026-05-26"/>
+      </div>
+      <div class="form-field">
+        <label>Horário</label>
+        <input type="time" class="form-input" value="08:00"/>
+      </div>
+      <div class="form-field">
+        <label>Duração (min)</label>
+        <select class="form-input">
+          <option>30</option>
+          <option selected>50</option>
+          <option>60</option>
+          <option>90</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Modalidade</label>
+        <select class="form-input">
+          <option>Online</option>
+          <option>Presencial</option>
+        </select>
+      </div>
+      <div class="form-field span2">
+        <label>Valor da sessão (R$)</label>
+        <input type="text" class="form-input" value="200,00" placeholder="0,00"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary-sm" onclick="closeSessionModal()">Cancelar</button>
+      <button class="btn-primary-sm" onclick="saveSession()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Salvar sessão
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ MODAL NOVO / EDITAR PACIENTE ════════ -->
+<div class="modal-overlay" id="patient-modal">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <div class="modal-title" id="patient-modal-title">Novo paciente</div>
+      <button class="modal-close" onclick="closePatientModal()">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field span2">
+        <label>Nome completo</label>
+        <input type="text" class="form-input" placeholder="Nome da paciente" id="pm-name"/>
+      </div>
+      <div class="form-field">
+        <label>CPF</label>
+        <input type="text" class="form-input" placeholder="000.000.000-00" id="pm-cpf"/>
+      </div>
+      <div class="form-field">
+        <label>Data de nascimento</label>
+        <input type="date" class="form-input" id="pm-birth"/>
+      </div>
+      <div class="form-field">
+        <label>WhatsApp</label>
+        <input type="text" class="form-input" placeholder="(11) 9 0000-0000" id="pm-whatsapp"/>
+      </div>
+      <div class="form-field">
+        <label>E-mail</label>
+        <input type="email" class="form-input" placeholder="paciente@email.com" id="pm-email"/>
+      </div>
+      <div class="form-field">
+        <label>Valor da sessão (R$)</label>
+        <input type="text" class="form-input" placeholder="200,00" id="pm-value"/>
+      </div>
+      <div class="form-field">
+        <label>Frequência</label>
+        <select class="form-input" id="pm-freq">
+          <option>Semanal</option>
+          <option>Quinzenal</option>
+          <option>Mensal</option>
+        </select>
+      </div>
+      <div class="form-field span2">
+        <label>Observações gerais</label>
+        <textarea class="form-input" rows="3" placeholder="Anotações gerais sobre o paciente..." style="resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary-sm" onclick="closePatientModal()">Cancelar</button>
+      <button class="btn-primary-sm" onclick="savePatient()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Salvar paciente
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────
+const patients = [
+  {id:1,name:'Juliana Ferreira',freq:'Semanal',whatsapp:'(11) 9 8765-4321',value:'R$ 200,00'},
+  {id:2,name:'Carlos Mendes',freq:'Quinzenal',whatsapp:'(11) 9 7654-3210',value:'R$ 250,00'},
+  {id:3,name:'Beatriz Costa',freq:'Semanal',whatsapp:'(21) 9 9876-5432',value:'R$ 180,00'},
+  {id:4,name:'Ricardo Alves',freq:'Mensal',whatsapp:'(11) 9 5432-1098',value:'R$ 300,00'},
+];
+
+// ── ROUTER ────────────────────────────────────────────────────────
+function navigate(page, navEl) {
+  document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
+  document.getElementById('screen-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+  else {
+    const mapping = {
+      'dashboard':'dashboard','pacientes':'pacientes','paciente-detail':'pacientes',
+      'prontuario':'pacientes','agenda':'agenda','financeiro':'financeiro','config':'config'
+    };
+    const el = document.querySelector(`[data-nav="${mapping[page] || page}"]`);
+    if (el) el.classList.add('active');
+  }
+  document.querySelector('.content-area').scrollTop = 0;
+}
+
+function doLogin() {
+  const email = document.getElementById('login-email').value;
+  const pwd   = document.getElementById('login-pwd').value;
+  if (!email || !pwd) { showToast('Preencha e-mail e senha','error'); return; }
+  document.getElementById('screen-login').style.display = 'none';
+  document.getElementById('app-shell').style.display = 'flex';
+  navigate('dashboard');
+  showToast('Bem-vinda ao Prontua, Dra. Ana! 👋','success');
+}
+
+// ── PATIENTS ──────────────────────────────────────────────────────
+function renderPatients(list) {
+  document.getElementById('patient-grid').innerHTML = list.map(p => `
+    <div class="patient-card" onclick="openPatientDetail(${p.id})">
+      <div class="p-header">
+        <div class="p-avatar">${p.name.charAt(0)}</div>
+        <div>
+          <div class="p-name">${p.name}</div>
+          <span class="p-tag">${p.freq}</span>
+        </div>
+      </div>
+      <div class="p-meta">
+        <span>📱 ${p.whatsapp}</span>
+        <span>💰 ${p.value}/sessão</span>
+      </div>
+      <div class="p-actions" onclick="event.stopPropagation()">
+        <button class="p-btn outline" onclick="openPatientDetail(${p.id})">Ver perfil</button>
+        <button class="p-btn fill" onclick="openProntuario(${p.id})">Prontuário</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterPatients(q) {
+  renderPatients(patients.filter(p =>
+    p.name.toLowerCase().includes(q.toLowerCase()) || p.whatsapp.includes(q)
+  ));
+}
+
+function openPatientDetail(id) {
+  const p = patients.find(x => x.id === id) || patients[0];
+  document.getElementById('detail-name').textContent = p.name;
+  navigate('paciente-detail');
+}
+
+function openProntuario(id) {
+  navigate('prontuario');
+}
+
+renderPatients(patients);
+
+// ── AGENDA ────────────────────────────────────────────────────────
+const MONTHS   = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const WEEKDAYS = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+let currentDay = new Date(2026, 4, 19);
+
+function updateDateDisplay() {
+  const d = currentDay;
+  document.getElementById('agenda-date-display').textContent =
+    `${WEEKDAYS[d.getDay()]}, ${d.getDate()} de ${MONTHS[d.getMonth()]}`;
+}
+
+function changeDay(delta) {
+  currentDay = new Date(currentDay);
+  currentDay.setDate(currentDay.getDate() + delta);
+  updateDateDisplay();
+  showToast(`Agenda de ${WEEKDAYS[currentDay.getDay()]}, ${currentDay.getDate()} de ${MONTHS[currentDay.getMonth()]}`,'success');
+}
+
+// ── STATUS DROPDOWN ───────────────────────────────────────────────
+const STATUS_CLASSES = {
+  SCHEDULED:'scheduled', CONFIRMED:'confirmed',
+  COMPLETED:'completed', CANCELED:'canceled', NO_SHOW:'noshow'
+};
+const STATUS_LABELS = {
+  SCHEDULED:'Agendada', CONFIRMED:'Confirmada',
+  COMPLETED:'Concluída', CANCELED:'Cancelada', NO_SHOW:'Falta'
+};
+
+function changeStatus(sel) {
+  sel.className = 'status-select ' + (STATUS_CLASSES[sel.value] || 'scheduled');
+  showToast(`Status alterado para "${STATUS_LABELS[sel.value]}"`, 'success');
+}
+
+// ── SESSION MODAL ─────────────────────────────────────────────────
+function openSessionModal(edit) {
+  document.getElementById('session-modal-title').textContent = edit ? 'Editar sessão' : 'Nova sessão';
+  document.getElementById('session-modal').classList.add('active');
+}
+function closeSessionModal() {
+  document.getElementById('session-modal').classList.remove('active');
+}
+function saveSession() {
+  closeSessionModal();
+  showToast('Sessão agendada com sucesso!', 'success');
+}
+
+// ── PATIENT MODAL ─────────────────────────────────────────────────
+function openPatientModal(edit) {
+  document.getElementById('patient-modal-title').textContent = edit ? 'Editar paciente' : 'Novo paciente';
+  if (edit) {
+    document.getElementById('pm-name').value = 'Juliana Ferreira';
+    document.getElementById('pm-whatsapp').value = '(11) 9 8765-4321';
+    document.getElementById('pm-email').value = 'juliana@email.com';
+    document.getElementById('pm-value').value = '200,00';
+  } else {
+    document.getElementById('pm-name').value = '';
+    document.getElementById('pm-whatsapp').value = '';
+    document.getElementById('pm-email').value = '';
+    document.getElementById('pm-value').value = '';
+  }
+  document.getElementById('patient-modal').classList.add('active');
+}
+function closePatientModal() {
+  document.getElementById('patient-modal').classList.remove('active');
+}
+function savePatient() {
+  const name = document.getElementById('pm-name').value.trim();
+  if (!name) { showToast('Informe o nome do paciente','error'); return; }
+  closePatientModal();
+  showToast(`Paciente "${name}" salvo com sucesso!`, 'success');
+}
+
+// ── PRONTUÁRIO — AUTO-SAVE ────────────────────────────────────────
+const saveTimers = {};
+function scheduleAutoSave(cardId) {
+  const el = document.getElementById('save-' + cardId);
+  if (saveTimers[cardId]) clearTimeout(saveTimers[cardId]);
+  el.innerHTML = '';
+  saveTimers[cardId] = setTimeout(() => {
+    el.innerHTML = '<span class="saving">⏳ Salvando…</span>';
+    setTimeout(() => {
+      el.innerHTML = '<span class="saved">✓ Salvo</span>';
+      setTimeout(() => { el.innerHTML = ''; }, 2500);
+    }, 900);
+  }, 2000);
+}
+
+// ── PRONTUÁRIO — TECHNIQUE CHIPS ─────────────────────────────────
+function selectTechnique(chip, cardId) {
+  const wasActive = chip.classList.contains('active');
+  chip.closest('.technique-row').querySelectorAll('.technique-chip')
+    .forEach(c => c.classList.remove('active'));
+  if (!wasActive) chip.classList.add('active');
+  scheduleAutoSave(cardId);
+}
+
+// ── PRONTUÁRIO — MOOD ─────────────────────────────────────────────
+const MOOD_LABELS = ['','Muito triste','Triste','Neutro','Bem','Muito bem'];
+function selectMood(btn, mood, cardId) {
+  btn.closest('.mood-row').querySelectorAll('.mood-btn')
+    .forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('mood-label-' + cardId).textContent = MOOD_LABELS[mood];
+  scheduleAutoSave(cardId);
+}
+
+// ── PDF EXPORT ────────────────────────────────────────────────────
+function exportPdf() {
+  const btn = event.target.closest('button');
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Gerando…';
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.innerHTML = orig;
+    showToast('✓ PDF do prontuário gerado e baixado!','success');
+  }, 1800);
+}
+
+// ── SHARE MODAL ───────────────────────────────────────────────────
+function openShareModal() {
+  document.getElementById('share-modal').classList.add('active');
+  document.getElementById('share-content-initial').style.display = 'block';
+  document.getElementById('share-content-success').style.display = 'none';
+}
+function closeShareModal() { document.getElementById('share-modal').classList.remove('active'); }
+function sendWhatsApp() {
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Enviando…';
+  setTimeout(() => {
+    document.getElementById('share-content-initial').style.display = 'none';
+    document.getElementById('share-content-success').style.display = 'block';
+  }, 1800);
+}
+
+// ── FINANCEIRO — MARK PAID ────────────────────────────────────────
+function markPaid(selectId, name, btn) {
+  const method = document.getElementById(selectId).value;
+  if (!method) { showToast('Selecione o método de pagamento','error'); return; }
+  const td = btn.closest('td');
+  td.innerHTML = `<span class="pay-method">${method}</span>`;
+  const statusTd = btn.closest('tr').querySelector('td:first-child');
+  statusTd.innerHTML = `<span class="pay-dot paid"></span>Pago`;
+  showToast(`Pagamento de ${name} marcado como pago via ${method}!`, 'success');
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  clearTimeout(toastTimer);
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  requestAnimationFrame(() => t.classList.add('show'));
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── FECHAR MODAIS AO CLICAR FORA ─────────────────────────────────
+['share-modal','session-modal','patient-modal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('active');
+  });
+});
+
+// Enter no login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('screen-login').classList.contains('active')) doLogin();
+});
+</script>
+</body>
+</html>
