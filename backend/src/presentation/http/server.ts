@@ -10,6 +10,7 @@ import { requestId } from '@presentation/http/middlewares/request-id.middleware'
 import { ipHashMiddleware } from '@presentation/http/middlewares/audit.middleware';
 import { csrfDefense } from '@presentation/http/middlewares/csrf.middleware';
 import { apiRateLimiter } from '@presentation/http/middlewares/rate-limit.middleware';
+import { sanitizeBody } from '@presentation/http/middlewares/sanitize.middleware';
 import { errorHandler } from '@presentation/http/middlewares/error.middleware';
 
 import { authRoutes } from '@presentation/http/routes/auth.routes';
@@ -32,6 +33,7 @@ export function buildServer(): Express {
   app.use(cookieParser());
   app.use(express.json({ limit: '100kb' }));
   app.use(express.urlencoded({ extended: false, limit: '100kb' }));
+  app.use(sanitizeBody());
   app.use(ipHashMiddleware());
 
   app.use(

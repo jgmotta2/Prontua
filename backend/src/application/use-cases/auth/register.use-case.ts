@@ -1,7 +1,9 @@
 import { prisma } from '@config/prisma';
 import { passwordService } from '@infrastructure/crypto/password.service';
 import { auditLogger } from '@infrastructure/security/audit.logger';
+import { zApiService } from '@infrastructure/messaging/zapi.service';
 import { ConflictError } from '@shared/errors/app-error';
+import { logger } from '@shared/utils/logger';
 import type { RegisterInput } from '@presentation/http/schemas/auth.schema';
 import { UserRole } from '@prisma/client';
 
@@ -77,6 +79,15 @@ export async function registerUseCase(
     userAgent: input.userAgent,
     metadata: { specialty: input.specialty }, // dado operacional, não PII
   });
+
+  // Welcome WhatsApp — fire-and-forget: falha não bloqueia o cadastro.
+  const firstName = input.name.trim().split(' ')[0]!;
+  zApiService
+    .sendWelcome(result.tenantId, input.whatsapp, null, {
+      firstName,
+      professionalName: input.name,
+    })
+    .catch((err) => logger.warn({ err }, 'welcome_whatsapp_failed'));
 
   return result;
 }
