@@ -11,6 +11,7 @@ export interface PatientSummary {
 }
 
 export interface Patient extends PatientSummary {
+  city: string | null;
   birthDate: string | null;
   email: string | null;
   notesGeneral: string | null;
@@ -20,6 +21,8 @@ export interface Patient extends PatientSummary {
 
 export interface PatientFormData {
   fullName: string;
+  city: string;
+  chiefComplaint: string;
   birthDate?: string;
   email?: string;
   whatsapp: string;

@@ -5,13 +5,24 @@ import { X } from 'lucide-react';
 import { useCreateSession } from '../hooks/useAgenda';
 import { usePatients } from '@features/patients/hooks/usePatients';
 
-const schema = z.object({
-  patientId:   z.string().uuid('Selecione um paciente'),
-  scheduledAt: z.string().min(1, 'Obrigatório'),
-  durationMin: z.coerce.number().int().min(15).max(240).default(50),
-  mode:        z.enum(['PRESENCIAL', 'ONLINE']).default('PRESENCIAL'),
-  value:       z.coerce.number({ invalid_type_error: 'Obrigatório' }).nonnegative('Valor inválido'),
-});
+function todayMin(): string {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T00:00`;
+}
+
+const schema = z
+  .object({
+    patientId:   z.string().uuid('Selecione um paciente'),
+    scheduledAt: z.string().min(1, 'Obrigatório'),
+    durationMin: z.coerce.number().int().min(15).max(240).default(50),
+    mode:        z.enum(['PRESENCIAL', 'ONLINE']).default('PRESENCIAL'),
+    value:       z.coerce.number({ invalid_type_error: 'Obrigatório' }).nonnegative('Valor inválido'),
+  })
+  .refine(
+    (d) => new Date(d.scheduledAt) >= new Date(new Date().setHours(0, 0, 0, 0)),
+    { message: 'Não é permitido agendar em datas retroativas.', path: ['scheduledAt'] },
+  );
 
 type FormValues = z.infer<typeof schema>;
 
@@ -85,6 +96,7 @@ export function SessionFormModal({ defaultDate, defaultPatientId, onClose }: Pro
             <label className="label">Data e hora *</label>
             <input
               type="datetime-local"
+              min={todayMin()}
               className={`input ${errors.scheduledAt ? 'input-error' : ''}`}
               {...register('scheduledAt')}
             />

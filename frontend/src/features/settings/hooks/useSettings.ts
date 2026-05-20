@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { settingsApi, type UpdateProfileData } from '../api/settings.api';
 import type { ApiClientError } from '@lib/api/client';
 
@@ -24,5 +25,18 @@ export function useChangePassword() {
   return useMutation<unknown, ApiClientError, { currentPassword: string; newPassword: string }>({
     mutationFn: ({ currentPassword, newPassword }) =>
       settingsApi.changePassword(currentPassword, newPassword),
+  });
+}
+
+export function useLogout() {
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  return useMutation<void, ApiClientError, void>({
+    mutationFn: () => settingsApi.logout(),
+    onSettled: () => {
+      // Clear all cached query data regardless of API success/failure
+      qc.clear();
+      navigate('/entrar', { replace: true });
+    },
   });
 }

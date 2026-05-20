@@ -36,4 +36,6 @@ export const settingsApi = {
 
   changePassword: (currentPassword: string, newPassword: string) =>
     api.post<void>('/users/me/change-password', { currentPassword, newPassword }),
+
+  logout: () => api.post<void>('/auth/logout', {}),
 };

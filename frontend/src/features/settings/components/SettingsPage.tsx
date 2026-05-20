@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { User, Lock, CheckCircle2 } from 'lucide-react';
-import { useProfile, useUpdateProfile, useChangePassword } from '../hooks/useSettings';
+import { User, Lock, CheckCircle2, LogOut } from 'lucide-react';
+import { useProfile, useUpdateProfile, useChangePassword, useLogout } from '../hooks/useSettings';
 import { maskWhatsappBr, unmaskWhatsapp } from '@lib/utils/mask';
 import { BR_STATES, SPECIALTIES } from '@lib/validation/auth.schema';
 
@@ -44,6 +44,7 @@ export function SettingsPage() {
   const { data: profile, isLoading } = useProfile();
   const updateProfile  = useUpdateProfile();
   const changePassword = useChangePassword();
+  const logout         = useLogout();
 
   const [profileSaved,  setProfileSaved]  = useState(false);
   const [passwordSaved, setPasswordSaved] = useState(false);
@@ -274,6 +275,31 @@ export function SettingsPage() {
           </p>
         </section>
       )}
+
+      {/* Logout section */}
+      <section className="bg-white rounded-2xl shadow-soft overflow-hidden border border-terracotta/20">
+        <div className="flex items-center gap-3 p-5 border-b border-terracotta/15">
+          <div className="rounded-xl bg-terracotta/10 p-2">
+            <LogOut className="h-4 w-4 text-terracotta" />
+          </div>
+          <h2 className="font-semibold text-ink">Segurança da conta</h2>
+        </div>
+        <div className="p-5">
+          <p className="text-sm text-muted mb-4">
+            Encerra a sessão atual e invalida o token de acesso. Use ao sair de um computador compartilhado.
+          </p>
+          <button
+            onClick={() => { if (window.confirm('Deseja realmente finalizar a sessão?')) logout.mutate(); }}
+            disabled={logout.isPending}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm
+                       bg-terracotta/10 text-terracotta border border-terracotta/25
+                       hover:bg-terracotta/20 transition disabled:opacity-60"
+          >
+            <LogOut className="h-4 w-4" />
+            {logout.isPending ? 'Saindo...' : 'Finalizar sessão'}
+          </button>
+        </div>
+      </section>
     </div>
   );
 }
