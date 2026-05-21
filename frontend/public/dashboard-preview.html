@@ -2199,8 +2199,8 @@ function disableMfa() {
 // ── AUTO-LOGOUT POR INATIVIDADE ───────────────────────────────────
 // Demo: aviso após 2 min sem interação, logout após mais 60s
 // Produção: aviso 14min, logout 15min
-const IDLE_WARN_MS   = 2 * 60 * 1000; // 2min demo
-const IDLE_SECS      = 60;
+const IDLE_WARN_MS   = 4 * 60 * 1000; // aviso aos 4min
+const IDLE_SECS      = 60;            // logout 1min após o aviso (total: 5min)
 let idleTimer, idleInterval, idleRemaining = IDLE_SECS;
 
 function resetIdleTimer() {
