@@ -1723,6 +1723,15 @@ const MONTHS   = ['janeiro','fevereiro','março','abril','maio','junho','julho',
 const WEEKDAYS = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
 let currentDay = new Date(2026, 4, 19);
 
+const STATUS_CLASSES = {
+  SCHEDULED:'scheduled', CONFIRMED:'confirmed',
+  COMPLETED:'completed', CANCELED:'canceled', NO_SHOW:'noshow'
+};
+const STATUS_LABELS = {
+  SCHEDULED:'Agendada', CONFIRMED:'Confirmada',
+  COMPLETED:'Concluída', CANCELED:'Cancelada', NO_SHOW:'Falta'
+};
+
 renderPatients(patients);
 renderAgenda();
 
@@ -1738,16 +1747,6 @@ function changeDay(delta) {
   updateDateDisplay();
   renderAgenda();
 }
-
-// ── STATUS DROPDOWN ───────────────────────────────────────────────
-const STATUS_CLASSES = {
-  SCHEDULED:'scheduled', CONFIRMED:'confirmed',
-  COMPLETED:'completed', CANCELED:'canceled', NO_SHOW:'noshow'
-};
-const STATUS_LABELS = {
-  SCHEDULED:'Agendada', CONFIRMED:'Confirmada',
-  COMPLETED:'Concluída', CANCELED:'Cancelada', NO_SHOW:'Falta'
-};
 
 function changeStatus(sel) {
   sel.className = 'status-select ' + (STATUS_CLASSES[sel.value] || 'scheduled');
