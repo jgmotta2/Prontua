@@ -1,11 +1,20 @@
 import { useMutation } from '@tanstack/react-query';
 import { api, ApiClientError } from '@lib/api/client';
 import type { LoginFormValues } from '@lib/validation/auth.schema';
+import type { MfaMethod } from '@features/security/api/mfa.api';
 
-interface LoginResponse {
+export interface LoginSuccess {
   userId: string;
   tenantId: string;
 }
+
+export interface LoginMfaChallenge {
+  requiresTwoFactor: true;
+  mfaMethod: MfaMethod;
+  tempToken: string;
+}
+
+export type LoginResponse = LoginSuccess | LoginMfaChallenge;
 
 export function useLogin() {
   return useMutation<LoginResponse, ApiClientError, LoginFormValues>({

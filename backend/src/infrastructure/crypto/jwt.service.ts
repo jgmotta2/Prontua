@@ -90,6 +90,29 @@ export class JwtService {
     res.clearCookie(ACCESS_COOKIE, { path: '/' });
     res.clearCookie(REFRESH_COOKIE, { path: '/auth/refresh' });
   }
+
+  /**
+   * Token temporário para o segundo fator do 2FA (5 min, não gera cookie).
+   * Claim `purpose: 'mfa_challenge'` distingue do access token normal.
+   */
+  signTempMfa(userId: string): string {
+    return jwt.sign(
+      { sub: userId, purpose: 'mfa_challenge' },
+      env.JWT_ACCESS_SECRET,
+      { algorithm: 'HS256', expiresIn: 300, issuer: env.JWT_ISSUER },
+    );
+  }
+
+  verifyTempMfa(token: string): { sub: string } {
+    const decoded = jwt.verify(token, env.JWT_ACCESS_SECRET, {
+      algorithms: ['HS256'],
+      issuer: env.JWT_ISSUER,
+    }) as { sub: string; purpose: string };
+    if (decoded.purpose !== 'mfa_challenge') {
+      throw new Error('Token inválido');
+    }
+    return { sub: decoded.sub };
+  }
 }
 
 export { ACCESS_COOKIE, REFRESH_COOKIE };

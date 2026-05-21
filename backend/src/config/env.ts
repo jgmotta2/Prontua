@@ -57,6 +57,8 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRICE_ID: z.string().optional(),
 
+  MFA_ISSUER: z.string().default('Prontua'),
+
   FRONTEND_URL: z.string().url(),
 });
 

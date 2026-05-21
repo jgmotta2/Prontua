@@ -6,6 +6,7 @@ import { User, Lock, CheckCircle2, LogOut } from 'lucide-react';
 import { useProfile, useUpdateProfile, useChangePassword, useLogout } from '../hooks/useSettings';
 import { maskWhatsappBr, unmaskWhatsapp } from '@lib/utils/mask';
 import { BR_STATES, SPECIALTIES } from '@lib/validation/auth.schema';
+import { SecuritySection } from '@features/security/components/SecuritySection';
 
 const SPECIALTY_LABELS: Record<string, string> = {
   PSICOLOGIA:        'Psicologia',
@@ -274,6 +275,14 @@ export function SettingsPage() {
             <span className="ml-2 text-xs text-muted">(não é possível alterar por aqui)</span>
           </p>
         </section>
+      )}
+
+      {/* Security / 2FA section */}
+      {profile && (
+        <SecuritySection
+          mfaEnabled={profile.mfaEnabled}
+          mfaMethod={profile.mfaMethod}
+        />
       )}
 
       {/* Logout section */}

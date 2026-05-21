@@ -4,6 +4,8 @@ export type Specialty =
   | 'PSICOLOGIA' | 'FISIOTERAPIA' | 'FONOAUDIOLOGIA'
   | 'PSICOPEDAGOGIA' | 'NUTRICAO' | 'TERAPIA_OCUPACIONAL' | 'OUTRA';
 
+export type MfaMethod = 'APP' | 'WHATSAPP';
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -15,6 +17,7 @@ export interface UserProfile {
   registry: string | null;
   role: string;
   mfaEnabled: boolean;
+  mfaMethod: MfaMethod | null;
   tenantId: string;
   createdAt: string;
 }

@@ -5,6 +5,8 @@ interface SessionInfo {
   userId: string;
   tenantId: string;
   role: 'OWNER' | 'ADMIN' | 'PROFESSIONAL' | 'ASSISTANT';
+  mfaEnabled: boolean;
+  mfaMethod: 'APP' | 'WHATSAPP' | null;
 }
 
 /**

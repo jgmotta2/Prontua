@@ -23,6 +23,7 @@ button,input,select,textarea{font-family:inherit}
 #app-shell.active{min-height:100vh;flex-direction:row}
 .app-page{display:none;flex:1;overflow-y:auto}
 .app-page.active{display:block}
+#screen-prontuario.active{display:flex;flex-direction:column;overflow:hidden}
 
 /* ── SIDEBAR ── */
 .sidebar{
@@ -433,6 +434,50 @@ button,input,select,textarea{font-family:inherit}
 .lgpd-badge strong{color:var(--ink)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner{animation:spin .8s linear infinite;flex-shrink:0}
+
+/* ── PRONTUÁRIO MASTER-DETAIL ── */
+@keyframes sessionEnter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.pron-master-detail{display:flex;height:calc(100vh - 57px);overflow:hidden}
+.pron-session-sidebar{width:260px;flex-shrink:0;border-right:1px solid rgba(107,142,127,.15);background:#fff;display:flex;flex-direction:column;overflow:hidden}
+.pron-sidebar-hd{padding:14px 16px;border-bottom:1px solid rgba(107,142,127,.1);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pron-sidebar-hd-title{font-family:'Fraunces',serif;font-size:14px;font-weight:600;color:var(--ink)}
+.pron-session-list{flex:1;overflow-y:auto;padding:8px}
+.pron-session-card{border-radius:12px;padding:12px 14px;margin-bottom:6px;cursor:pointer;border:1.5px solid transparent;border-left:3px solid transparent;transition:all .15s;background:transparent}
+.pron-session-card:hover{background:#f5f1e8}
+.pron-session-card.active{background:rgba(107,142,127,.09);border-color:rgba(107,142,127,.2);border-left-color:var(--sage-dark)}
+.psc-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.psc-n{font-size:10.5px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.06em}
+.psc-date{font-size:13.5px;font-weight:600;color:var(--ink);margin-top:3px}
+.psc-meta{font-size:11.5px;color:var(--muted);margin-top:3px}
+.psc-chip{font-size:10.5px;background:var(--sage);color:var(--cream);padding:2px 8px;border-radius:20px;display:inline-block;margin-top:5px;font-weight:500}
+.psc-chip.notech{background:var(--warm);color:var(--muted)}
+.pron-session-editor{flex:1;overflow-y:auto;padding:24px 28px}
+.pron-editor-panel{display:none;animation:sessionEnter .18s ease}
+.pron-editor-panel.active{display:block}
+.pron-read-banner{display:flex;align-items:center;justify-content:space-between;background:rgba(232,221,200,.5);border-radius:12px;padding:12px 16px;margin-bottom:18px;border:1px solid rgba(107,142,127,.15);gap:12px}
+.pron-read-text{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;flex:1}
+
+/* ── AMBIENTE PROTEGIDO ── */
+.mfa-banner{background:#059669;color:#fff;text-align:center;padding:5px 12px;font-size:12px;font-weight:600;display:none;align-items:center;justify-content:center;gap:6px;flex-shrink:0}
+.mfa-banner.active{display:flex}
+
+/* ── 2FA SCREEN ── */
+#screen-2fa.active{min-height:100vh;align-items:center;justify-content:center;background:var(--cream)}
+.code-input{width:100%;padding:18px;text-align:center;font-size:28px;font-weight:700;letter-spacing:.3em;border:2px solid rgba(107,142,127,.25);border-radius:14px;outline:none;color:var(--ink);font-family:'Fraunces',serif;transition:border-color .15s}
+.code-input:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(107,142,127,.15)}
+.back-link{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:4px 8px;border-radius:8px;transition:color .15s}
+.back-link:hover{color:var(--ink)}
+
+/* ── MFA SETUP ── */
+.mfa-method-btn{display:flex;align-items:center;gap:10px;padding:14px 16px;border:1.5px solid rgba(107,142,127,.2);border-radius:14px;background:#fff;cursor:pointer;transition:all .15s;text-align:left;width:100%}
+.mfa-method-btn:hover{border-color:var(--sage);background:#f9fbfa}
+.mfa-method-icon{width:36px;height:36px;border-radius:10px;background:rgba(107,142,127,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mfa-method-icon svg{width:18px;height:18px;color:var(--sage-dark)}
+.mfa-method-title{font-weight:600;font-size:14px;color:var(--ink)}
+.mfa-method-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.qr-placeholder{width:164px;height:164px;border-radius:12px;border:2px solid var(--warm);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;background:#fdf9f4;position:relative;overflow:hidden}
+.mfa-active-badge{display:flex;align-items:center;gap:12px;background:rgba(5,150,105,.07);border:1.5px solid rgba(5,150,105,.25);border-radius:14px;padding:14px 16px}
+.mfa-active-dot{width:10px;height:10px;border-radius:50%;background:#059669;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -496,6 +541,12 @@ button,input,select,textarea{font-family:inherit}
     </div>
 
     <div class="r-field">
+      <label for="r-cpf">CPF</label>
+      <input id="r-cpf" class="r-input" type="text" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" oninput="this.value=maskCpf(this.value)" autocomplete="off"/>
+      <p class="r-helper err" id="r-cpf-err" style="display:none">CPF inválido. Verifique o número.</p>
+    </div>
+
+    <div class="r-field">
       <label for="r-whatsapp">WhatsApp</label>
       <input id="r-whatsapp" class="r-input" type="tel" inputmode="numeric" placeholder="(11) 98765-4321"/>
     </div>
@@ -555,8 +606,41 @@ button,input,select,textarea{font-family:inherit}
   </div>
 </div>
 
+<!-- ════════ 2FA SCREEN ════════ -->
+<div id="screen-2fa" class="screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg width="48" height="60" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="13" height="38" rx="6.5" fill="#2D6347"/>
+        <circle cx="20.5" cy="15.5" r="11.5" fill="#2D6347"/>
+        <rect x="7" y="4" width="14" height="23" fill="#2D6347"/>
+        <rect x="17.5" y="7.5" width="5" height="16" rx="2.5" fill="white"/>
+        <rect x="11.5" y="12.5" width="17" height="5" rx="2.5" fill="white"/>
+      </svg>
+    </div>
+    <div style="text-align:center;margin:16px 0 24px">
+      <div style="width:52px;height:52px;background:rgba(5,150,105,.1);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+        <svg width="24" height="24" fill="none" stroke="#059669" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h2 style="font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--ink)">Verificação em 2 etapas</h2>
+      <p style="font-size:13.5px;color:var(--muted);margin-top:6px">Insira o código gerado pelo seu <strong>app autenticador</strong>.</p>
+    </div>
+    <div class="field">
+      <input type="text" id="2fa-code" class="code-input" maxlength="6" inputmode="numeric" placeholder="000 000" autocomplete="one-time-code"/>
+    </div>
+    <button class="btn-primary" style="margin-top:4px" onclick="verify2fa()">Verificar código</button>
+    <div style="text-align:center;margin-top:14px">
+      <button class="back-link" onclick="back2Login()">← Voltar ao login</button>
+    </div>
+  </div>
+</div>
+
 <!-- ════════ APP SHELL ════════ -->
 <div id="app-shell" class="screen">
+  <div id="mfa-banner" class="mfa-banner" style="position:fixed;top:0;left:0;right:0;z-index:50">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Ambiente Protegido — Autenticação em 2 fatores ativa
+  </div>
 
   <!-- SIDEBAR -->
   <nav class="sidebar">
@@ -710,7 +794,7 @@ button,input,select,textarea{font-family:inherit}
             <div class="detail-name" id="detail-name">Juliana Ferreira</div>
           </div>
           <div class="detail-actions">
-            <button class="btn-secondary-sm" onclick="navigate('prontuario')">
+            <button class="btn-secondary-sm" onclick="openProntuario(currentPatientId)">
               <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
               Prontuário
             </button>
@@ -786,7 +870,7 @@ button,input,select,textarea{font-family:inherit}
     <!-- ─── PRONTUÁRIO ─── -->
     <div id="screen-prontuario" class="app-page" style="background:#FDFCF0">
       <div class="pron-toolbar">
-        <button class="pron-toolbar-back" onclick="navigate('paciente-detail')">
+        <button class="pron-toolbar-back" onclick="openPatientDetail(currentPatientId)">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         </button>
         <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
@@ -808,39 +892,51 @@ button,input,select,textarea{font-family:inherit}
         </div>
       </div>
 
-      <div class="pron-body">
-        <div style="display:flex;gap:20px;align-items:flex-start">
-          <!-- Sidebar -->
-          <div style="width:210px;flex-shrink:0">
-            <div style="position:sticky;top:74px">
-              <div class="pron-stat-card">
-                <div class="pron-stat-header">
-                  <div class="pron-stat-avatar">J</div>
-                  <div>
-                    <div class="pron-stat-name">Juliana Ferreira</div>
-                    <div class="pron-stat-role">Prontuário clínico</div>
-                  </div>
-                </div>
-                <div class="pron-stats-grid">
-                  <div class="pron-stat-item"><div class="pron-stat-n">3</div><div class="pron-stat-l">sessões</div></div>
-                  <div class="pron-stat-item"><div class="pron-stat-n">3</div><div class="pron-stat-l">concluídas</div></div>
-                  <div class="pron-stat-item pron-stat-wide"><div class="pron-stat-n">2</div><div class="pron-stat-l">com anotação</div></div>
-                </div>
+      <!-- Master-Detail -->
+      <div class="pron-master-detail">
+        <!-- Sidebar com lista de sessões -->
+        <div class="pron-session-sidebar">
+          <div class="pron-sidebar-hd">
+            <span class="pron-sidebar-hd-title">Histórico</span>
+            <button class="btn-primary-sm" style="font-size:11px;padding:5px 10px;white-space:nowrap" onclick="addNewEvolution()">+ Nova Evolução</button>
+          </div>
+          <div class="pron-session-list">
+            <div class="pron-session-card active" id="psc-1" onclick="selectSession(1)">
+              <div class="psc-top">
+                <span class="psc-n">Sessão 3</span>
+                <span class="badge completed" style="font-size:10px;padding:2px 7px">Concluída</span>
               </div>
-              <div class="pron-stat-card" style="font-size:12px;color:var(--muted)">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(45,59,54,.5);margin-bottom:10px">Legenda</div>
-                <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><div style="width:10px;height:10px;border-radius:50%;background:var(--sage);opacity:.6"></div>Concluída</div>
-                <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><div style="width:10px;height:10px;border-radius:50%;background:var(--warm)"></div>Agendada</div>
-                <div style="display:flex;align-items:center;gap:7px"><div style="width:10px;height:10px;border-radius:50%;background:var(--terracotta);opacity:.4"></div>Cancelada / Falta</div>
+              <div class="psc-date">15 dez 2024</div>
+              <div class="psc-meta">10:00 · 50min · Online · R$ 200,00</div>
+              <span class="psc-chip">TCC</span>
+            </div>
+            <div class="pron-session-card" id="psc-2" onclick="selectSession(2)">
+              <div class="psc-top">
+                <span class="psc-n">Sessão 2</span>
+                <span class="badge completed" style="font-size:10px;padding:2px 7px">Concluída</span>
               </div>
+              <div class="psc-date">8 nov 2024</div>
+              <div class="psc-meta">14:00 · 50min · Presencial · R$ 200,00</div>
+              <span class="psc-chip">ACT</span>
+            </div>
+            <div class="pron-session-card" id="psc-3" onclick="selectSession(3)">
+              <div class="psc-top">
+                <span class="psc-n">Sessão 1</span>
+                <span class="badge completed" style="font-size:10px;padding:2px 7px">Concluída</span>
+              </div>
+              <div class="psc-date">12 out 2024</div>
+              <div class="psc-meta">10:00 · 50min · Presencial · R$ 200,00</div>
+              <span class="psc-chip notech">Sem técnica</span>
             </div>
           </div>
+        </div>
 
-          <!-- Timeline -->
-          <div style="flex:1">
+        <!-- Painel de edição -->
+        <div class="pron-session-editor" id="pron-editor-area">
 
-            <!-- Card 3 (mais recente) -->
-            <div class="evolution-card" id="card-1">
+          <!-- Sessão 3 — edição (a mais recente fica aberta para editar) -->
+          <div id="pron-editor-1" class="pron-editor-panel active">
+            <div class="evolution-card" style="max-width:720px">
               <div class="evo-header">
                 <div>
                   <div style="display:flex;align-items:center;gap:8px">
@@ -854,9 +950,7 @@ button,input,select,textarea{font-family:inherit}
                     <span>·</span><span>Online</span><span>·</span><span>R$ 200,00</span>
                   </div>
                 </div>
-                <div class="evo-right">
-                  <div class="save-status" id="save-1"></div>
-                </div>
+                <div class="evo-right"><div class="save-status" id="save-1"></div></div>
               </div>
               <div class="technique-row">
                 <span class="technique-label">Técnica:</span>
@@ -893,110 +987,119 @@ Observou-se redução da ruminação durante a sessão. Humor geral melhor que n
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- Card 2 -->
-            <div class="evolution-card" id="card-2">
-              <div class="evo-header">
-                <div>
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <span class="evo-session-n">Sessão 2</span>
-                    <span class="badge completed">Concluída</span>
-                  </div>
-                  <div class="evo-date">sábado, 8 de novembro de 2024 · 14:00</div>
-                  <div class="evo-meta">
-                    <span>Dra. Ana Lima</span><span>·</span>
-                    <span><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>50min</span>
-                    <span>·</span><span>Presencial</span><span>·</span><span>R$ 200,00</span>
-                  </div>
+          <!-- Sessão 2 — leitura (read-only) -->
+          <div id="pron-editor-2" class="pron-editor-panel">
+            <div style="max-width:720px">
+              <div class="pron-read-banner" id="read-banner-2">
+                <div class="pron-read-text">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  Sessão passada — somente leitura. Edições geram registro de auditoria (CFP).
                 </div>
-                <div class="evo-right"><div class="save-status" id="save-2"></div></div>
+                <button class="btn-secondary-sm" style="font-size:12px;padding:6px 12px;white-space:nowrap" onclick="unlockEdit(2)">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                  Editar Sessão
+                </button>
               </div>
-              <div class="technique-row">
-                <span class="technique-label">Técnica:</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'2')">TCC</span>
-                <span class="technique-chip active" onclick="selectTechnique(this,'2')">ACT</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'2')">EMDR</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'2')">DBT</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'2')">Psicanálise</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'2')">Gestalt</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'2')">Sistêmica</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'2')">Outra</span>
-                <div class="mood-row">
-                  <span class="mood-lbl">Humor:</span>
-                  <button class="mood-btn" onclick="selectMood(this,1,'2')">😞</button>
-                  <button class="mood-btn" onclick="selectMood(this,2,'2')">😔</button>
-                  <button class="mood-btn active" onclick="selectMood(this,3,'2')">😐</button>
-                  <button class="mood-btn" onclick="selectMood(this,4,'2')">🙂</button>
-                  <button class="mood-btn" onclick="selectMood(this,5,'2')">😊</button>
-                  <span class="mood-val" id="mood-label-2">Neutro</span>
+              <div class="evolution-card">
+                <div class="evo-header">
+                  <div>
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span class="evo-session-n">Sessão 2</span>
+                      <span class="badge completed">Concluída</span>
+                    </div>
+                    <div class="evo-date">sábado, 8 de novembro de 2024 · 14:00</div>
+                    <div class="evo-meta"><span>Dra. Ana Lima</span><span>·</span><span>50min</span><span>·</span><span>Presencial</span><span>·</span><span>R$ 200,00</span></div>
+                  </div>
+                  <div class="evo-right"><div class="save-status" id="save-2"></div></div>
                 </div>
-              </div>
-              <div class="evo-body">
-                <div>
-                  <div class="field-lbl">Evolução clínica</div>
-                  <textarea class="evo-textarea content-area-ta" oninput="scheduleAutoSave('2')" placeholder="Descreva a evolução da sessão...">Segunda sessão. Paciente chegou com queixas de dificuldade em estabelecer limites no ambiente familiar e profissional. Trabalhamos com a matriz ACT para mapear valores versus comportamentos evitativos. Juliana identificou que o medo de rejeição está na base da maioria dos seus conflitos relacionais.</textarea>
+                <div class="technique-row">
+                  <span class="technique-label">Técnica:</span>
+                  <span class="technique-chip">TCC</span>
+                  <span class="technique-chip active">ACT</span>
+                  <span class="technique-chip">EMDR</span>
+                  <span class="technique-chip">DBT</span>
+                  <span class="technique-chip">Psicanálise</span>
+                  <span class="technique-chip">Gestalt</span>
+                  <span class="technique-chip">Sistêmica</span>
+                  <span class="technique-chip">Outra</span>
+                  <div class="mood-row">
+                    <span class="mood-lbl">Humor:</span>
+                    <button class="mood-btn" disabled>😞</button>
+                    <button class="mood-btn" disabled>😔</button>
+                    <button class="mood-btn active" disabled>😐</button>
+                    <button class="mood-btn" disabled>🙂</button>
+                    <button class="mood-btn" disabled>😊</button>
+                    <span class="mood-val">Neutro</span>
+                  </div>
                 </div>
-                <div>
-                  <div class="field-lbl">Próximos Passos</div>
-                  <textarea class="evo-textarea nextsteps-ta" oninput="scheduleAutoSave('2')" placeholder="Planejamento estratégico para a próxima sessão...">- Pedir que registre situações de esquiva durante a semana
+                <div class="evo-body">
+                  <div>
+                    <div class="field-lbl">Evolução clínica</div>
+                    <textarea class="evo-textarea content-area-ta" readonly style="opacity:.8;cursor:default">Segunda sessão. Paciente chegou com queixas de dificuldade em estabelecer limites no ambiente familiar e profissional. Trabalhamos com a matriz ACT para mapear valores versus comportamentos evitativos. Juliana identificou que o medo de rejeição está na base da maioria dos seus conflitos relacionais.</textarea>
+                  </div>
+                  <div>
+                    <div class="field-lbl">Próximos Passos</div>
+                    <textarea class="evo-textarea nextsteps-ta" readonly style="opacity:.8;cursor:default">- Pedir que registre situações de esquiva durante a semana
 - Iniciar psicoeducação sobre TCC na próxima sessão
 - Avaliar nível de ansiedade com escala GAD-7</textarea>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- Card 1 (sessão vazia) -->
-            <div class="evolution-card" id="card-3">
-              <div class="evo-header">
-                <div>
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <span class="evo-session-n">Sessão 1</span>
-                    <span class="badge completed">Concluída</span>
-                  </div>
-                  <div class="evo-date">sábado, 12 de outubro de 2024 · 10:00</div>
-                  <div class="evo-meta">
-                    <span>Dra. Ana Lima</span><span>·</span>
-                    <span><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>50min</span>
-                    <span>·</span><span>Presencial</span><span>·</span><span>R$ 200,00</span>
-                  </div>
+          <!-- Sessão 1 — leitura (sem nota) -->
+          <div id="pron-editor-3" class="pron-editor-panel">
+            <div style="max-width:720px">
+              <div class="pron-read-banner" id="read-banner-3">
+                <div class="pron-read-text">
+                  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  Sessão passada — somente leitura. Edições geram registro de auditoria (CFP).
                 </div>
-                <div class="evo-right"><div class="save-status" id="save-3"></div></div>
+                <button class="btn-secondary-sm" style="font-size:12px;padding:6px 12px;white-space:nowrap" onclick="unlockEdit(3)">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                  Editar Sessão
+                </button>
               </div>
-              <div class="technique-row">
-                <span class="technique-label">Técnica:</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'3')">TCC</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'3')">ACT</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'3')">EMDR</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'3')">DBT</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'3')">Psicanálise</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'3')">Gestalt</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'3')">Sistêmica</span>
-                <span class="technique-chip" onclick="selectTechnique(this,'3')">Outra</span>
-                <div class="mood-row">
-                  <span class="mood-lbl">Humor:</span>
-                  <button class="mood-btn" onclick="selectMood(this,1,'3')">😞</button>
-                  <button class="mood-btn" onclick="selectMood(this,2,'3')">😔</button>
-                  <button class="mood-btn" onclick="selectMood(this,3,'3')">😐</button>
-                  <button class="mood-btn" onclick="selectMood(this,4,'3')">🙂</button>
-                  <button class="mood-btn" onclick="selectMood(this,5,'3')">😊</button>
-                  <span class="mood-val" id="mood-label-3"></span>
+              <div class="evolution-card">
+                <div class="evo-header">
+                  <div>
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span class="evo-session-n">Sessão 1</span>
+                      <span class="badge completed">Concluída</span>
+                    </div>
+                    <div class="evo-date">sábado, 12 de outubro de 2024 · 10:00</div>
+                    <div class="evo-meta"><span>Dra. Ana Lima</span><span>·</span><span>50min</span><span>·</span><span>Presencial</span><span>·</span><span>R$ 200,00</span></div>
+                  </div>
+                  <div class="evo-right"><div class="save-status" id="save-3"></div></div>
                 </div>
-              </div>
-              <div class="evo-body">
-                <div>
-                  <div class="field-lbl">Evolução clínica</div>
-                  <textarea class="evo-textarea content-area-ta" oninput="scheduleAutoSave('3')" placeholder="Sessão de anamnese. Descreva a evolução..."></textarea>
+                <div class="technique-row">
+                  <span class="technique-label">Técnica:</span>
+                  <span class="technique-chip">TCC</span><span class="technique-chip">ACT</span><span class="technique-chip">EMDR</span><span class="technique-chip">DBT</span><span class="technique-chip">Psicanálise</span><span class="technique-chip">Gestalt</span><span class="technique-chip">Sistêmica</span><span class="technique-chip">Outra</span>
+                  <div class="mood-row">
+                    <span class="mood-lbl">Humor:</span>
+                    <button class="mood-btn" disabled>😞</button><button class="mood-btn" disabled>😔</button><button class="mood-btn" disabled>😐</button><button class="mood-btn" disabled>🙂</button><button class="mood-btn" disabled>😊</button>
+                    <span class="mood-val" style="color:var(--muted);font-style:italic">Não informado</span>
+                  </div>
                 </div>
-                <div>
-                  <div class="field-lbl">Próximos Passos</div>
-                  <textarea class="evo-textarea nextsteps-ta" oninput="scheduleAutoSave('3')" placeholder="Planejamento para a próxima sessão..."></textarea>
+                <div class="evo-body">
+                  <div>
+                    <div class="field-lbl">Evolução clínica</div>
+                    <textarea class="evo-textarea content-area-ta" readonly placeholder="Nenhuma anotação registrada." style="opacity:.45;cursor:default"></textarea>
+                  </div>
+                  <div>
+                    <div class="field-lbl">Próximos Passos</div>
+                    <textarea class="evo-textarea nextsteps-ta" readonly placeholder="Sem próximos passos registrados." style="opacity:.45;cursor:default"></textarea>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-          </div><!-- /timeline -->
-        </div>
-      </div>
+        </div><!-- /pron-session-editor -->
+      </div><!-- /pron-master-detail -->
     </div><!-- /prontuario -->
 
     <!-- ─── AGENDA ─── -->
@@ -1015,75 +1118,9 @@ Observou-se redução da ruminação durante a sessão. Humor geral melhor que n
             Nova sessão
           </button>
         </div>
+        <div id="agenda-count" style="font-size:13px;color:var(--muted);margin-bottom:10px"></div>
         <div class="card" style="padding:0;overflow:hidden">
-          <div class="agenda-session-row">
-            <div class="a-time"><div class="time">08:00</div><div class="dur">50min</div></div>
-            <div style="flex:1;min-width:0">
-              <div class="a-name" style="cursor:pointer" onclick="navigate('paciente-detail')">Juliana Ferreira</div>
-              <div class="a-mode" style="margin-top:2px">
-                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 10l4.553-2.069A1 1 0 0 1 21 8.882v6.236a1 1 0 0 1-1.447.894L15 14"/><rect x="1" y="6" width="14" height="12" rx="2"/></svg>
-                Online · R$ 200,00
-              </div>
-            </div>
-            <select class="status-select confirmed" onchange="changeStatus(this)">
-              <option value="SCHEDULED">Agendada</option>
-              <option value="CONFIRMED" selected>Confirmada</option>
-              <option value="COMPLETED">Concluída</option>
-              <option value="CANCELED">Cancelada</option>
-              <option value="NO_SHOW">Falta</option>
-            </select>
-          </div>
-          <div class="agenda-session-row">
-            <div class="a-time"><div class="time">10:00</div><div class="dur">50min</div></div>
-            <div style="flex:1;min-width:0">
-              <div class="a-name" style="cursor:pointer" onclick="showToast('Perfil de Carlos Mendes','success')">Carlos Mendes</div>
-              <div class="a-mode" style="margin-top:2px">
-                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                Presencial · R$ 250,00
-              </div>
-            </div>
-            <select class="status-select scheduled" onchange="changeStatus(this)">
-              <option value="SCHEDULED" selected>Agendada</option>
-              <option value="CONFIRMED">Confirmada</option>
-              <option value="COMPLETED">Concluída</option>
-              <option value="CANCELED">Cancelada</option>
-              <option value="NO_SHOW">Falta</option>
-            </select>
-          </div>
-          <div class="agenda-session-row">
-            <div class="a-time"><div class="time">14:00</div><div class="dur">50min</div></div>
-            <div style="flex:1;min-width:0">
-              <div class="a-name" style="cursor:pointer" onclick="showToast('Perfil de Beatriz Costa','success')">Beatriz Costa</div>
-              <div class="a-mode" style="margin-top:2px">
-                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 10l4.553-2.069A1 1 0 0 1 21 8.882v6.236a1 1 0 0 1-1.447.894L15 14"/><rect x="1" y="6" width="14" height="12" rx="2"/></svg>
-                Online · R$ 180,00
-              </div>
-            </div>
-            <select class="status-select scheduled" onchange="changeStatus(this)">
-              <option value="SCHEDULED" selected>Agendada</option>
-              <option value="CONFIRMED">Confirmada</option>
-              <option value="COMPLETED">Concluída</option>
-              <option value="CANCELED">Cancelada</option>
-              <option value="NO_SHOW">Falta</option>
-            </select>
-          </div>
-          <div class="agenda-session-row">
-            <div class="a-time"><div class="time">16:00</div><div class="dur">50min</div></div>
-            <div style="flex:1;min-width:0">
-              <div class="a-name" style="cursor:pointer" onclick="showToast('Perfil de Ricardo Alves','success')">Ricardo Alves</div>
-              <div class="a-mode" style="margin-top:2px">
-                <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                Presencial · R$ 300,00
-              </div>
-            </div>
-            <select class="status-select completed" onchange="changeStatus(this)">
-              <option value="SCHEDULED">Agendada</option>
-              <option value="CONFIRMED">Confirmada</option>
-              <option value="COMPLETED" selected>Concluída</option>
-              <option value="CANCELED">Cancelada</option>
-              <option value="NO_SHOW">Falta</option>
-            </select>
-          </div>
+          <div id="agenda-sessions-list"></div>
         </div>
       </div>
     </div><!-- /agenda -->
@@ -1196,6 +1233,61 @@ Observou-se redução da ruminação durante a sessão. Humor geral melhor que n
           </div>
           <div class="settings-footer"><button class="btn-primary-sm" onclick="showToast('Senha alterada com sucesso!','success')">Alterar senha</button></div>
         </div>
+        <div class="settings-section">
+          <div class="settings-head">
+            <div class="settings-head-icon" style="background:rgba(5,150,105,.1)">
+              <svg fill="none" stroke="#059669" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <div style="font-weight:600;font-size:14px;color:var(--ink)">Segurança de Nível Bancário</div>
+              <div style="font-size:12px;color:var(--muted)">Autenticação em 2 fatores (2FA)</div>
+            </div>
+          </div>
+          <div class="settings-body full">
+            <div id="mfa-config-idle">
+              <p style="font-size:13.5px;color:var(--muted);line-height:1.6;margin-bottom:14px">Adicione uma segunda camada de proteção. A cada login, um código extra será solicitado além da senha.</p>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <button class="mfa-method-btn" onclick="openMfaSetup('APP')">
+                  <div class="mfa-method-icon"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg></div>
+                  <div style="flex:1;text-align:left">
+                    <div class="mfa-method-title">App Autenticador</div>
+                    <div class="mfa-method-sub">Google Authenticator, Authy — código offline</div>
+                  </div>
+                  <svg style="color:var(--muted);flex-shrink:0" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+                <button class="mfa-method-btn" onclick="openMfaSetup('WHATSAPP')">
+                  <div class="mfa-method-icon"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+                  <div style="flex:1;text-align:left">
+                    <div class="mfa-method-title">WhatsApp</div>
+                    <div class="mfa-method-sub">Código enviado por mensagem</div>
+                  </div>
+                  <svg style="color:var(--muted);flex-shrink:0" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+              </div>
+            </div>
+            <div id="mfa-config-enabled" style="display:none">
+              <div class="mfa-active-badge">
+                <div class="mfa-active-dot"></div>
+                <div>
+                  <div style="font-weight:600;font-size:14px;color:#059669">2FA Ativo</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px">Via <span id="mfa-active-method">App Autenticador</span> · Ativado agora</div>
+                </div>
+                <button class="btn-secondary-sm" style="margin-left:auto;font-size:12px" onclick="disableMfa()">Desativar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section" style="border-color:rgba(201,123,92,.25)">
+          <div class="settings-head">
+            <div class="settings-head-icon" style="background:rgba(201,123,92,.1)">
+              <svg fill="none" stroke="#C97B5C" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </div>
+            <div><div style="font-weight:600;font-size:14px;color:var(--ink)">Encerrar Sessão</div><div style="font-size:12px;color:var(--muted)">Sair da conta e voltar à tela de login</div></div>
+          </div>
+          <div class="settings-footer">
+            <button class="btn-secondary-sm" style="color:#C97B5C;border-color:rgba(201,123,92,.3)" onclick="doLogout()">Encerrar sessão</button>
+          </div>
+        </div>
       </div>
     </div><!-- /config -->
 
@@ -1246,7 +1338,7 @@ Observou-se redução da ruminação durante a sessão. Humor geral melhor que n
         <label>Paciente</label>
         <select class="form-input">
           <option value="">Selecionar paciente...</option>
-          <option selected>Juliana Ferreira</option>
+          <option>Juliana Ferreira</option>
           <option>Carlos Mendes</option>
           <option>Beatriz Costa</option>
           <option>Ricardo Alves</option>
@@ -1307,7 +1399,7 @@ Observou-se redução da ruminação durante a sessão. Humor geral melhor que n
       </div>
       <div class="form-field">
         <label>CPF</label>
-        <input type="text" class="form-input" placeholder="000.000.000-00" id="pm-cpf"/>
+        <input type="text" class="form-input" placeholder="000.000.000-00" id="pm-cpf" maxlength="14" inputmode="numeric" oninput="this.value=maskCpf(this.value)" autocomplete="off"/>
       </div>
       <div class="form-field">
         <label>Data de nascimento</label>
@@ -1348,6 +1440,107 @@ Observou-se redução da ruminação durante a sessão. Humor geral melhor que n
   </div>
 </div>
 
+<!-- ════════ MODAL DESBLOQUEAR EDIÇÃO ════════ -->
+<div class="modal-overlay" id="unlock-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Editar sessão passada</div>
+      <button class="modal-close" onclick="closeUnlockModal()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:10px;background:#fff8f0;border:1.5px solid rgba(201,123,92,.25);border-radius:12px;padding:12px;margin-bottom:14px">
+      <svg style="flex-shrink:0;margin-top:2px;color:#C97B5C" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <p style="font-size:13px;color:var(--ink);line-height:1.6;margin:0">A edição de sessões passadas gera um <strong>registro de auditoria automático</strong>, conforme exigido pelo CFP. A alteração ficará rastreável no histórico do prontuário.</p>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Deseja continuar e editar esta sessão?</p>
+    <div class="modal-actions">
+      <button class="btn-secondary-sm" onclick="closeUnlockModal()">Cancelar</button>
+      <button class="btn-primary-sm" onclick="confirmUnlock()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+        Editar mesmo assim
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ MODAL MFA SETUP ════════ -->
+<div class="modal-overlay" id="mfa-modal">
+  <div class="modal">
+    <!-- Step 1: Escolher método -->
+    <div id="mfa-step-1">
+      <div class="modal-head">
+        <div class="modal-title">Ativar 2º Fator (2FA)</div>
+        <button class="modal-close" onclick="closeMfaModal()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <p class="modal-body">Escolha como deseja receber seu código de verificação:</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="mfa-method-btn" onclick="mfaSelectMethod('APP')">
+          <div class="mfa-method-icon"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg></div>
+          <div style="text-align:left"><div class="mfa-method-title">App Autenticador</div><div class="mfa-method-sub">Google Authenticator, Authy, etc.</div></div>
+        </button>
+        <button class="mfa-method-btn" onclick="mfaSelectMethod('WHATSAPP')">
+          <div class="mfa-method-icon"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+          <div style="text-align:left"><div class="mfa-method-title">WhatsApp</div><div class="mfa-method-sub">Código enviado para (11) 9 8765-4321</div></div>
+        </button>
+      </div>
+    </div>
+    <!-- Step 2a: APP — QR Code -->
+    <div id="mfa-step-2a" style="display:none">
+      <div class="modal-head">
+        <div class="modal-title">Escanear QR Code</div>
+        <button class="modal-close" onclick="closeMfaModal()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <p style="font-size:13.5px;color:var(--muted);margin-bottom:16px;line-height:1.6">Abra o seu app autenticador, selecione <strong>Adicionar conta</strong> e escaneie o código abaixo.</p>
+      <div class="qr-placeholder">
+        <svg width="72" height="72" fill="none" viewBox="0 0 24 24" stroke="var(--ink)" stroke-width="1.2" opacity=".25">
+          <rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/>
+          <rect x="5" y="5" width="4" height="4"/><rect x="15" y="5" width="4" height="4"/><rect x="5" y="15" width="4" height="4"/>
+          <circle cx="17" cy="17" r="1"/><circle cx="21" cy="17" r="1"/><circle cx="17" cy="21" r="1"/><circle cx="21" cy="21" r="1"/>
+        </svg>
+      </div>
+      <div style="margin-bottom:0">
+        <label style="display:block;font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px">Código gerado pelo app:</label>
+        <input type="text" id="mfa-app-code" maxlength="6" inputmode="numeric" class="form-input" placeholder="000 000" style="text-align:center;font-size:20px;letter-spacing:.2em;font-family:'Fraunces',serif"/>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary-sm" onclick="mfaBack()">Voltar</button>
+        <button class="btn-primary-sm" onclick="mfaVerifyCode()">Ativar 2FA</button>
+      </div>
+    </div>
+    <!-- Step 2b: WhatsApp -->
+    <div id="mfa-step-2b" style="display:none">
+      <div class="modal-head">
+        <div class="modal-title">Verificar WhatsApp</div>
+        <button class="modal-close" onclick="closeMfaModal()"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <p style="font-size:13.5px;color:var(--muted);margin-bottom:16px;line-height:1.6">Enviamos um código de 6 dígitos para <strong>(11) 9 8765-4321</strong>. Insira-o abaixo para confirmar.</p>
+      <div style="margin-bottom:0">
+        <input type="text" id="mfa-wa-code" maxlength="6" inputmode="numeric" class="form-input" placeholder="000 000" style="text-align:center;font-size:20px;letter-spacing:.2em;font-family:'Fraunces',serif"/>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary-sm" onclick="mfaBack()">Voltar</button>
+        <button class="btn-primary-sm" onclick="mfaVerifyCode()">Confirmar e ativar</button>
+      </div>
+    </div>
+    <!-- Step 3: Sucesso -->
+    <div id="mfa-step-3" style="display:none;text-align:center;padding:8px 0">
+      <div style="font-size:52px;margin-bottom:12px">🛡️</div>
+      <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:600;color:var(--ink)">2FA ativado!</div>
+      <p style="font-size:13.5px;color:var(--muted);margin:10px 0 22px;line-height:1.65">Sua conta agora tem uma camada extra de segurança. A cada login, o código será solicitado após a senha.</p>
+      <button class="btn-primary-sm" onclick="mfaSuccess()">Concluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ MODAL INATIVIDADE ════════ -->
+<div id="idle-overlay" style="display:none;position:fixed;inset:0;background:rgba(45,59,54,.55);backdrop-filter:blur(6px);z-index:300;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:20px;padding:36px 32px;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px -8px rgba(45,59,54,.3)">
+    <div style="font-size:44px;margin-bottom:14px">⏳</div>
+    <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:600;color:var(--ink);margin-bottom:8px">Sessão prestes a expirar</div>
+    <p style="font-size:13.5px;color:var(--muted);line-height:1.65;margin-bottom:22px">Por inatividade, sua sessão será encerrada em <strong id="idle-countdown" style="color:var(--terracotta);font-size:18px;font-family:'Fraunces',serif">60</strong> segundos para proteger seus dados.</p>
+    <button class="btn-primary" onclick="extendIdleSession()" style="width:auto;padding:12px 30px">Continuar trabalhando</button>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="toast" class="toast"></div>
 
@@ -1359,6 +1552,72 @@ const patients = [
   {id:3,name:'Beatriz Costa',freq:'Semanal',whatsapp:'(21) 9 9876-5432',value:'R$ 180,00'},
   {id:4,name:'Ricardo Alves',freq:'Mensal',whatsapp:'(11) 9 5432-1098',value:'R$ 300,00'},
 ];
+
+let currentPatientId = 1;
+
+// Agenda: sessions por data 'YYYY-MM-DD'
+const agendaSessions = {
+  '2026-05-19': [
+    {id:'a1',time:'08:00',dur:50,patient:'Juliana Ferreira',mode:'Online',value:200,status:'CONFIRMED'},
+    {id:'a2',time:'10:00',dur:50,patient:'Carlos Mendes',mode:'Presencial',value:250,status:'SCHEDULED'},
+    {id:'a3',time:'14:00',dur:50,patient:'Beatriz Costa',mode:'Online',value:180,status:'SCHEDULED'},
+    {id:'a4',time:'16:00',dur:50,patient:'Ricardo Alves',mode:'Presencial',value:300,status:'COMPLETED'},
+  ],
+};
+
+function dateKey(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+const ICON_ONLINE = `<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M15 10l4.553-2.069A1 1 0 0 1 21 8.882v6.236a1 1 0 0 1-1.447.894L15 14"/><rect x="1" y="6" width="14" height="12" rx="2"/></svg>`;
+const ICON_PRESENCIAL = `<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
+
+function renderAgenda() {
+  const key = dateKey(currentDay);
+  const list = agendaSessions[key] || [];
+  const container = document.getElementById('agenda-sessions-list');
+  const countEl = document.getElementById('agenda-count');
+  if (countEl) countEl.textContent = list.length ? `${list.length} sessão${list.length>1?'s':''} agendada${list.length>1?'s':''}` : '';
+
+  if (list.length === 0) {
+    container.innerHTML = `<div class="empty-state" style="margin:20px"><p>Nenhuma sessão para este dia.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(s => {
+    const icon = s.mode === 'Online' ? ICON_ONLINE : ICON_PRESENCIAL;
+    const cls = STATUS_CLASSES[s.status] || 'scheduled';
+    const p = patients.find(x => x.name === s.patient);
+    const pid = p ? p.id : 1;
+    const val = 'R$ ' + s.value.toFixed(2).replace('.', ',');
+    return `
+      <div class="agenda-session-row">
+        <div class="a-time"><div class="time">${s.time}</div><div class="dur">${s.dur}min</div></div>
+        <div style="flex:1;min-width:0">
+          <div class="a-name" style="cursor:pointer" onclick="openPatientDetail(${pid})">${s.patient}</div>
+          <div class="a-mode" style="margin-top:2px">${icon} ${s.mode} · ${val}</div>
+        </div>
+        <select class="status-select ${cls}" data-sid="${s.id}" onchange="changeStatusAgenda(this,'${key}')">
+          <option value="SCHEDULED"${s.status==='SCHEDULED'?' selected':''}>Agendada</option>
+          <option value="CONFIRMED"${s.status==='CONFIRMED'?' selected':''}>Confirmada</option>
+          <option value="COMPLETED"${s.status==='COMPLETED'?' selected':''}>Concluída</option>
+          <option value="CANCELED"${s.status==='CANCELED'?' selected':''}>Cancelada</option>
+          <option value="NO_SHOW"${s.status==='NO_SHOW'?' selected':''}>Falta</option>
+        </select>
+      </div>`;
+  }).join('');
+}
+
+function changeStatusAgenda(sel, key) {
+  sel.className = 'status-select ' + (STATUS_CLASSES[sel.value] || 'scheduled');
+  const sid = sel.dataset.sid;
+  const session = (agendaSessions[key] || []).find(s => s.id === sid);
+  if (session) session.status = sel.value;
+  showToast(`Status alterado para "${STATUS_LABELS[sel.value]}"`, 'success');
+}
 
 // ── ROUTER ────────────────────────────────────────────────────────
 function navigate(page, navEl) {
@@ -1378,13 +1637,35 @@ function navigate(page, navEl) {
 }
 
 function doLogin() {
-  const email = document.getElementById('login-email').value;
+  const email = document.getElementById('login-email').value.trim();
   const pwd   = document.getElementById('login-pwd').value;
   if (!email || !pwd) { showToast('Preencha e-mail e senha','error'); return; }
-  document.getElementById('screen-login').style.display = 'none';
-  document.getElementById('app-shell').style.display = 'flex';
-  navigate('dashboard');
+  if (!validateEmail(email)) { showToast('Digite um e-mail válido','error'); return; }
+  // Se MFA já ativo (habilitado nesta sessão demo), mostra tela 2FA
+  if (document.getElementById('mfa-config-enabled').style.display !== 'none') {
+    document.getElementById('screen-login').classList.remove('active');
+    document.getElementById('screen-2fa').classList.add('active');
+    setTimeout(() => document.getElementById('2fa-code').focus(), 100);
+    return;
+  }
+  document.getElementById('screen-login').classList.remove('active');
+  document.getElementById('app-shell').classList.add('active');
+  navigate('dashboard', document.querySelector('.nav-item[data-nav="dashboard"]'));
   showToast('Bem-vinda ao Prontua, Dra. Ana! 👋','success');
+}
+
+function verify2fa() {
+  const code = document.getElementById('2fa-code').value;
+  if (code.length < 6) { showToast('Digite os 6 dígitos','error'); return; }
+  document.getElementById('screen-2fa').classList.remove('active');
+  document.getElementById('app-shell').classList.add('active');
+  navigate('dashboard', document.querySelector('.nav-item[data-nav="dashboard"]'));
+  showToast('Bem-vinda ao Prontua, Dra. Ana! 🛡️','success');
+}
+
+function back2Login() {
+  document.getElementById('screen-2fa').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
 }
 
 // ── PATIENTS ──────────────────────────────────────────────────────
@@ -1417,21 +1698,32 @@ function filterPatients(q) {
 }
 
 function openPatientDetail(id) {
+  currentPatientId = id;
   const p = patients.find(x => x.id === id) || patients[0];
   document.getElementById('detail-name').textContent = p.name;
+  // Atualizar meta do paciente
+  const metaRow = document.getElementById('detail-meta-row');
+  if (metaRow) {
+    metaRow.querySelector('a[href="#"]').textContent = p.whatsapp;
+  }
   navigate('paciente-detail');
 }
 
 function openProntuario(id) {
+  const p = patients.find(x => x.id === id) || patients[0];
+  document.querySelector('.pron-toolbar-title').textContent = `Prontuário — ${p.name}`;
+  document.querySelector('.pron-toolbar-sub').textContent =
+    `${document.querySelectorAll('.pron-session-card').length} sessões registradas · Auto-save ativo`;
   navigate('prontuario');
 }
-
-renderPatients(patients);
 
 // ── AGENDA ────────────────────────────────────────────────────────
 const MONTHS   = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 const WEEKDAYS = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
 let currentDay = new Date(2026, 4, 19);
+
+renderPatients(patients);
+renderAgenda();
 
 function updateDateDisplay() {
   const d = currentDay;
@@ -1443,7 +1735,7 @@ function changeDay(delta) {
   currentDay = new Date(currentDay);
   currentDay.setDate(currentDay.getDate() + delta);
   updateDateDisplay();
-  showToast(`Agenda de ${WEEKDAYS[currentDay.getDay()]}, ${currentDay.getDate()} de ${MONTHS[currentDay.getMonth()]}`,'success');
+  renderAgenda();
 }
 
 // ── STATUS DROPDOWN ───────────────────────────────────────────────
@@ -1470,8 +1762,31 @@ function closeSessionModal() {
   document.getElementById('session-modal').classList.remove('active');
 }
 function saveSession() {
+  const modal   = document.getElementById('session-modal');
+  const selects = modal.querySelectorAll('select');
+  const patient = selects[0].value;
+  const dur     = parseInt(selects[1].value) || 50;
+  const mode    = selects[2].value || 'Online';
+  const dateVal = modal.querySelector('input[type="date"]').value;
+  const timeVal = modal.querySelector('input[type="time"]').value;
+  const rawVal  = modal.querySelector('input[type="text"]').value.replace(',','.');
+  const value   = parseFloat(rawVal) || 0;
+
+  if (!patient) { showToast('Selecione um paciente', 'error'); return; }
+  if (!dateVal) { showToast('Informe a data da sessão', 'error'); return; }
+  if (!timeVal) { showToast('Informe o horário da sessão', 'error'); return; }
+
+  // Salvar no store e re-renderizar se for o dia atual
+  if (!agendaSessions[dateVal]) agendaSessions[dateVal] = [];
+  const sid = 'a' + Date.now();
+  agendaSessions[dateVal].push({id:sid, time:timeVal, dur, patient, mode, value, status:'SCHEDULED'});
+  agendaSessions[dateVal].sort((a,b) => a.time.localeCompare(b.time));
+  if (dateKey(currentDay) === dateVal) renderAgenda();
+
+  const d = new Date(dateVal + 'T' + timeVal);
+  const fmt = d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
   closeSessionModal();
-  showToast('Sessão agendada com sucesso!', 'success');
+  showToast(`Sessão agendada: ${patient} — ${fmt} às ${timeVal}`, 'success');
 }
 
 // ── PATIENT MODAL ─────────────────────────────────────────────────
@@ -1494,8 +1809,24 @@ function closePatientModal() {
   document.getElementById('patient-modal').classList.remove('active');
 }
 function savePatient() {
-  const name = document.getElementById('pm-name').value.trim();
-  if (!name) { showToast('Informe o nome do paciente','error'); return; }
+  const name  = document.getElementById('pm-name').value.trim();
+  const cpf   = document.getElementById('pm-cpf').value;
+  const email = document.getElementById('pm-email').value.trim();
+
+  if (!name) { showToast('Informe o nome do paciente', 'error'); return; }
+
+  if (cpf && !validateCpf(cpf)) {
+    showToast('CPF inválido. Verifique o número.', 'error');
+    document.getElementById('pm-cpf').focus();
+    return;
+  }
+
+  if (email && !validateEmail(email)) {
+    showToast('E-mail inválido. Ex: paciente@email.com', 'error');
+    document.getElementById('pm-email').focus();
+    return;
+  }
+
   closePatientModal();
   showToast(`Paciente "${name}" salvo com sucesso!`, 'success');
 }
@@ -1575,22 +1906,66 @@ function markPaid(selectId, name, btn) {
   showToast(`Pagamento de ${name} marcado como pago via ${method}!`, 'success');
 }
 
+// ── VALIDAÇÕES ────────────────────────────────────────────────────
+function maskCpf(v) {
+  v = v.replace(/\D/g, '').slice(0, 11);
+  if (v.length > 9) return v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+  if (v.length > 6) return v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+  if (v.length > 3) return v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+  return v;
+}
+
+function validateCpf(raw) {
+  const cpf = raw.replace(/\D/g, '');
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  let s = 0;
+  for (let i = 0; i < 9; i++) s += +cpf[i] * (10 - i);
+  let r = (s * 10) % 11; if (r >= 10) r = 0;
+  if (r !== +cpf[9]) return false;
+  s = 0;
+  for (let i = 0; i < 10; i++) s += +cpf[i] * (11 - i);
+  r = (s * 10) % 11; if (r >= 10) r = 0;
+  return r === +cpf[10];
+}
+
+function validateEmail(e) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e.trim());
+}
+
 // ── REGISTER SCREEN ───────────────────────────────────────────────
 function showRegister() {
   document.getElementById('screen-login').classList.remove('active');
   document.getElementById('screen-register').classList.add('active');
+  const ia = document.getElementById('inactivity-alert');
+  if (ia) ia.remove();
 }
 function showLogin() {
   document.getElementById('screen-register').classList.remove('active');
   document.getElementById('screen-login').classList.add('active');
 }
 function simulateRegister(btn) {
-  const name = document.getElementById('r-name').value.trim();
+  const name  = document.getElementById('r-name').value.trim();
   const email = document.getElementById('r-email').value.trim();
-  if (!name || !email) {
-    showToast('Preencha nome e e-mail para continuar', 'error');
+  const cpf   = document.getElementById('r-cpf').value;
+  const cpfErr = document.getElementById('r-cpf-err');
+
+  cpfErr.style.display = 'none';
+  document.getElementById('r-cpf').classList.remove('error');
+
+  if (!name) { showToast('Informe seu nome completo', 'error'); return; }
+
+  if (!validateEmail(email)) {
+    showToast('Digite um e-mail válido (ex: ana@clinica.com.br)', 'error');
     return;
   }
+
+  if (!validateCpf(cpf)) {
+    cpfErr.style.display = 'block';
+    document.getElementById('r-cpf').classList.add('error');
+    showToast('CPF inválido. Verifique o número.', 'error');
+    return;
+  }
+
   btn.disabled = true;
   btn.innerHTML = `
     <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -1620,16 +1995,273 @@ function showToast(msg, type='success') {
   toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+// ── PRONTUÁRIO MASTER-DETAIL ──────────────────────────────────────
+let pendingUnlockId = null;
+let nextEvoId = 100;
+
+function selectSession(id) {
+  document.querySelectorAll('.pron-session-card').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('[id^="pron-editor-"]').forEach(p => p.classList.remove('active'));
+  const card = document.getElementById('psc-' + id);
+  if (card) card.classList.add('active');
+  const panel = document.getElementById('pron-editor-' + id);
+  if (panel) panel.classList.add('active');
+  const area = document.getElementById('pron-editor-area');
+  if (area) area.scrollTop = 0;
+}
+
+function addNewEvolution() {
+  const id = nextEvoId++;
+  const today = new Date();
+  const dateShort = today.toLocaleDateString('pt-BR', {day:'numeric', month:'short', year:'numeric'});
+  const dateLong  = today.toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  const timeStr   = today.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  const sessionNum = document.querySelectorAll('.pron-session-card').length + 1;
+  const TECHS = ['TCC','ACT','EMDR','DBT','Psicanálise','Gestalt','Sistêmica','Outra'];
+
+  // Card na sidebar (topo)
+  const list = document.querySelector('.pron-session-list');
+  const cardDiv = document.createElement('div');
+  cardDiv.className = 'pron-session-card';
+  cardDiv.id = 'psc-' + id;
+  cardDiv.setAttribute('onclick', `selectSession(${id})`);
+  cardDiv.innerHTML = `
+    <div class="psc-top">
+      <span class="psc-n">Sessão ${sessionNum}</span>
+      <span class="badge scheduled" style="font-size:10px;padding:2px 7px">Nova</span>
+    </div>
+    <div class="psc-date">${dateShort}</div>
+    <div class="psc-meta">${timeStr} · 50min</div>
+    <span class="psc-chip notech">Sem técnica</span>
+  `;
+  list.insertBefore(cardDiv, list.firstChild);
+
+  // Painel de edição
+  const area = document.getElementById('pron-editor-area');
+  const panel = document.createElement('div');
+  panel.id = 'pron-editor-' + id;
+  panel.className = 'pron-editor-panel';
+  panel.innerHTML = `
+    <div class="evolution-card" style="max-width:720px">
+      <div class="evo-header">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="evo-session-n">Sessão ${sessionNum}</span>
+            <span class="badge scheduled">Nova evolução</span>
+          </div>
+          <div class="evo-date">${dateLong} · ${timeStr}</div>
+          <div class="evo-meta"><span>Dra. Ana Lima</span><span>·</span><span>50min</span></div>
+        </div>
+        <div class="evo-right"><div class="save-status" id="save-${id}"></div></div>
+      </div>
+      <div class="technique-row">
+        <span class="technique-label">Técnica:</span>
+        ${TECHS.map(t=>`<span class="technique-chip" onclick="selectTechnique(this,'${id}')">${t}</span>`).join('')}
+        <div class="mood-row">
+          <span class="mood-lbl">Humor:</span>
+          <button class="mood-btn" onclick="selectMood(this,1,'${id}')" title="Muito triste">😞</button>
+          <button class="mood-btn" onclick="selectMood(this,2,'${id}')" title="Triste">😔</button>
+          <button class="mood-btn" onclick="selectMood(this,3,'${id}')" title="Neutro">😐</button>
+          <button class="mood-btn" onclick="selectMood(this,4,'${id}')" title="Bem">🙂</button>
+          <button class="mood-btn" onclick="selectMood(this,5,'${id}')" title="Muito bem">😊</button>
+          <span class="mood-val" id="mood-label-${id}"></span>
+        </div>
+      </div>
+      <div class="evo-body">
+        <div>
+          <div class="field-lbl">Evolução clínica</div>
+          <textarea class="evo-textarea content-area-ta" oninput="scheduleAutoSave('${id}')" placeholder="Descreva a evolução da sessão..."></textarea>
+        </div>
+        <div>
+          <div class="field-lbl">Próximos Passos</div>
+          <textarea class="evo-textarea nextsteps-ta" oninput="scheduleAutoSave('${id}')" placeholder="Planejamento estratégico para a próxima sessão..."></textarea>
+        </div>
+      </div>
+    </div>
+  `;
+  area.insertBefore(panel, area.firstChild);
+  selectSession(id);
+
+  // Atualiza sub-título do toolbar
+  document.querySelector('.pron-toolbar-sub').textContent =
+    `${document.querySelectorAll('.pron-session-card').length} sessões registradas · Auto-save ativo`;
+  showToast('Nova evolução criada.', 'success');
+}
+
+function unlockEdit(id) {
+  pendingUnlockId = id;
+  document.getElementById('unlock-modal').classList.add('active');
+}
+
+function closeUnlockModal() {
+  document.getElementById('unlock-modal').classList.remove('active');
+  pendingUnlockId = null;
+}
+
+function confirmUnlock() {
+  const id = pendingUnlockId;
+  closeUnlockModal();
+  if (!id) return;
+  const banner = document.getElementById('read-banner-' + id);
+  if (banner) banner.remove();
+  const panel = document.getElementById('pron-editor-' + id);
+  if (panel) {
+    panel.querySelectorAll('textarea').forEach(t => {
+      t.removeAttribute('readonly');
+      t.style.opacity = '1';
+      t.style.cursor = 'text';
+      t.oninput = () => scheduleAutoSave('' + id);
+    });
+    panel.querySelectorAll('.mood-btn').forEach(b => { b.disabled = false; });
+    panel.querySelectorAll('.technique-chip').forEach((c, i) => {
+      c.onclick = () => selectTechnique(c, '' + id);
+    });
+  }
+  showToast('Sessão desbloqueada. Auditoria registrada automaticamente.', 'success');
+}
+
+// ── MFA SETUP ─────────────────────────────────────────────────────
+let mfaSetupMethod = null;
+
+function openMfaSetup(method) {
+  mfaSetupMethod = method;
+  document.getElementById('mfa-step-1').style.display = 'block';
+  document.getElementById('mfa-step-2a').style.display = 'none';
+  document.getElementById('mfa-step-2b').style.display = 'none';
+  document.getElementById('mfa-step-3').style.display = 'none';
+  document.getElementById('mfa-modal').classList.add('active');
+  setTimeout(() => mfaSelectMethod(method), 50);
+}
+
+function mfaSelectMethod(method) {
+  mfaSetupMethod = method;
+  document.getElementById('mfa-step-1').style.display = 'none';
+  document.getElementById('mfa-step-2a').style.display = method === 'APP' ? 'block' : 'none';
+  document.getElementById('mfa-step-2b').style.display = method === 'WHATSAPP' ? 'block' : 'none';
+  if (method === 'WHATSAPP') setTimeout(() => showToast('Código enviado para (11) 9 8765-4321','success'), 400);
+}
+
+function mfaBack() {
+  document.getElementById('mfa-step-2a').style.display = 'none';
+  document.getElementById('mfa-step-2b').style.display = 'none';
+  document.getElementById('mfa-step-1').style.display = 'block';
+}
+
+function mfaVerifyCode() {
+  const code = mfaSetupMethod === 'APP'
+    ? document.getElementById('mfa-app-code').value
+    : document.getElementById('mfa-wa-code').value;
+  if (code.length < 6) { showToast('Digite os 6 dígitos do código','error'); return; }
+  document.getElementById('mfa-step-2a').style.display = 'none';
+  document.getElementById('mfa-step-2b').style.display = 'none';
+  document.getElementById('mfa-step-3').style.display = 'block';
+}
+
+function mfaSuccess() {
+  closeMfaModal();
+  document.getElementById('mfa-config-idle').style.display = 'none';
+  document.getElementById('mfa-config-enabled').style.display = 'block';
+  document.getElementById('mfa-active-method').textContent =
+    mfaSetupMethod === 'APP' ? 'App Autenticador' : 'WhatsApp';
+  document.getElementById('mfa-banner').classList.add('active');
+  showToast('2FA ativado! Sua conta está protegida.', 'success');
+}
+
+function closeMfaModal() {
+  document.getElementById('mfa-modal').classList.remove('active');
+  setTimeout(() => {
+    document.getElementById('mfa-step-1').style.display = 'block';
+    document.getElementById('mfa-step-2a').style.display = 'none';
+    document.getElementById('mfa-step-2b').style.display = 'none';
+    document.getElementById('mfa-step-3').style.display = 'none';
+  }, 200);
+}
+
+function disableMfa() {
+  document.getElementById('mfa-config-enabled').style.display = 'none';
+  document.getElementById('mfa-config-idle').style.display = 'block';
+  document.getElementById('mfa-banner').classList.remove('active');
+  showToast('2FA desativado.', 'success');
+}
+
 // ── FECHAR MODAIS AO CLICAR FORA ─────────────────────────────────
-['share-modal','session-modal','patient-modal'].forEach(id => {
+['share-modal','session-modal','patient-modal','mfa-modal','unlock-modal'].forEach(id => {
   document.getElementById(id).addEventListener('click', function(e) {
     if (e.target === this) this.classList.remove('active');
   });
 });
 
-// Enter no login
+// ── AUTO-LOGOUT POR INATIVIDADE ───────────────────────────────────
+// Demo: aviso após 2 min sem interação, logout após mais 60s
+// Produção: aviso 14min, logout 15min
+const IDLE_WARN_MS   = 2 * 60 * 1000; // 2min demo
+const IDLE_SECS      = 60;
+let idleTimer, idleInterval, idleRemaining = IDLE_SECS;
+
+function resetIdleTimer() {
+  if (!document.getElementById('app-shell').classList.contains('active')) return;
+  clearTimeout(idleTimer);
+  clearInterval(idleInterval);
+  document.getElementById('idle-overlay').style.display = 'none';
+  idleTimer = setTimeout(showIdleWarning, IDLE_WARN_MS);
+}
+
+function showIdleWarning() {
+  if (!document.getElementById('app-shell').classList.contains('active')) return;
+  idleRemaining = IDLE_SECS;
+  document.getElementById('idle-countdown').textContent = idleRemaining;
+  document.getElementById('idle-overlay').style.display = 'flex';
+  idleInterval = setInterval(() => {
+    idleRemaining--;
+    document.getElementById('idle-countdown').textContent = idleRemaining;
+    if (idleRemaining <= 0) { clearInterval(idleInterval); doIdleLogout(); }
+  }, 1000);
+}
+
+function extendIdleSession() {
+  clearInterval(idleInterval);
+  document.getElementById('idle-overlay').style.display = 'none';
+  resetIdleTimer();
+}
+
+function doLogout() {
+  clearInterval(idleInterval);
+  clearTimeout(idleTimer);
+  document.getElementById('idle-overlay').style.display = 'none';
+  document.getElementById('app-shell').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+}
+
+function doIdleLogout() {
+  clearInterval(idleInterval);
+  document.getElementById('idle-overlay').style.display = 'none';
+  document.getElementById('app-shell').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+  // Mostrar aviso de inatividade no login
+  let el = document.getElementById('inactivity-alert');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'inactivity-alert';
+    el.setAttribute('role', 'alert');
+    el.style.cssText = 'border-radius:12px;border:1.5px solid rgba(180,130,0,.3);background:rgba(255,200,0,.07);padding:12px 14px;font-size:13px;color:#7a5700;margin-bottom:16px;line-height:1.5';
+    el.textContent = 'Sessão encerrada por inatividade para proteger seus dados.';
+    const card = document.querySelector('.login-card');
+    const firstField = card.querySelector('.field');
+    card.insertBefore(el, firstField);
+  }
+  el.style.display = 'block';
+}
+
+['mousemove','keydown','click','scroll','touchstart'].forEach(ev =>
+  document.addEventListener(ev, resetIdleTimer, { passive: true })
+);
+resetIdleTimer();
+
+// ── Enter no login / 2FA ──────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.getElementById('screen-login').classList.contains('active')) doLogin();
+  if (e.key !== 'Enter') return;
+  if (document.getElementById('screen-login').classList.contains('active')) doLogin();
+  if (document.getElementById('screen-2fa').classList.contains('active')) verify2fa();
 });
 </script>
 </body>

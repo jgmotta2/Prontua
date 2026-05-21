@@ -4,6 +4,7 @@ import { JwtService } from '@infrastructure/crypto/jwt.service';
 import { auditLogger } from '@infrastructure/security/audit.logger';
 import { UnauthorizedError } from '@shared/errors/app-error';
 import { randomUUID } from 'node:crypto';
+import type { MfaMethod } from '@prisma/client';
 
 interface LoginInput {
   email: string;
@@ -12,11 +13,17 @@ interface LoginInput {
   userAgent?: string;
 }
 
-interface LoginOutput {
+export interface LoginOutput {
   accessToken: string;
   refreshTokenRaw: string;
   userId: string;
   tenantId: string;
+}
+
+export interface MfaChallengeOutput {
+  requiresTwoFactor: true;
+  mfaMethod: MfaMethod;
+  tempToken: string;
 }
 
 const jwt = new JwtService();
@@ -33,7 +40,7 @@ const LOCK_DURATION_MS = 15 * 60 * 1000;
  *  - Refresh token theft (armazenamos apenas SHA-256, com `family` para
  *    detecção de reuso)
  */
-export async function loginUseCase(input: LoginInput): Promise<LoginOutput> {
+export async function loginUseCase(input: LoginInput): Promise<LoginOutput | MfaChallengeOutput> {
   const user = await prisma.user.findFirst({
     where: { email: input.email, active: true },
   });
@@ -98,6 +105,20 @@ export async function loginUseCase(input: LoginInput): Promise<LoginOutput> {
     where: { id: user.id },
     data: { lastLoginAt: new Date(), failedLoginCount: 0, lockedUntil: null },
   });
+
+  // 2FA: se habilitado, emite token temporário e não entrega o JWT real
+  if (user.mfaEnabled && user.mfaMethod) {
+    const tempToken = jwt.signTempMfa(user.id);
+    await auditLogger.log({
+      action: 'AUTH_LOGIN',
+      tenantId: user.tenantId,
+      userId: user.id,
+      ipHash: input.ipHash,
+      userAgent: input.userAgent,
+      metadata: { mfa: 'challenge_issued' },
+    });
+    return { requiresTwoFactor: true, mfaMethod: user.mfaMethod, tempToken };
+  }
 
   // Tokens
   const accessToken = jwt.signAccess({ sub: user.id, tenantId: user.tenantId, role: user.role });

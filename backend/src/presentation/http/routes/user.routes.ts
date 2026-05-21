@@ -31,6 +31,7 @@ router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
         registry: true,
         role: true,
         mfaEnabled: true,
+        mfaMethod: true,
         tenantId: true,
         createdAt: true,
       },

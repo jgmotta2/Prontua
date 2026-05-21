@@ -92,6 +92,11 @@ enum AuditAction {
   AUTH_PASSWORD_RESET_REQUEST
   AUTH_PASSWORD_RESET_CONFIRM
   AUTH_TOKEN_REFRESH
+  AUTH_MFA_SETUP
+  AUTH_MFA_ENABLED
+  AUTH_MFA_DISABLED
+  AUTH_MFA_VERIFIED
+  AUTH_MFA_FAILED
   PATIENT_VIEW
   PATIENT_CREATE
   PATIENT_UPDATE
@@ -133,6 +138,11 @@ enum SubscriptionStatus {
   PAST_DUE
   CANCELED
   EXPIRED
+}
+
+enum MfaMethod {
+  APP        // TOTP via Google Authenticator / Authy
+  WHATSAPP   // OTP numérico enviado via Z-API
 }
 
 // ============================================================================
@@ -186,8 +196,9 @@ model User {
   emailVerifiedAt DateTime?
   lastLoginAt     DateTime?
 
-  // MFA (TOTP). secret encriptado em camada de aplicação.
+  // MFA. Secret TOTP encriptado em camada de aplicação (AES-256-GCM).
   mfaEnabled      Boolean    @default(false)
+  mfaMethod       MfaMethod?              // null enquanto desabilitado
   mfaSecretEnc    String?
   mfaSecretIv     String?
   mfaSecretTag    String?
@@ -203,6 +214,7 @@ model User {
   tenant          Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   sessions        Session[]  @relation("ProfessionalSessions")
   refreshTokens   RefreshToken[]
+  mfaOtpTokens    MfaOtpToken[]
   auditLogs       AuditLog[]
   authoredNotes   SessionNote[] @relation("NoteAuthor")
 
@@ -232,6 +244,24 @@ model RefreshToken {
   @@index([userId])
   @@index([family])
   @@map("refresh_tokens")
+}
+
+// ============================================================================
+// MFA OTP TOKEN — para fluxo WhatsApp. Nunca armazena o OTP em texto claro.
+// ============================================================================
+
+model MfaOtpToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique               // SHA-256 do OTP (nunca texto claro)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("mfa_otp_tokens")
 }
 
 // ============================================================================

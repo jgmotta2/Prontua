@@ -1,14 +1,19 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { loginSchema, type LoginFormValues } from '@lib/validation/auth.schema';
-import { useLogin } from '@features/auth/hooks/useLogin';
+import { useLogin, type LoginMfaChallenge } from '@features/auth/hooks/useLogin';
+import { TwoFactorForm } from './TwoFactorForm';
 
 export function LoginForm() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const login = useLogin();
+  const navigate             = useNavigate();
+  const queryClient          = useQueryClient();
+  const login                = useLogin();
+  const [searchParams]       = useSearchParams();
+  const isInactivity         = searchParams.get('motivo') === 'inatividade';
+  const [mfaChallenge, setMfaChallenge] = useState<LoginMfaChallenge | null>(null);
 
   const {
     register,
@@ -22,8 +27,11 @@ export function LoginForm() {
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      await login.mutateAsync(values);
-      // invalida sessão pra forçar refetch do /auth/me com o novo cookie
+      const result = await login.mutateAsync(values);
+      if ('requiresTwoFactor' in result) {
+        setMfaChallenge(result);
+        return;
+      }
       await queryClient.invalidateQueries({ queryKey: ['session'] });
       navigate('/', { replace: true });
     } catch (err: any) {
@@ -39,12 +47,28 @@ export function LoginForm() {
     }
   });
 
+  if (mfaChallenge) {
+    return (
+      <TwoFactorForm
+        tempToken={mfaChallenge.tempToken}
+        mfaMethod={mfaChallenge.mfaMethod}
+        onBack={() => setMfaChallenge(null)}
+      />
+    );
+  }
+
   return (
     <form onSubmit={onSubmit} className="space-y-4 p-6" noValidate>
       <div>
         <h2 className="font-display text-2xl font-semibold text-ink">Entrar</h2>
         <p className="text-sm text-muted mt-1">Acesse sua conta para continuar.</p>
       </div>
+
+      {isInactivity && (
+        <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          Sessão encerrada por inatividade para proteger seus dados.
+        </div>
+      )}
 
       <div>
         <label htmlFor="email" className="label">E-mail</label>

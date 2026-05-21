@@ -39,4 +39,11 @@ router.post('/logout', authController.logout);
 // GET /auth/me — retorna identidade do usuário autenticado
 router.get('/me', authRequired(), authController.me);
 
+// ─── 2FA ────────────────────────────────────────────────────────────────────
+router.post('/2fa/setup',    sensitiveRateLimiter, authRequired(), authController.mfaSetup);
+router.post('/2fa/enable',   sensitiveRateLimiter, authRequired(), authController.mfaEnable);
+router.post('/2fa/disable',  sensitiveRateLimiter, authRequired(), authController.mfaDisable);
+router.post('/2fa/send-otp', sensitiveRateLimiter, authController.mfaSendOtp);
+router.post('/2fa/verify',   sensitiveRateLimiter, authController.mfaVerify);
+
 export { router as authRoutes };
