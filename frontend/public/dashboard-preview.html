@@ -812,7 +812,7 @@ button,input,select,textarea{font-family:inherit}
             <a href="#"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>juliana@email.com</a>
             <span><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>12/03/1990</span>
           </div>
-          <div class="detail-divider">
+          <div class="detail-divider" id="detail-divider">
             <span style="display:flex;align-items:center;gap:5px;font-size:13px">
               <svg width="13" height="13" fill="none" stroke="var(--muted)" stroke-width="1.8" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               <strong style="color:var(--ink)">R$ 200,00</strong>
@@ -1547,10 +1547,10 @@ Observou-se redução da ruminação durante a sessão. Humor geral melhor que n
 <script>
 // ── DATA ──────────────────────────────────────────────────────────
 const patients = [
-  {id:1,name:'Juliana Ferreira',freq:'Semanal',whatsapp:'(11) 9 8765-4321',value:'R$ 200,00'},
-  {id:2,name:'Carlos Mendes',freq:'Quinzenal',whatsapp:'(11) 9 7654-3210',value:'R$ 250,00'},
-  {id:3,name:'Beatriz Costa',freq:'Semanal',whatsapp:'(21) 9 9876-5432',value:'R$ 180,00'},
-  {id:4,name:'Ricardo Alves',freq:'Mensal',whatsapp:'(11) 9 5432-1098',value:'R$ 300,00'},
+  {id:1,name:'Juliana Ferreira',freq:'Semanal',whatsapp:'(11) 9 8765-4321',email:'juliana@email.com',value:'R$ 200,00'},
+  {id:2,name:'Carlos Mendes',freq:'Quinzenal',whatsapp:'(11) 9 7654-3210',email:'carlos@email.com',value:'R$ 250,00'},
+  {id:3,name:'Beatriz Costa',freq:'Semanal',whatsapp:'(21) 9 9876-5432',email:'beatriz@email.com',value:'R$ 180,00'},
+  {id:4,name:'Ricardo Alves',freq:'Mensal',whatsapp:'(11) 9 5432-1098',email:'ricardo@email.com',value:'R$ 300,00'},
 ];
 
 let currentPatientId = 1;
@@ -1697,24 +1697,184 @@ function filterPatients(q) {
   ));
 }
 
+const SVG_PHONE = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.7 13.6a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.62 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.6a16 16 0 0 0 6.29 6.29l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 18.92z"/></svg>`;
+const SVG_EMAIL = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`;
+const SVG_MONEY = `<svg width="13" height="13" fill="none" stroke="var(--muted)" stroke-width="1.8" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`;
+
 function openPatientDetail(id) {
   currentPatientId = id;
   const p = patients.find(x => x.id === id) || patients[0];
+
   document.getElementById('detail-name').textContent = p.name;
-  // Atualizar meta do paciente
+
   const metaRow = document.getElementById('detail-meta-row');
   if (metaRow) {
-    metaRow.querySelector('a[href="#"]').textContent = p.whatsapp;
+    const phoneHtml = p.whatsapp && p.whatsapp !== '—'
+      ? `<a href="#">${SVG_PHONE}${p.whatsapp}</a>` : '';
+    const emailHtml = p.email
+      ? `<a href="#">${SVG_EMAIL}${p.email}</a>` : '';
+    metaRow.innerHTML = phoneHtml + emailHtml;
   }
+
+  const divider = document.getElementById('detail-divider');
+  if (divider) {
+    divider.innerHTML = `
+      <span style="display:flex;align-items:center;gap:5px;font-size:13px">
+        ${SVG_MONEY}
+        <strong style="color:var(--ink)">${p.value}</strong>
+        <span style="color:var(--muted)">/ sessão</span>
+      </span>
+      <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:#6B8E7F18;color:var(--sage-dark);font-weight:500">${p.freq}</span>
+    `;
+  }
+
   navigate('paciente-detail');
 }
 
+const prontuariosState = {};
+let prontuarioCurrentId = null;
+const PRON_TECHS = ['TCC','ACT','EMDR','DBT','Psicanálise','Gestalt','Sistêmica','Outra'];
+
+function saveProntuarioState() {
+  if (prontuarioCurrentId === null) return;
+  prontuariosState[prontuarioCurrentId] = {
+    sidebar: document.querySelector('.pron-session-list').innerHTML,
+    editor:  document.getElementById('pron-editor-area').innerHTML,
+    count:   document.querySelectorAll('.pron-session-card').length,
+  };
+}
+
+function pronDateShort(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  const mo = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][d.getMonth()];
+  return `${d.getDate()} ${mo} ${d.getFullYear()}`;
+}
+function pronDateLong(dateStr, time) {
+  const d = new Date(dateStr + 'T12:00:00');
+  const wd = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'][d.getDay()];
+  const mo = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][d.getMonth()];
+  return `${wd}, ${d.getDate()} de ${mo} de ${d.getFullYear()} · ${time}`;
+}
+
+function buildEmptyEvolution(evoId, sessNum, statusCls, statusLbl, dateLong, dur, mode, val, techs) {
+  return `
+    <div class="evolution-card" style="max-width:720px">
+      <div class="evo-header">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="evo-session-n">Sessão ${sessNum}</span>
+            <span class="badge ${statusCls}">${statusLbl}</span>
+          </div>
+          <div class="evo-date">${dateLong}</div>
+          <div class="evo-meta">
+            <span>${dur}min</span><span>·</span><span>${mode}</span><span>·</span><span>${val}</span>
+          </div>
+        </div>
+        <div class="evo-right"><div class="save-status" id="save-${evoId}"></div></div>
+      </div>
+      <div class="technique-row">
+        <span class="technique-label">Técnica:</span>
+        ${techs.map(t=>`<span class="technique-chip" onclick="selectTechnique(this,'${evoId}')">${t}</span>`).join('')}
+        <div class="mood-row">
+          <span class="mood-lbl">Humor:</span>
+          <button class="mood-btn" onclick="selectMood(this,1,'${evoId}')" title="Muito triste">😞</button>
+          <button class="mood-btn" onclick="selectMood(this,2,'${evoId}')" title="Triste">😔</button>
+          <button class="mood-btn" onclick="selectMood(this,3,'${evoId}')" title="Neutro">😐</button>
+          <button class="mood-btn" onclick="selectMood(this,4,'${evoId}')" title="Bem">🙂</button>
+          <button class="mood-btn" onclick="selectMood(this,5,'${evoId}')" title="Muito bem">😊</button>
+          <span class="mood-val" id="mood-label-${evoId}"></span>
+        </div>
+      </div>
+      <div class="evo-body">
+        <div>
+          <div class="field-lbl">Evolução clínica</div>
+          <textarea class="evo-textarea content-area-ta" oninput="scheduleAutoSave('${evoId}')" placeholder="Descreva a evolução da sessão..."></textarea>
+        </div>
+        <div>
+          <div class="field-lbl">Próximos Passos</div>
+          <textarea class="evo-textarea nextsteps-ta" oninput="scheduleAutoSave('${evoId}')" placeholder="Planejamento estratégico para a próxima sessão..."></textarea>
+        </div>
+      </div>
+    </div>`;
+}
+
 function openProntuario(id) {
-  currentPatientId = id;
+  saveProntuarioState();
+  currentPatientId    = id;
+  prontuarioCurrentId = id;
   const p = patients.find(x => x.id === id) || patients[0];
-  document.querySelector('.pron-toolbar-title').textContent = `Prontuário — ${p.name}`;
+
+  const sidebar = document.querySelector('.pron-session-list');
+  const editor  = document.getElementById('pron-editor-area');
+
+  if (prontuariosState[id]) {
+    sidebar.innerHTML = prontuariosState[id].sidebar;
+    editor.innerHTML  = prontuariosState[id].editor;
+    const count = prontuariosState[id].count;
+    document.querySelector('.pron-toolbar-sub').textContent =
+      `${count} sessão${count !== 1 ? 'ões' : ''} registrada${count !== 1 ? 's' : ''} · Auto-save ativo`;
+    document.querySelector('.pron-toolbar-title').textContent = `Prontuário — ${p.name}`;
+    navigate('prontuario');
+    return;
+  }
+
+  // Coletar sessões deste paciente na agenda (todas as datas)
+  const patSessions = [];
+  Object.entries(agendaSessions).forEach(([dk, list]) => {
+    list.forEach(s => { if (s.patient === p.name) patSessions.push({...s, dk}); });
+  });
+  patSessions.sort((a, b) => a.dk !== b.dk ? a.dk.localeCompare(b.dk) : a.time.localeCompare(b.time));
+
+  sidebar.innerHTML = '';
+  editor.innerHTML  = '';
+
+  if (patSessions.length === 0) {
+    editor.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:48px 40px">
+        <div style="width:56px;height:56px;border-radius:16px;background:rgba(107,142,127,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+          <svg width="24" height="24" fill="none" stroke="var(--sage)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </div>
+        <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--ink);margin-bottom:6px">Prontuário vazio</div>
+        <p style="font-size:13.5px;color:var(--muted);max-width:280px;line-height:1.6">Clique em <strong style="color:var(--sage-dark)">+ Nova Evolução</strong> para registrar a primeira sessão de ${p.name}.</p>
+      </div>`;
+  } else {
+    patSessions.forEach((s, idx) => {
+      const sessNum  = idx + 1;
+      const evoId    = 'e-' + s.id;
+      const cls      = STATUS_CLASSES[s.status] || 'scheduled';
+      const lbl      = STATUS_LABELS[s.status]  || 'Agendada';
+      const val      = 'R$ ' + s.value.toFixed(2).replace('.', ',');
+      const dateShort = pronDateShort(s.dk);
+      const dateLong  = pronDateLong(s.dk, s.time);
+
+      // Sidebar card
+      const card = document.createElement('div');
+      card.className = 'pron-session-card' + (idx === 0 ? ' active' : '');
+      card.id = 'psc-' + evoId;
+      card.setAttribute('onclick', `selectSession('${evoId}')`);
+      card.innerHTML = `
+        <div class="psc-top">
+          <span class="psc-n">Sessão ${sessNum}</span>
+          <span class="badge ${cls}" style="font-size:10px;padding:2px 7px">${lbl}</span>
+        </div>
+        <div class="psc-date">${dateShort}</div>
+        <div class="psc-meta">${s.time} · ${s.dur}min · ${s.mode} · ${val}</div>
+        <span class="psc-chip notech">Sem técnica</span>`;
+      sidebar.appendChild(card);
+
+      // Editor panel
+      const panel = document.createElement('div');
+      panel.id = 'pron-editor-' + evoId;
+      panel.className = 'pron-editor-panel' + (idx === 0 ? ' active' : '');
+      panel.innerHTML = buildEmptyEvolution(evoId, sessNum, cls, lbl, dateLong, s.dur, s.mode, val, PRON_TECHS);
+      editor.appendChild(panel);
+    });
+  }
+
+  const count = patSessions.length;
   document.querySelector('.pron-toolbar-sub').textContent =
-    `${document.querySelectorAll('.pron-session-card').length} sessões registradas · Auto-save ativo`;
+    `${count} sessão${count !== 1 ? 'ões' : ''} registrada${count !== 1 ? 's' : ''} · Auto-save ativo`;
+  document.querySelector('.pron-toolbar-title').textContent = `Prontuário — ${p.name}`;
   navigate('prontuario');
 }
 
@@ -1734,6 +1894,14 @@ const STATUS_LABELS = {
 
 renderPatients(patients);
 renderAgenda();
+
+// Inicializa estado do prontuário para paciente demo (Juliana)
+prontuariosState[1] = {
+  sidebar: document.querySelector('.pron-session-list').innerHTML,
+  editor:  document.getElementById('pron-editor-area').innerHTML,
+  count:   3,
+};
+prontuarioCurrentId = 1;
 
 function updateDateDisplay() {
   const d = currentDay;
@@ -1756,6 +1924,7 @@ function changeStatus(sel) {
 // ── SESSION MODAL ─────────────────────────────────────────────────
 function openSessionModal(edit) {
   document.getElementById('session-modal-title').textContent = edit ? 'Editar sessão' : 'Nova sessão';
+  syncSessionModalPatients();
   if (!edit) {
     const modal = document.getElementById('session-modal');
     modal.querySelector('input[type="date"]').value = dateKey(currentDay);
@@ -1798,15 +1967,19 @@ function saveSession() {
 function openPatientModal(edit) {
   document.getElementById('patient-modal-title').textContent = edit ? 'Editar paciente' : 'Novo paciente';
   if (edit) {
-    document.getElementById('pm-name').value = 'Juliana Ferreira';
-    document.getElementById('pm-whatsapp').value = '(11) 9 8765-4321';
-    document.getElementById('pm-email').value = 'juliana@email.com';
-    document.getElementById('pm-value').value = '200,00';
+    const p = patients.find(x => x.id === currentPatientId) || patients[0];
+    document.getElementById('pm-name').value    = p.name;
+    document.getElementById('pm-whatsapp').value = p.whatsapp !== '—' ? p.whatsapp : '';
+    document.getElementById('pm-email').value    = p.email || '';
+    document.getElementById('pm-value').value   = p.value.replace('R$ ','').replace(',','.');
+    document.getElementById('pm-freq').value    = p.freq;
+    document.getElementById('pm-cpf').value     = '';
   } else {
-    document.getElementById('pm-name').value = '';
+    document.getElementById('pm-name').value    = '';
     document.getElementById('pm-whatsapp').value = '';
-    document.getElementById('pm-email').value = '';
-    document.getElementById('pm-value').value = '';
+    document.getElementById('pm-email').value    = '';
+    document.getElementById('pm-value').value   = '';
+    document.getElementById('pm-cpf').value     = '';
   }
   document.getElementById('patient-modal').classList.add('active');
 }
@@ -1814,9 +1987,12 @@ function closePatientModal() {
   document.getElementById('patient-modal').classList.remove('active');
 }
 function savePatient() {
-  const name  = document.getElementById('pm-name').value.trim();
-  const cpf   = document.getElementById('pm-cpf').value;
-  const email = document.getElementById('pm-email').value.trim();
+  const name     = document.getElementById('pm-name').value.trim();
+  const cpf      = document.getElementById('pm-cpf').value;
+  const email    = document.getElementById('pm-email').value.trim();
+  const whatsapp = document.getElementById('pm-whatsapp').value.trim();
+  const valueRaw = document.getElementById('pm-value').value.trim();
+  const freq     = document.getElementById('pm-freq').value;
 
   if (!name) { showToast('Informe o nome do paciente', 'error'); return; }
 
@@ -1832,8 +2008,49 @@ function savePatient() {
     return;
   }
 
-  closePatientModal();
-  showToast(`Paciente "${name}" salvo com sucesso!`, 'success');
+  const isEdit = document.getElementById('patient-modal-title').textContent === 'Editar paciente';
+  const valueFormatted = valueRaw
+    ? 'R$ ' + parseFloat(valueRaw.replace(',','.')).toFixed(2).replace('.',',')
+    : 'R$ 0,00';
+
+  if (isEdit) {
+    const p = patients.find(x => x.id === currentPatientId);
+    if (p) {
+      const nameChanged = p.name !== name;
+      p.name     = name;
+      p.whatsapp = whatsapp || p.whatsapp;
+      p.email    = email || p.email;
+      p.value    = valueRaw ? valueFormatted : p.value;
+      p.freq     = freq;
+      // Força releitura do prontuário se o nome mudou
+      if (nameChanged) delete prontuariosState[currentPatientId];
+    }
+    renderPatients(patients);
+    closePatientModal();
+    showToast(`Paciente "${name}" atualizado com sucesso!`, 'success');
+    openPatientDetail(currentPatientId);
+  } else {
+    const newId = patients.length ? Math.max(...patients.map(p => p.id)) + 1 : 1;
+    patients.push({ id: newId, name, freq, whatsapp: whatsapp || '—', email, value: valueFormatted });
+    renderPatients(patients);
+    updatePatientCount();
+    closePatientModal();
+    showToast(`Paciente "${name}" criado com sucesso!`, 'success');
+    navigate('pacientes', document.querySelector('[data-nav="pacientes"]'));
+  }
+}
+
+function updatePatientCount() {
+  const sub = document.querySelector('#screen-pacientes .page-sub');
+  if (sub) sub.textContent = `${patients.length} paciente${patients.length !== 1 ? 's' : ''} ativo${patients.length !== 1 ? 's' : ''}`;
+}
+
+function syncSessionModalPatients() {
+  const sel = document.querySelector('#session-modal select');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Selecionar paciente...</option>' +
+    patients.map(p => `<option${p.name === current ? ' selected' : ''}>${p.name}</option>`).join('');
 }
 
 // ── PRONTUÁRIO — AUTO-SAVE ────────────────────────────────────────
@@ -2199,8 +2416,8 @@ function disableMfa() {
 // ── AUTO-LOGOUT POR INATIVIDADE ───────────────────────────────────
 // Demo: aviso após 2 min sem interação, logout após mais 60s
 // Produção: aviso 14min, logout 15min
-const IDLE_WARN_MS   = 4 * 60 * 1000; // aviso aos 4min
-const IDLE_SECS      = 60;            // logout 1min após o aviso (total: 5min)
+const IDLE_WARN_MS   = 9 * 60 * 1000; // aviso aos 9min
+const IDLE_SECS      = 60;            // logout 1min após o aviso (total: 10min)
 let idleTimer, idleInterval, idleRemaining = IDLE_SECS;
 
 function resetIdleTimer() {
