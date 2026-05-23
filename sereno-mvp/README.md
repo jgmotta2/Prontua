@@ -29,20 +29,99 @@ sereno/
 │   ├── prisma/schema.prisma
 │   └── src/
 │       ├── config/           # env, prisma client com tenant isolation
-│       ├── application/      # use cases (regra de negócio)
-│       ├── infrastructure/   # crypto, messaging, audit, repositórios
-│       ├── presentation/     # HTTP: routes, controllers, middlewares
-│       └── shared/           # errors, logger, types
+│       ├── application/
+│       │   └── use-cases/
+│       │       ├── auth/     # login, register
+│       │       ├── dashboard/
+│       │       ├── session/  # create-session, list-sessions
+│       │       └── finance/  # list-payments
+│       ├── infrastructure/   # crypto, messaging, audit
+│       ├── presentation/
+│       │   └── http/
+│       │       ├── routes/   # auth, patients, sessions, finance, dashboard
+│       │       ├── schemas/  # Zod: auth, clinical
+│       │       └── middlewares/
+│       └── shared/           # errors, logger
 │
 └── frontend/                # SPA React + TypeScript
     ├── Dockerfile
     ├── nginx.conf
     └── src/
-        ├── app/              # providers, rotas
+        ├── app/              # providers, rotas (AppRoutes)
         ├── components/       # UI compartilhada (Sidebar, BottomNav, AppShell)
-        ├── features/         # feature folders (auth, dashboard, ...)
+        ├── features/
+        │   ├── auth/         # login, cadastro, sessão de usuário
+        │   ├── dashboard/    # KPIs, gráfico de receita, agenda de hoje
+        │   ├── patients/     # lista, detalhe, modal criar/editar
+        │   ├── sessions/     # agenda por dia, modal nova sessão
+        │   └── finance/      # pagamentos pendentes/recebidos
         └── lib/              # api client, validation, utils
 ```
+
+---
+
+## API — Endpoints disponíveis
+
+Toda rota privada exige cookie `sereno_at` (JWT HttpOnly). O `tenantId`
+é extraído do token — nunca aceito do cliente.
+
+### Auth (`/auth`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/auth/register` | Cria clínica (Tenant) + usuário OWNER |
+| POST | `/auth/login` | Autentica, seta cookies HttpOnly |
+| POST | `/auth/logout` | Revoga refresh token |
+| GET  | `/auth/me` | Retorna perfil do usuário autenticado |
+| POST | `/auth/refresh` | Rotaciona access token via refresh cookie |
+
+### Pacientes (`/patients`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET    | `/patients` | Lista todos os pacientes ativos |
+| GET    | `/patients/:id` | Detalhe do paciente |
+| POST   | `/patients` | Cria paciente (CPF criptografado) |
+| PATCH  | `/patients/:id` | Edita dados do paciente |
+| DELETE | `/patients/:id` | Hard delete (LGPD Art. 18) |
+
+### Sessões (`/sessions`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET    | `/sessions?from=&to=` | Lista sessões no intervalo de datas |
+| POST   | `/sessions` | Cria sessão **e** gera `Payment(PENDING)` automaticamente |
+| PATCH  | `/sessions/:id/status` | Atualiza status: SCHEDULED → CONFIRMED → COMPLETED |
+
+Body de `POST /sessions`:
+```json
+{
+  "patientId": "uuid",
+  "scheduledAt": "2026-05-23T09:00:00Z",
+  "durationMin": 50,
+  "mode": "PRESENCIAL",
+  "value": 200.00
+}
+```
+
+### Financeiro (`/finance`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET    | `/finance/payments?status=PENDING` | Lista pagamentos (filtro opcional: PENDING, PAID) |
+| PATCH  | `/finance/payments/:id/pay` | Marca como recebido — seta `status=PAID`, `paidAt=now()` |
+
+Body de `PATCH /finance/payments/:id/pay`:
+```json
+{ "method": "PIX" }
+```
+Métodos aceitos: `PIX`, `CARD`, `CASH`, `TRANSFER`, `OTHER`.
+
+### Dashboard (`/dashboard`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/dashboard/overview` | KPIs + série de 6 meses + agenda de hoje |
 
 ---
 
