@@ -1,0 +1,17 @@
+node_modules
+dist
+.env
+.env.*
+!.env.example
+*.log
+README.md
+.git
+.gitignore
+.dockerignore
+Dockerfile
+.vscode
+.idea
+.DS_Store
+coverage
+.tsbuildinfo
+*.tsbuildinfo
