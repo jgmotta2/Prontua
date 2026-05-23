@@ -35,4 +35,10 @@ router.post('/logout', authController.logout);
 // GET /auth/me — retorna identidade do usuário autenticado
 router.get('/me', authRequired(), authController.me);
 
+// POST /auth/send-verification — (re)envia código por e-mail
+router.post('/send-verification', authRequired(), authController.sendVerification);
+
+// POST /auth/verify-email — confirma o código de 6 dígitos
+router.post('/verify-email', authRequired(), authController.verifyEmail);
+
 export { router as authRoutes };

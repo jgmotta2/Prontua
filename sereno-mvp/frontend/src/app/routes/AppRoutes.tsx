@@ -10,6 +10,7 @@ import { PatientList } from '@features/patients/components/PatientList';
 import { PatientDetail } from '@features/patients/components/PatientDetail';
 import { AgendaPage } from '@features/sessions/components/AgendaPage';
 import { FinancePage } from '@features/finance/components/FinancePage';
+import { VerifyEmail } from '@features/auth/components/VerifyEmail';
 
 /**
  * Guard de rota privada — usa /auth/me. Enquanto resolve, mostra spinner.
@@ -58,6 +59,7 @@ export function AppRoutes() {
       {/* Públicas */}
       <Route path="/entrar"   element={<PublicOnly><LoginForm /></PublicOnly>} />
       <Route path="/cadastro" element={<PublicOnly><RegisterForm /></PublicOnly>} />
+      <Route path="/verificar-email" element={<AuthLayout><VerifyEmail /></AuthLayout>} />
 
       {/* Privadas */}
       <Route path="/"              element={<Private><Dashboard /></Private>} />

@@ -172,6 +172,10 @@ model User {
   emailVerifiedAt DateTime?
   lastLoginAt     DateTime?
 
+  // Verificação de e-mail
+  verificationCode       String?   @db.Char(6)
+  verificationCodeExpiry DateTime?
+
   // MFA (TOTP). secret encriptado em camada de aplicação.
   mfaEnabled      Boolean    @default(false)
   mfaSecretEnc    String?

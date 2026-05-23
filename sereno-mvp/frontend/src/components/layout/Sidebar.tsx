@@ -11,11 +11,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useLogout } from '@features/auth/hooks/useLogin';
 
 const NAV_ITEMS = [
-  { to: '/',           label: 'Dashboard',    icon: LayoutDashboard },
-  { to: '/pacientes',  label: 'Pacientes',    icon: Users },
-  { to: '/agenda',     label: 'Agenda',       icon: CalendarDays },
-  { to: '/financeiro', label: 'Financeiro',   icon: Wallet },
-  { to: '/config',     label: 'Configurações',icon: Settings },
+  { to: '/',           label: 'Dashboard',    icon: LayoutDashboard, id: undefined },
+  { to: '/pacientes',  label: 'Pacientes',    icon: Users,           id: 'tour-nav-pacientes' },
+  { to: '/agenda',     label: 'Agenda',       icon: CalendarDays,    id: 'tour-nav-agenda' },
+  { to: '/financeiro', label: 'Financeiro',   icon: Wallet,          id: 'tour-nav-financeiro' },
+  { to: '/config',     label: 'Configurações',icon: Settings,        id: undefined },
 ] as const;
 
 export function Sidebar() {
@@ -40,11 +40,12 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 px-3 space-y-1">
-        {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+        {NAV_ITEMS.map(({ to, label, icon: Icon, id }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
+            id={id}
             className={({ isActive }) =>
               [
                 'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition',

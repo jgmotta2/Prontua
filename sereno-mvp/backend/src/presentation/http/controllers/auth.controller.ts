@@ -1,6 +1,10 @@
 import type { Request, Response, NextFunction } from 'express';
 import { registerUseCase } from '@application/use-cases/auth/register.use-case';
 import { loginUseCase } from '@application/use-cases/auth/login.use-case';
+import {
+  sendVerificationCodeUseCase,
+  confirmVerificationCodeUseCase,
+} from '@application/use-cases/auth/verify-email.use-case';
 import { JwtService } from '@infrastructure/crypto/jwt.service';
 
 const jwt = new JwtService();
@@ -23,10 +27,17 @@ export const authController = {
       });
 
       jwt.setAuthCookies(res, login.accessToken, login.refreshTokenRaw);
+
+      // Envia email de verificação de forma assíncrona (não bloqueia resposta)
+      sendVerificationCodeUseCase(result.userId).catch(() => {
+        // falha silenciosa — usuário pode reenviar depois
+      });
+
       res.status(201).json({
         userId: result.userId,
         tenantId: result.tenantId,
         role: result.role,
+        emailVerified: false,
       });
     } catch (err) {
       next(err);
@@ -56,5 +67,23 @@ export const authController = {
 
   async me(req: Request, res: Response): Promise<void> {
     res.json({ userId: req.auth!.sub, tenantId: req.auth!.tenantId, role: req.auth!.role });
+  },
+
+  async sendVerification(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      await sendVerificationCodeUseCase(req.auth!.sub);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async verifyEmail(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      await confirmVerificationCodeUseCase(req.auth!.sub, (req.body as any).code);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
   },
 };

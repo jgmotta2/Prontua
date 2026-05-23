@@ -39,7 +39,7 @@ export function RegisterForm() {
   const onSubmit = handleSubmit(async (values) => {
     try {
       await register.mutateAsync(values);
-      navigate('/', { replace: true });
+      navigate('/verificar-email', { replace: true });
     } catch (err: any) {
       // Mapeia erros de validação do backend para os campos do form.
       if (err?.code === 'VALIDATION_ERROR' && err.details) {

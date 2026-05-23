@@ -4,9 +4,12 @@ import { formatBRL, formatFullDate } from '@lib/utils/format';
 import { KpiCard, KpiCardSkeleton } from './KpiCard';
 import { RevenueChart } from './RevenueChart';
 import { TodayAgenda } from './TodayAgenda';
+import { useOnboardingTour } from '@features/onboarding/OnboardingTour';
 
 export function Dashboard() {
   const { data, isLoading, isError, error } = useDashboard();
+
+  useOnboardingTour();
 
   return (
     <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
@@ -31,7 +34,7 @@ export function Dashboard() {
       )}
 
       {/* KPIs */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <section id="tour-kpis" className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {isLoading || !data ? (
           <>
             <KpiCardSkeleton />
@@ -75,7 +78,7 @@ export function Dashboard() {
 
       {/* Conteúdo principal */}
       <section className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        <div className="lg:col-span-3">
+        <div id="tour-chart" className="lg:col-span-3">
           {isLoading || !data ? (
             <div className="rounded-2xl bg-white p-5 shadow-soft h-72 sm:h-80 animate-pulse">
               <div className="h-4 w-32 rounded bg-warm/60" />
@@ -94,7 +97,7 @@ export function Dashboard() {
           )}
         </div>
 
-        <div className="lg:col-span-2">
+        <div id="tour-agenda" className="lg:col-span-2">
           {isLoading || !data ? (
             <div className="rounded-2xl bg-white p-5 shadow-soft h-72 sm:h-80 animate-pulse">
               <div className="h-4 w-32 rounded bg-warm/60" />

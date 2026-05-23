@@ -47,6 +47,9 @@ const envSchema = z.object({
   RATE_LIMIT_REGISTER_PER_HOUR: z.coerce.number().int().positive().default(3),
   RATE_LIMIT_API_PER_MIN: z.coerce.number().int().positive().default(60),
 
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM_EMAIL: z.string().email().optional(),
+
   ZAPI_INSTANCE_ID: z.string().optional(),
   ZAPI_TOKEN: z.string().optional(),
   ZAPI_CLIENT_TOKEN: z.string().optional(),
