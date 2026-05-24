@@ -1,11 +1,28 @@
+import fs from 'node:fs';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
+const FAVICON_ORIGEM = path.resolve(__dirname, 'assets/P.svg');
+const FAVICON_DESTINO = path.resolve(__dirname, 'public/favicon.svg');
+
+function sincronizarFavicon(): void {
+  fs.mkdirSync(path.dirname(FAVICON_DESTINO), { recursive: true });
+  fs.copyFileSync(FAVICON_ORIGEM, FAVICON_DESTINO);
+}
+
+function pluginFaviconProntua() {
+  return {
+    name: 'prontua-favicon',
+    buildStart: sincronizarFavicon,
+    configureServer: sincronizarFavicon,
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
-    plugins: [react()],
+    plugins: [pluginFaviconProntua(), react()],
     resolve: {
       alias: {
         '@':           path.resolve(__dirname, 'src'),
@@ -15,6 +32,7 @@ export default defineConfig(({ mode }) => {
         '@hooks':      path.resolve(__dirname, 'src/hooks'),
         '@lib':        path.resolve(__dirname, 'src/lib'),
         '@types':      path.resolve(__dirname, 'src/types'),
+        '@assets':     path.resolve(__dirname, 'assets'),
       },
     },
     server: {

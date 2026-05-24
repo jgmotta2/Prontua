@@ -11,7 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useLogout } from '@features/auth/hooks/useLogin';
 
 const NAV_ITEMS = [
-  { to: '/',           label: 'Dashboard',    icon: LayoutDashboard, id: undefined },
+  { to: '/painel',     label: 'Dashboard',    icon: LayoutDashboard, id: undefined },
   { to: '/pacientes',  label: 'Pacientes',    icon: Users,           id: 'tour-nav-pacientes' },
   { to: '/agenda',     label: 'Agenda',       icon: CalendarDays,    id: 'tour-nav-agenda' },
   { to: '/financeiro', label: 'Financeiro',   icon: Wallet,          id: 'tour-nav-financeiro' },
@@ -44,7 +44,7 @@ export function Sidebar() {
           <NavLink
             key={to}
             to={to}
-            end={to === '/'}
+            end={to === '/painel'}
             id={id}
             className={({ isActive }) =>
               [

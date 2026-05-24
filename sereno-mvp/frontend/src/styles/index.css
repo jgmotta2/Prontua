@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes sessionEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+.animate-session-enter {
+  animation: sessionEnter 0.18s ease;
+}
+
 @layer base {
   :root {
     --color-cream: #F5F1E8;
@@ -15,6 +23,12 @@
 
   html, body, #root {
     height: 100%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
 
   body {

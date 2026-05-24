@@ -53,7 +53,7 @@ export function VerifyEmail() {
   async function handleSubmit(code: string) {
     try {
       await confirm.mutateAsync({ code });
-      navigate('/', { replace: true });
+      navigate('/painel', { replace: true });
     } catch (err: any) {
       setError(err?.message ?? 'Código inválido. Tente novamente.');
       setDigits(Array(DIGITS).fill(''));
