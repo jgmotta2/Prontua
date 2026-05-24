@@ -27,7 +27,7 @@ export function PaywallPage() {
   const subtitle = isPastDue
     ? 'Houve um problema com seu pagamento. Atualize sua forma de pagamento para continuar.'
     : isCanceled
-    ? 'Sua assinatura foi cancelada. Assine novamente para continuar usando o Sereno.'
+    ? 'Sua assinatura foi cancelada. Assine novamente para continuar usando o Prontua.'
     : 'Você usou seus 3 dias gratuitos. Assine para continuar atendendo seus pacientes.';
 
   return (
@@ -50,7 +50,7 @@ export function PaywallPage() {
         {/* Plan card */}
         <div className="bg-white rounded-2xl shadow-soft overflow-hidden mb-6">
           <div className="bg-sage p-5 text-white">
-            <p className="text-sm font-medium opacity-80 mb-1">Plano Sereno Pro</p>
+            <p className="text-sm font-medium opacity-80 mb-1">Plano Prontua Pro</p>
             <div className="flex items-baseline gap-1">
               <span className="text-3xl font-bold">R$ —</span>
               <span className="text-sm opacity-80">/mês</span>

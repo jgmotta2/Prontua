@@ -19,7 +19,7 @@ export function MobileTopBar() {
 
   return (
     <header className="md:hidden flex items-center justify-between border-b border-warm/40 bg-cream px-5 py-3">
-      <h1 className="font-display text-xl font-semibold text-ink">Sereno</h1>
+      <h1 className="font-display text-xl font-semibold text-ink">Prontua</h1>
       <button
         type="button"
         onClick={handleLogout}

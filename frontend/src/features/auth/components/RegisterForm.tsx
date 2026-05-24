@@ -10,15 +10,6 @@ import {
 import { maskWhatsappBr } from '@lib/utils/mask';
 import { useRegister } from '@features/auth/hooks/useRegister';
 
-/**
- * Formulário de cadastro completo.
- *
- * - RHF + Zod resolver: tipagem estática + validação rigorosa.
- * - Máscara dinâmica de WhatsApp (apresenta formatado, envia só dígitos).
- * - Erros do backend são mapeados para campos do formulário via
- *   `setError` quando o backend retorna `details: { field: [msgs] }`.
- * - Botão desabilitado durante submit; estado de loading explícito.
- */
 export function RegisterForm() {
   const navigate = useNavigate();
   const register = useRegister();
@@ -39,7 +30,7 @@ export function RegisterForm() {
   const onSubmit = handleSubmit(async (values) => {
     try {
       await register.mutateAsync(values);
-      navigate('/', { replace: true });
+      navigate('/painel', { replace: true });
     } catch (err: any) {
       // Mapeia erros de validação do backend para os campos do form.
       if (err?.code === 'VALIDATION_ERROR' && err.details) {

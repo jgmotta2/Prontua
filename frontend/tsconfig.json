@@ -28,7 +28,8 @@
       "@components/*":  ["components/*"],
       "@hooks/*":       ["hooks/*"],
       "@lib/*":         ["lib/*"],
-      "@types/*":       ["types/*"]
+      "@types/*":       ["types/*"],
+      "@assets/*":      ["../assets/*"]
     }
   },
   "include": ["src"]

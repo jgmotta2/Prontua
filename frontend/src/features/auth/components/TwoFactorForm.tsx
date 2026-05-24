@@ -37,7 +37,7 @@ export function TwoFactorForm({ tempToken, mfaMethod, onBack }: TwoFactorFormPro
     try {
       await verify.mutateAsync({ tempToken, code });
       await queryClient.invalidateQueries({ queryKey: ['session'] });
-      navigate('/', { replace: true });
+      navigate('/painel', { replace: true });
     } catch (err: any) {
       setError('Código inválido ou expirado.');
       setCode('');

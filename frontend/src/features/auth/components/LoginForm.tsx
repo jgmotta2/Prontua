@@ -33,7 +33,7 @@ export function LoginForm() {
         return;
       }
       await queryClient.invalidateQueries({ queryKey: ['session'] });
-      navigate('/', { replace: true });
+      navigate('/painel', { replace: true });
     } catch (err: any) {
       if (err?.code === 'UNAUTHENTICATED') {
         setError('root', { message: 'E-mail ou senha incorretos.' });

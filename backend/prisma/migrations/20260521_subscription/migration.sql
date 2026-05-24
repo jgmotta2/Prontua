@@ -1,7 +1,10 @@
--- CreateEnum
-CREATE TYPE IF NOT EXISTS "SubscriptionStatus" AS ENUM ('TRIAL', 'ACTIVE', 'PAST_DUE', 'CANCELED', 'EXPIRED');
+-- Idempotente: em instalações novas, init (20260519) já criou enum e colunas.
+DO $$ BEGIN
+  CREATE TYPE "SubscriptionStatus" AS ENUM ('TRIAL', 'ACTIVE', 'PAST_DUE', 'CANCELED', 'EXPIRED');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
--- AlterTable tenants: add subscription fields
 ALTER TABLE "tenants"
   ADD COLUMN IF NOT EXISTS "trialEndsAt"          TIMESTAMP(3) NOT NULL DEFAULT NOW() + INTERVAL '3 days',
   ADD COLUMN IF NOT EXISTS "subscriptionStatus"   "SubscriptionStatus" NOT NULL DEFAULT 'TRIAL',
