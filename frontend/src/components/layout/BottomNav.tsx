@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { to: '/',           label: 'Início',     icon: LayoutDashboard },
+  { to: '/painel',      label: 'Início',     icon: LayoutDashboard },
   { to: '/pacientes',  label: 'Pacientes',  icon: Users },
   { to: '/agenda',     label: 'Agenda',     icon: CalendarDays },
   { to: '/financeiro', label: 'Financeiro', icon: Wallet },
@@ -35,7 +35,7 @@ export function BottomNav() {
           <li key={to} className="flex-1">
             <NavLink
               to={to}
-              end={to === '/'}
+              end={to === '/painel'}
               className={({ isActive }) =>
                 [
                   'flex flex-col items-center gap-1 py-2.5 px-1 min-h-[56px] justify-center transition',

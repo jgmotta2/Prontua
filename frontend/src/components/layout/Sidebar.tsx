@@ -11,7 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useLogout } from '@features/auth/hooks/useLogin';
 
 const NAV_ITEMS = [
-  { to: '/',           label: 'Dashboard',    icon: LayoutDashboard },
+  { to: '/painel',      label: 'Dashboard',    icon: LayoutDashboard },
   { to: '/pacientes',  label: 'Pacientes',    icon: Users },
   { to: '/agenda',     label: 'Agenda',       icon: CalendarDays },
   { to: '/financeiro', label: 'Financeiro',   icon: Wallet },
@@ -34,9 +34,11 @@ export function Sidebar() {
 
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col bg-ink text-cream/85">
-      <div className="px-6 py-7">
-        <h1 className="font-display text-2xl font-semibold text-cream tracking-tight">Sereno</h1>
-        <p className="mt-0.5 text-xs text-cream/50">Bem-vindo de volta</p>
+      <div className="px-6 py-5">
+        <div className="w-36 h-20 flex items-center">
+          <img src="/assets/ProntuaSilverLogo.svg" alt="Logo" className='' />
+        </div>
+        <p className=" pt-2 text-xs text-cream/50">Bem-vindo de volta</p>
       </div>
 
       <nav className="flex-1 px-3 space-y-1">
@@ -44,7 +46,7 @@ export function Sidebar() {
           <NavLink
             key={to}
             to={to}
-            end={to === '/'}
+            end={to === '/painel'}
             className={({ isActive }) =>
               [
                 'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition',
