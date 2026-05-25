@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+*.log
+coverage/
+.tsbuildinfo
+
+# Banco de dados local (nunca commitar dados reais)
+prisma/*.db
+prisma/*.db-journal
+prisma/*.db-shm
+prisma/*.db-wal
+
+# Backups de schema
+prisma/*.bak
+prisma/*.pg.bak
+
+# Cliente Prisma gerado fora do padrão (OneDrive workaround)
+/prisma-client-output/
