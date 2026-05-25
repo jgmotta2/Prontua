@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes sessionEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+.animate-session-enter {
+  animation: sessionEnter 0.18s ease;
+}
+
+@layer base {
+  :root {
+    --color-cream: #F5F1E8;
+    --color-sage: #6B8E7F;
+    --color-sage-dark: #4A6B5E;
+    --color-terracotta: #C97B5C;
+    --color-ink: #2D3B36;
+    --color-muted: #7A8B85;
+    --color-warm: #E8DDC8;
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+
+  body {
+    font-feature-settings: 'cv11', 'ss03';
+  }
+
+  /* Tipografia display */
+  .font-display {
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-sage px-5 py-3
+           font-medium text-cream transition hover:bg-sage-dark active:translate-y-px
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-sage/20
+           bg-white/60 px-5 py-3 font-medium text-ink transition hover:bg-white
+           disabled:opacity-50;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-sage/20 bg-white/80 px-4 py-3 text-ink
+           outline-none transition focus:border-sage focus:ring-2 focus:ring-sage/20
+           disabled:opacity-50;
+  }
+
+  .input-error {
+    @apply border-terracotta focus:border-terracotta focus:ring-terracotta/20;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink/80;
+  }
+
+  .helper {
+    @apply mt-1 text-xs text-muted;
+  }
+
+  .helper-error {
+    @apply mt-1 text-xs text-terracotta;
+  }
+}
