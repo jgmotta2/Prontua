@@ -27,6 +27,11 @@ export interface JwtPayload {
   role: UserRole;
 }
 
+export interface PreAuthPayload {
+  sub: string;           // userId
+  scope: 'pre-auth';
+}
+
 const ACCESS_COOKIE = 'prontua_at';
 const REFRESH_COOKIE = 'prontua_rt';
 
@@ -89,6 +94,28 @@ export class JwtService {
   clearAuthCookies(res: Response): void {
     res.clearCookie(ACCESS_COOKIE, { path: '/' });
     res.clearCookie(REFRESH_COOKIE, { path: '/auth/refresh' });
+  }
+
+  /**
+   * Emite um token de pré-autenticação (escopo limitado).
+   * Usado no fluxo MFA: após verificar a senha, antes de emitir tokens reais.
+   * TTL curto (5 min). Assinado com segredo derivado (evita confusão de escopo).
+   */
+  signPreAuth(userId: string): string {
+    return jwt.sign(
+      { sub: userId, scope: 'pre-auth' } satisfies PreAuthPayload,
+      env.JWT_ACCESS_SECRET + ':pre-auth',
+      { algorithm: 'HS256', expiresIn: 300 }, // 5 minutos
+    );
+  }
+
+  verifyPreAuth(token: string): PreAuthPayload {
+    const decoded = jwt.verify(token, env.JWT_ACCESS_SECRET + ':pre-auth', {
+      algorithms: ['HS256'],
+    });
+    const payload = decoded as PreAuthPayload;
+    if (payload.scope !== 'pre-auth') throw new Error('scope inválido');
+    return payload;
   }
 }
 

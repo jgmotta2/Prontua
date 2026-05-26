@@ -5,7 +5,6 @@
 
 generator client {
   provider      = "prisma-client-js"
-  output        = "C:/prisma-client-prontua"
   binaryTargets = ["native"]
 }
 
@@ -56,6 +55,8 @@ model User {
 
   verificationCode       String?
   verificationCodeExpiry DateTime?
+
+  photo        String? // base64 data URL da foto de perfil (max ~1.5 MB comprimido)
 
   mfaEnabled   Boolean @default(false)
   mfaSecretEnc String?

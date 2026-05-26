@@ -1770,7 +1770,8 @@ async function enterApp(user, silent=false){
   renderPayments();
   renderDashboard();
   resetIdleTimer();
-  loadProfilePhoto(); // aplica foto salva ao entrar no app
+  // Aplica foto de perfil do backend (sincronizada entre dispositivos)
+  if (user.photo) applyProfilePhoto(user.photo);
   if(!silent) showToast(`Bem-vindo ao Prontua, ${user.name.split(' ')[0]}! 👋`,'success');
   // Carrega dados reais em background
   await loadData();
@@ -1868,31 +1869,55 @@ function applyProfilePhoto(dataUrl) {
 function handleProfilePhoto(input) {
   const file = input.files[0];
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) {
-    showToast('Imagem muito grande. Use no máximo 2MB.', 'error');
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('Imagem muito grande. Use no máximo 5MB.', 'error');
     input.value = '';
     return;
   }
   const reader = new FileReader();
   reader.onload = (e) => {
-    const dataUrl = e.target.result;
-    lsSet('profile_photo', dataUrl);
-    applyProfilePhoto(dataUrl);
-    showToast('Foto de perfil atualizada!', 'success');
+    const img = new Image();
+    img.onload = async () => {
+      // Redimensiona para máx 400px (mantém proporção) e converte para JPEG 82%
+      const MAX = 400;
+      let w = img.width, h = img.height;
+      if (w > h && w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      else if (h >= w && h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(w, 1);
+      canvas.height = Math.max(h, 1);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      try {
+        await api('/auth/photo', { method: 'PATCH', body: { photo: dataUrl } });
+        applyProfilePhoto(dataUrl);
+        showToast('Foto de perfil atualizada!', 'success');
+      } catch {
+        showToast('Erro ao salvar foto. Tente novamente.', 'error');
+      }
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
-function removeProfilePhoto() {
-  localStorage.removeItem('profile_photo');
-  applyProfilePhoto(null);
-  document.getElementById('profile-photo-input').value = '';
-  showToast('Foto removida.', 'success');
+async function removeProfilePhoto() {
+  try {
+    await api('/auth/photo', { method: 'PATCH', body: { photo: null } });
+    applyProfilePhoto(null);
+    document.getElementById('profile-photo-input').value = '';
+    showToast('Foto removida.', 'success');
+  } catch {
+    showToast('Erro ao remover foto. Tente novamente.', 'error');
+  }
 }
 
-function loadProfilePhoto() {
-  const saved = localStorage.getItem('profile_photo');
-  if (saved) applyProfilePhoto(saved);
+// Carrega foto do perfil do backend (sincroniza entre dispositivos)
+async function loadProfilePhoto() {
+  try {
+    const profile = await api('/auth/profile');
+    if (profile?.photo) applyProfilePhoto(profile.photo);
+  } catch { /* silencioso */ }
 }
 
 /** Atualiza label e placeholder do campo de registro conforme especialidade */
@@ -1934,9 +1959,9 @@ async function loadProfileForm() {
     // Atualiza iniciais do avatar no preview de perfil
     const initials = document.getElementById('profile-avatar-initials');
     if (initials) initials.textContent = profile.name ? profile.name.charAt(0).toUpperCase() : '?';
-    // Aplica foto salva (se houver) ou mostra iniciais
-    const savedPhoto = localStorage.getItem('profile_photo');
-    if (savedPhoto) applyProfilePhoto(savedPhoto);
+    // Aplica foto do backend (sincroniza entre dispositivos)
+    if (profile.photo) applyProfilePhoto(profile.photo);
+    else applyProfilePhoto(null);
     // Atualiza label do conselho regional conforme especialidade carregada
     updateRegistryLabel();
   } catch (err) {
@@ -2315,6 +2340,7 @@ function navigate(page, navEl) {
   document.querySelector('.content-area').scrollTop = 0;
   if (page === 'config') loadProfileForm().catch(() => {});
   if (page === 'dashboard') renderDashboard();
+  if (page === 'agenda') { currentDay = new Date(); updateDateDisplay(); renderAgenda(); }
 }
 
 let pendingLoginUser = null; // guarda usuário entre login → 2FA
@@ -2330,10 +2356,22 @@ async function doLogin() {
   if (btn) { btn.disabled = true; btn.textContent = 'Entrando…'; }
 
   try {
-    await api('/auth/login', { method: 'POST', body: { email, password: pwd } });
-    // Busca perfil após login (cookie já está setado)
+    const result = await api('/auth/login', { method: 'POST', body: { email, password: pwd } });
+
+    if (result?.step === 'mfa_required') {
+      // Guarda o token de pré-autenticação para usar no verify2fa
+      pendingLoginUser = { preAuthToken: result.preAuthToken };
+      document.getElementById('screen-login').classList.remove('active');
+      document.getElementById('screen-2fa').classList.add('active');
+      document.getElementById('2fa-code').value = '';
+      setTimeout(() => document.getElementById('2fa-code')?.focus(), 50);
+      showToast('Código enviado para seu e-mail 📧', 'success');
+      return;
+    }
+
+    // Autenticação direta (ex: após registro — sem MFA)
     const me = await api('/auth/profile');
-    await enterApp({ id: me.id, name: me.name, email: me.email, tenantId: me.tenantId || null });
+    await enterApp({ id: me.id, name: me.name, email: me.email, photo: me.photo, tenantId: me.tenantId || null });
   } catch (err) {
     const msg = err.status === 401 || err.status === 403
       ? 'E-mail ou senha incorretos'
@@ -2344,16 +2382,38 @@ async function doLogin() {
   }
 }
 
-function verify2fa() {
-  const code = document.getElementById('2fa-code').value;
+async function verify2fa() {
+  const code = document.getElementById('2fa-code').value.replace(/\s/g, '');
   if (code.length < 6) { showToast('Digite os 6 dígitos','error'); return; }
-  const user = pendingLoginUser || DEMO_USER;
-  setCurrentUser(user);
-  pendingLoginUser = null;
-  enterApp(user);
+
+  const preAuthToken = pendingLoginUser?.preAuthToken;
+  if (!preAuthToken) {
+    showToast('Sessão expirada. Faça login novamente.', 'error');
+    back2Login();
+    return;
+  }
+
+  const btn = document.querySelector('#screen-2fa .btn-primary');
+  const orig = btn?.textContent || 'Verificar código';
+  if (btn) { btn.disabled = true; btn.textContent = 'Verificando…'; }
+
+  try {
+    await api('/auth/mfa/verify', { method: 'POST', body: { preAuthToken, code } });
+    pendingLoginUser = null;
+    const me = await api('/auth/profile');
+    await enterApp({ id: me.id, name: me.name, email: me.email, photo: me.photo, tenantId: me.tenantId || null });
+  } catch (err) {
+    const msg = err.status === 401
+      ? 'Código inválido ou expirado. Tente novamente.'
+      : (err.message || 'Erro ao verificar código');
+    showToast(msg, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = orig; }
+  }
 }
 
 function back2Login() {
+  pendingLoginUser = null;
   document.getElementById('screen-2fa').classList.remove('active');
   document.getElementById('screen-login').classList.add('active');
 }

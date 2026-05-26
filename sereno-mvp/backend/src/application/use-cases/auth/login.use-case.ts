@@ -3,6 +3,8 @@ import { passwordService } from '@infrastructure/crypto/password.service';
 import { JwtService } from '@infrastructure/crypto/jwt.service';
 import { auditLogger } from '@infrastructure/security/audit.logger';
 import { UnauthorizedError } from '@shared/errors/app-error';
+import { emailService } from '@infrastructure/messaging/email.service';
+import { logger } from '@shared/utils/logger';
 import { randomUUID } from 'node:crypto';
 
 /**
@@ -23,12 +25,9 @@ interface LoginInput {
   userAgent?: string;
 }
 
-interface LoginOutput {
-  accessToken: string;
-  refreshTokenRaw: string;
-  userId: string;
-  tenantId: string;
-}
+export type LoginOutput =
+  | { step: 'mfa_required'; preAuthToken: string; userId: string; tenantId: string }
+  | { step: 'authenticated'; accessToken: string; refreshTokenRaw: string; userId: string; tenantId: string };
 
 const jwt = new JwtService();
 const LOCK_THRESHOLD = 10;
@@ -107,34 +106,61 @@ export async function loginUseCase(input: LoginInput): Promise<LoginOutput> {
     data: { lastLoginAt: new Date(), failedLoginCount: 0, lockedUntil: null },
   });
 
-  // Tokens
-  const accessToken = jwt.signAccess({ sub: user.id, tenantId: user.tenantId, role: user.role });
-  const refresh = jwt.generateRefreshToken();
-  const family = randomUUID();
+  // ── MFA obrigatório via OTP por e-mail ───────────────────────────────────
+  // Gera código de 6 dígitos, armazena com expiração de 10 min,
+  // envia ao e-mail do usuário (ou loga em dev quando Resend não configurado).
+  const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
 
-  await prisma.refreshToken.create({
-    data: {
-      userId: user.id,
-      tokenHash: refresh.hash,
-      family,
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      ipHash: input.ipHash,
-      userAgent: input.userAgent?.slice(0, 256),
-    },
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { verificationCode: otpCode, verificationCodeExpiry: otpExpiry },
   });
 
+  // Envia e-mail assincronamente; falha silenciosa para não bloquear o login.
+  emailService.sendLoginOtp(user.email, user.name, otpCode).catch((err) => {
+    // Em dev sem RESEND_API_KEY, loga o código no console para facilitar testes.
+    logger.warn({ err, otpCode, userId: user.id }, 'mfa_email_failed — use code from log in dev');
+  });
+
+  const preAuthToken = jwt.signPreAuth(user.id);
+
   await auditLogger.log({
-    action: 'AUTH_LOGIN',
+    action: 'AUTH_MFA_INITIATED',
     tenantId: user.tenantId,
     userId: user.id,
     ipHash: input.ipHash,
     userAgent: input.userAgent,
   });
 
-  return {
-    accessToken,
-    refreshTokenRaw: refresh.raw,
-    userId: user.id,
-    tenantId: user.tenantId,
-  };
+  return { step: 'mfa_required', preAuthToken, userId: user.id, tenantId: user.tenantId };
+}
+
+/**
+ * Emite tokens reais após validação bem-sucedida do OTP.
+ * Chamado por verifyMfaUseCase após confirmar o código.
+ */
+export async function issueTokens(
+  userId: string,
+  tenantId: string,
+  role: string,
+  ipHash: string | null,
+  userAgent?: string,
+): Promise<{ accessToken: string; refreshTokenRaw: string }> {
+  const accessToken = jwt.signAccess({ sub: userId, tenantId, role: role as any });
+  const refresh = jwt.generateRefreshToken();
+  const family = randomUUID();
+
+  await prisma.refreshToken.create({
+    data: {
+      userId,
+      tokenHash: refresh.hash,
+      family,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      ipHash,
+      userAgent: userAgent?.slice(0, 256),
+    },
+  });
+
+  return { accessToken, refreshTokenRaw: refresh.raw };
 }

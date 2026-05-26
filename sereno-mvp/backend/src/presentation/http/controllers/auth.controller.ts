@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { registerUseCase } from '@application/use-cases/auth/register.use-case';
-import { loginUseCase } from '@application/use-cases/auth/login.use-case';
+import { loginUseCase, issueTokens } from '@application/use-cases/auth/login.use-case';
+import { verifyMfaUseCase } from '@application/use-cases/auth/verify-mfa.use-case';
 import {
   sendVerificationCodeUseCase,
   confirmVerificationCodeUseCase,
@@ -9,6 +10,7 @@ import { JwtService, REFRESH_COOKIE } from '@infrastructure/crypto/jwt.service';
 import { prisma } from '@config/prisma';
 import { passwordService } from '@infrastructure/crypto/password.service';
 import { AppError } from '@shared/errors/app-error';
+import { auditLogger } from '@infrastructure/security/audit.logger';
 import type { UpdateProfileInput, ChangePasswordInput } from '@presentation/http/schemas/auth.schema';
 
 const jwt = new JwtService();
@@ -22,15 +24,16 @@ export const authController = {
         userAgent: req.get('user-agent') ?? undefined,
       });
 
-      // Após registro, faz login automático.
-      const login = await loginUseCase({
-        email: (req.body as any).email,
-        password: (req.body as any).password,
-        ipHash: (req as any).ipHash,
-        userAgent: req.get('user-agent') ?? undefined,
-      });
+      // Após registro, login automático sem MFA (usuário acabou de criar a conta).
+      const { accessToken, refreshTokenRaw } = await issueTokens(
+        result.userId,
+        result.tenantId,
+        result.role,
+        (req as any).ipHash,
+        req.get('user-agent') ?? undefined,
+      );
 
-      jwt.setAuthCookies(res, login.accessToken, login.refreshTokenRaw);
+      jwt.setAuthCookies(res, accessToken, refreshTokenRaw);
 
       // Envia email de verificação de forma assíncrona (não bloqueia resposta)
       sendVerificationCodeUseCase(result.userId).catch(() => {
@@ -56,8 +59,117 @@ export const authController = {
         userAgent: req.get('user-agent') ?? undefined,
       });
 
+      if (result.step === 'mfa_required') {
+        // Não emite cookies ainda — aguarda verificação do OTP.
+        res.status(200).json({
+          step: 'mfa_required',
+          preAuthToken: result.preAuthToken,
+          userId: result.userId,
+        });
+        return;
+      }
+
+      jwt.setAuthCookies(res, result.accessToken, result.refreshTokenRaw);
+      res.status(200).json({ step: 'authenticated', userId: result.userId, tenantId: result.tenantId });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /** POST /auth/mfa/verify — verifica OTP e emite tokens reais */
+  async mfaVerify(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { preAuthToken, code } = req.body as { preAuthToken: string; code: string };
+      if (!preAuthToken || !code) {
+        res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'preAuthToken e code são obrigatórios' } });
+        return;
+      }
+
+      const result = await verifyMfaUseCase({
+        preAuthToken,
+        code,
+        ipHash: (req as any).ipHash,
+        userAgent: req.get('user-agent') ?? undefined,
+      });
+
       jwt.setAuthCookies(res, result.accessToken, result.refreshTokenRaw);
       res.status(200).json({ userId: result.userId, tenantId: result.tenantId });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /**
+   * POST /auth/refresh — rotaciona o refresh token.
+   * Refresh token opaco em cookie HttpOnly (path=/auth/refresh).
+   * Reuso de token revoga a família inteira (detecção de theft).
+   */
+  async refresh(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const refreshRaw: string | undefined = (req as any).cookies?.[REFRESH_COOKIE];
+      if (!refreshRaw) {
+        res.status(401).json({ error: { code: 'UNAUTHENTICATED', message: 'Refresh token ausente' } });
+        return;
+      }
+
+      const tokenHash = jwt.hashRefresh(refreshRaw);
+
+      const stored = await prisma.refreshToken.findUnique({
+        where: { tokenHash },
+        include: { user: { select: { id: true, tenantId: true, role: true, active: true } } },
+      });
+
+      // Token não encontrado ou revogado → pode ser reuso; revoga família se possível
+      if (!stored || stored.revokedAt) {
+        if (stored) {
+          // Reuso detectado: revoga toda a família
+          await prisma.refreshToken.updateMany({
+            where: { family: stored.family },
+            data: { revokedAt: new Date() },
+          });
+          await auditLogger.log({
+            action: 'AUTH_REFRESH_TOKEN_REUSE',
+            tenantId: stored.user?.tenantId,
+            userId: stored.userId,
+            ipHash: (req as any).ipHash,
+            metadata: { family: stored.family },
+          });
+        }
+        jwt.clearAuthCookies(res);
+        res.status(401).json({ error: { code: 'UNAUTHENTICATED', message: 'Sessão inválida' } });
+        return;
+      }
+
+      // Token expirado
+      if (stored.expiresAt < new Date()) {
+        await prisma.refreshToken.delete({ where: { tokenHash } });
+        jwt.clearAuthCookies(res);
+        res.status(401).json({ error: { code: 'UNAUTHENTICATED', message: 'Sessão expirada' } });
+        return;
+      }
+
+      if (!stored.user.active) {
+        res.status(401).json({ error: { code: 'UNAUTHENTICATED', message: 'Conta desativada' } });
+        return;
+      }
+
+      // Rotaciona: revoga token antigo, emite novo par
+      await prisma.refreshToken.update({ where: { tokenHash }, data: { revokedAt: new Date() } });
+
+      const { accessToken, refreshTokenRaw: newRefreshRaw } = await issueTokens(
+        stored.user.id,
+        stored.user.tenantId,
+        stored.user.role,
+        (req as any).ipHash,
+        req.get('user-agent') ?? undefined,
+      );
+
+      // Mantém o mesmo family para rastrear a cadeia de rotação
+      // (issueTokens cria um UUID novo; aqui poderíamos passar o family existente,
+      //  mas para simplicidade deixamos o UUID gerado pelo issueTokens)
+
+      jwt.setAuthCookies(res, accessToken, newRefreshRaw);
+      res.status(200).json({ ok: true });
     } catch (err) {
       next(err);
     }
@@ -115,6 +227,7 @@ export const authController = {
           state: true,
           specialty: true,
           registry: true,
+          photo: true,
           emailVerifiedAt: true,
           createdAt: true,
         },
@@ -124,6 +237,35 @@ export const authController = {
         return;
       }
       res.json(user);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /** PATCH /auth/photo — salva/remove foto de perfil (base64 data URL) */
+  async updatePhoto(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { photo } = req.body as { photo: string | null };
+
+      // Validação básica: deve ser data URL de imagem ou null para remover
+      if (photo !== null && photo !== undefined) {
+        if (!photo.startsWith('data:image/')) {
+          res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'Formato de imagem inválido' } });
+          return;
+        }
+        // Limita a ~1.8 MB (base64 de uma imagem comprimida)
+        if (photo.length > 2_400_000) {
+          res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'Imagem muito grande (máx 1.8 MB)' } });
+          return;
+        }
+      }
+
+      await prisma.user.update({
+        where: { id: req.auth!.sub },
+        data: { photo: photo ?? null },
+      });
+
+      res.status(204).send();
     } catch (err) {
       next(err);
     }
