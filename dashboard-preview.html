@@ -2583,9 +2583,12 @@ async function saveSession() {
 
     // Adiciona pagamento se a API retornou um paymentId
     if (created.paymentId) {
+      const sessionDate = new Date(dateVal + 'T00:00:00');
+      const today = new Date(); today.setHours(0,0,0,0);
+      const payStatus = sessionDate < today ? 'overdue' : 'pending';
       const dateFmt = new Date(dateVal + 'T12:00:00').toLocaleDateString('pt-BR');
       paymentsData.push({
-        id: created.paymentId, status: 'pending', patient: pat.name,
+        id: created.paymentId, status: payStatus, patient: pat.name,
         patientId: pat.id, date: dateFmt, value, method: null, sessionId: created.id,
       });
     } else {
@@ -2594,7 +2597,7 @@ async function saveSession() {
       if (pyRes?.payments) paymentsData = pyRes.payments.map(paymentFromApi);
     }
 
-    if (dateKey(currentDay) === dateVal) renderAgenda();
+    renderAgenda();
     renderDashboard();
     renderPayments();
 
