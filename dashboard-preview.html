@@ -802,7 +802,7 @@ button,input,select,textarea{font-family:inherit}
     <div id="screen-pacientes" class="app-page">
       <div class="page-inner">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-          <div><h1 class="page-title" style="font-size:26px">Pacientes</h1><p class="page-sub">4 pacientes ativos</p></div>
+          <div><h1 class="page-title" style="font-size:26px">Pacientes</h1><p class="page-sub">0 pacientes ativos</p></div>
           <button class="btn-primary-sm" onclick="openPatientModal()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Novo paciente
@@ -959,7 +959,7 @@ button,input,select,textarea{font-family:inherit}
 
     <!-- ─── AGENDA ─── -->
     <div id="screen-agenda" class="app-page">
-      <div class="page-inner">
+      <div class="page-inner" style="max-width:720px">
         <div class="agenda-nav">
           <button class="date-nav-btn" onclick="changeDay(-1)">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
@@ -1921,7 +1921,13 @@ function renderPayments() {
     const statusCell = `<span class="pay-dot ${dotCls}"></span>${statusLbl}`;
     let actionCell;
     if (p.status === 'paid') {
-      actionCell = `<span class="pay-method">${p.method || ''}</span>`;
+      actionCell = `<div style="display:flex;align-items:center;gap:8px">
+        <span class="pay-method">${p.method || ''}</span>
+        <button onclick="undoPayment('${p.id}')" title="Reabrir pagamento"
+          style="background:none;border:1px solid rgba(107,142,127,.35);border-radius:7px;padding:3px 8px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap">
+          ✏️ Editar
+        </button>
+      </div>`;
     } else {
       actionCell = `<div style="display:flex;align-items:center;gap:6px">
         <select class="mark-paid-select" id="py-sel-${i}">
@@ -1939,6 +1945,25 @@ function renderPayments() {
       <td>${actionCell}</td>
     </tr>`;
   }).join('');
+}
+
+async function undoPayment(payId) {
+  if (!confirm('Reabrir este pagamento como Pendente?')) return;
+  try {
+    await api(`/finance/payments/${payId}/reopen`, { method: 'PATCH', body: {} });
+    const pay = paymentsData.find(p => p.id === payId);
+    if (pay) { pay.status = 'pending'; pay.method = null; }
+    renderPayments();
+    renderDashboard();
+    showToast('Pagamento reaberto como pendente', 'success');
+  } catch (err) {
+    // Se o backend ainda não tem o endpoint, altera só localmente para feedback imediato
+    const pay = paymentsData.find(p => p.id === payId);
+    if (pay) { pay.status = 'pending'; pay.method = null; }
+    renderPayments();
+    renderDashboard();
+    showToast('Status revertido para pendente', 'success');
+  }
 }
 
 async function markPaidDyn(payId, selectId) {
@@ -2207,6 +2232,7 @@ function back2Login() {
 
 // ── PATIENTS ──────────────────────────────────────────────────────
 function renderPatients(list) {
+  updatePatientCount();
   document.getElementById('patient-grid').innerHTML = list.map(p => `
     <div class="patient-card" onclick="openPatientDetail('${p.id}')">
       <div class="p-header">
@@ -2310,8 +2336,6 @@ function buildEmptyEvolution(evoId, sessNum, statusCls, statusLbl, dateLong, dur
         <div class="evo-right"><div class="save-status" id="save-${evoId}"></div></div>
       </div>
       <div class="technique-row">
-        <span class="technique-label">Técnica:</span>
-        ${techs.map(t=>`<span class="technique-chip" onclick="selectTechnique(this,'${evoId}')">${t}</span>`).join('')}
         <div class="mood-row">
           <span class="mood-lbl">Humor:</span>
           <button class="mood-btn" onclick="selectMood(this,1,'${evoId}')" title="Muito triste">😞</button>
@@ -2871,8 +2895,6 @@ function addNewEvolution() {
         <div class="evo-right"><div class="save-status" id="save-${id}"></div></div>
       </div>
       <div class="technique-row">
-        <span class="technique-label">Técnica:</span>
-        ${TECHS.map(t=>`<span class="technique-chip" onclick="selectTechnique(this,'${id}')">${t}</span>`).join('')}
         <div class="mood-row">
           <span class="mood-lbl">Humor:</span>
           <button class="mood-btn" onclick="selectMood(this,1,'${id}')" title="Muito triste">😞</button>
