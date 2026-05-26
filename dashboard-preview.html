@@ -1167,7 +1167,10 @@ button,input,select,textarea{font-family:inherit}
       </div>
       <div class="form-field span2">
         <label>Valor da sessão (R$)</label>
-        <input type="text" class="form-input" value="200,00" placeholder="0,00"/>
+        <input type="number" id="session-value-input" class="form-input" min="0" step="0.01" placeholder="0,00"
+          oninput="this.setCustomValidity('')"
+          oninvalid="this.setCustomValidity('Digite um valor numérico válido (ex: 200)')"/>
+        <span id="session-value-error" style="display:none;color:#C97B5C;font-size:11px;margin-top:4px">Digite apenas números (ex: 200 ou 200.50)</span>
       </div>
     </div>
     <div class="modal-actions">
@@ -2520,12 +2523,16 @@ function changeStatus(sel) {
 function openSessionModal(edit) {
   document.getElementById('session-modal-title').textContent = edit ? 'Editar sessão' : 'Nova sessão';
   syncSessionModalPatients();
+  const modal = document.getElementById('session-modal');
   if (!edit) {
-    const modal = document.getElementById('session-modal');
     modal.querySelector('input[type="date"]').value = dateKey(currentDay);
     modal.querySelectorAll('select')[0].value = '';
+    const vi = document.getElementById('session-value-input');
+    if (vi) vi.value = '';
   }
-  document.getElementById('session-modal').classList.add('active');
+  const ve = document.getElementById('session-value-error');
+  if (ve) ve.style.display = 'none';
+  modal.classList.add('active');
 }
 function closeSessionModal() {
   document.getElementById('session-modal').classList.remove('active');
@@ -2538,13 +2545,20 @@ async function saveSession() {
   const mode    = selects[2].value || 'PRESENCIAL';
   const dateVal = modal.querySelector('input[type="date"]').value;
   const timeVal = modal.querySelector('input[type="time"]').value;
-  const rawVal  = modal.querySelector('input[type="text"]').value.replace(',','.');
+  const valueInput = document.getElementById('session-value-input');
+  const valueErr   = document.getElementById('session-value-error');
+  const rawVal  = valueInput ? valueInput.value.trim() : '';
   const value   = parseFloat(rawVal) || 0;
 
   if (!patientName) { showToast('Selecione um paciente', 'error'); return; }
   if (!dateVal) { showToast('Informe a data da sessão', 'error'); return; }
   if (!timeVal) { showToast('Informe o horário da sessão', 'error'); return; }
-  if (value <= 0) { showToast('Informe o valor da sessão', 'error'); return; }
+  if (!rawVal || isNaN(parseFloat(rawVal)) || value <= 0) {
+    if (valueErr) valueErr.style.display = 'block';
+    showToast('Digite um valor numérico válido para a sessão', 'error');
+    return;
+  }
+  if (valueErr) valueErr.style.display = 'none';
 
   const pat = patients.find(p => p.name === patientName);
   if (!pat) { showToast('Paciente não encontrado', 'error'); return; }
