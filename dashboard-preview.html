@@ -1013,6 +1013,26 @@ button,input,select,textarea{font-family:inherit}
             <div><div style="font-weight:600;font-size:14px;color:var(--ink)">Perfil</div><div style="font-size:12px;color:var(--muted)">Dados pessoais e da clínica</div></div>
           </div>
           <div class="settings-body">
+            <!-- Foto de perfil -->
+            <div style="display:flex;align-items:center;gap:20px;padding-bottom:18px;border-bottom:1px solid rgba(107,142,127,.12);margin-bottom:4px">
+              <div style="position:relative;flex-shrink:0">
+                <div id="profile-avatar-preview" style="width:72px;height:72px;border-radius:50%;background:var(--sage-dark);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;font-size:26px;color:#fff;overflow:hidden;cursor:pointer;border:3px solid rgba(107,142,127,.2)" onclick="document.getElementById('profile-photo-input').click()" title="Clique para alterar foto">
+                  <span id="profile-avatar-initials">?</span>
+                </div>
+                <div onclick="document.getElementById('profile-photo-input').click()" style="position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--sage);display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #fff">
+                  <svg width="11" height="11" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px">Foto de perfil</div>
+                <div style="font-size:12px;color:var(--muted);margin-bottom:10px">JPG, PNG ou GIF · máx. 2MB</div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn-secondary-sm" style="font-size:12px" onclick="document.getElementById('profile-photo-input').click()">Escolher foto</button>
+                  <button class="btn-secondary-sm" style="font-size:12px;color:var(--terracotta);border-color:var(--terracotta)" onclick="removeProfilePhoto()" id="btn-remove-photo" style="display:none">Remover</button>
+                </div>
+              </div>
+              <input type="file" id="profile-photo-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(this)"/>
+            </div>
             <div class="s-field"><label>Nome completo</label><input id="conf-name" placeholder="Seu nome completo"/></div>
             <div class="s-field"><label>WhatsApp</label><input id="conf-whatsapp" placeholder="(11) 9 8765-4321"/></div>
             <div class="s-field"><label>Estado</label>
@@ -1750,6 +1770,7 @@ async function enterApp(user, silent=false){
   renderPayments();
   renderDashboard();
   resetIdleTimer();
+  loadProfilePhoto(); // aplica foto salva ao entrar no app
   if(!silent) showToast(`Bem-vindo ao Prontua, ${user.name.split(' ')[0]}! 👋`,'success');
   // Carrega dados reais em background
   await loadData();
@@ -1811,6 +1832,69 @@ function populateConfCities(state, currentCity) {
 
 // ── PERFIL DO USUÁRIO ─────────────────────────────────────────────
 
+// ── FOTO DE PERFIL ────────────────────────────────────────────────
+function applyProfilePhoto(dataUrl) {
+  const preview = document.getElementById('profile-avatar-preview');
+  const initials = document.getElementById('profile-avatar-initials');
+  const sidebarAvatar = document.querySelector('.avatar');
+  const btnRemove = document.getElementById('btn-remove-photo');
+  if (dataUrl) {
+    // Mostra a foto no preview do perfil
+    if (initials) initials.style.display = 'none';
+    preview.style.backgroundImage = `url('${dataUrl}')`;
+    preview.style.backgroundSize = 'cover';
+    preview.style.backgroundPosition = 'center';
+    // Atualiza avatar da sidebar
+    if (sidebarAvatar) {
+      sidebarAvatar.style.backgroundImage = `url('${dataUrl}')`;
+      sidebarAvatar.style.backgroundSize = 'cover';
+      sidebarAvatar.style.backgroundPosition = 'center';
+      sidebarAvatar.textContent = '';
+    }
+    if (btnRemove) btnRemove.style.display = 'inline-flex';
+  } else {
+    // Sem foto — mostra inicial
+    preview.style.backgroundImage = '';
+    if (initials) initials.style.display = '';
+    if (sidebarAvatar) {
+      sidebarAvatar.style.backgroundImage = '';
+      const user = getCurrentUser();
+      sidebarAvatar.textContent = user?.name ? user.name.charAt(0).toUpperCase() : '?';
+    }
+    if (btnRemove) btnRemove.style.display = 'none';
+  }
+}
+
+function handleProfilePhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('Imagem muito grande. Use no máximo 2MB.', 'error');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    lsSet('profile_photo', dataUrl);
+    applyProfilePhoto(dataUrl);
+    showToast('Foto de perfil atualizada!', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeProfilePhoto() {
+  localStorage.removeItem('profile_photo');
+  applyProfilePhoto(null);
+  document.getElementById('profile-photo-input').value = '';
+  showToast('Foto removida.', 'success');
+}
+
+function loadProfilePhoto() {
+  const saved = localStorage.getItem('profile_photo');
+  if (saved) applyProfilePhoto(saved);
+}
+
 /** Atualiza label e placeholder do campo de registro conforme especialidade */
 function updateRegistryLabel() {
   const sp = document.getElementById('conf-specialty');
@@ -1847,6 +1931,12 @@ async function loadProfileForm() {
       st.value = profile.state;
       populateConfCities(profile.state, profile.city);
     }
+    // Atualiza iniciais do avatar no preview de perfil
+    const initials = document.getElementById('profile-avatar-initials');
+    if (initials) initials.textContent = profile.name ? profile.name.charAt(0).toUpperCase() : '?';
+    // Aplica foto salva (se houver) ou mostra iniciais
+    const savedPhoto = localStorage.getItem('profile_photo');
+    if (savedPhoto) applyProfilePhoto(savedPhoto);
     // Atualiza label do conselho regional conforme especialidade carregada
     updateRegistryLabel();
   } catch (err) {
