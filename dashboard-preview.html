@@ -22,7 +22,7 @@ button,input,select,textarea{font-family:inherit}
 #screen-login.active{min-height:100vh;align-items:center;justify-content:center;background:var(--cream)}
 #app-shell.active{min-height:100vh;flex-direction:row}
 .app-page{display:none;flex:1;overflow-y:auto}
-.app-page.active{display:block}
+.app-page.active{display:block;width:100%}
 #screen-prontuario.active{display:flex;flex-direction:column;overflow:hidden}
 
 /* ── SIDEBAR ── */
@@ -57,8 +57,8 @@ button,input,select,textarea{font-family:inherit}
 }
 
 /* ── CONTENT AREA ── */
-.content-area{flex:1;overflow-y:auto;max-height:100vh}
-.page-inner{max-width:1060px;margin:0 auto;padding:28px 28px}
+.content-area{flex:1;min-width:0;overflow-y:auto;max-height:100vh}
+.page-inner{max-width:1060px;margin:0 auto;padding:28px 28px;width:100%;box-sizing:border-box}
 
 /* ── LOGIN ── */
 .login-card{
@@ -1035,7 +1035,7 @@ button,input,select,textarea{font-family:inherit}
               <select id="conf-city"><option value="">— selecione o estado primeiro —</option></select>
             </div>
             <div class="s-field"><label>Especialidade</label>
-              <select id="conf-specialty">
+              <select id="conf-specialty" onchange="updateRegistryLabel()">
                 <option value="PSICOLOGIA">Psicologia</option>
                 <option value="FISIOTERAPIA">Fisioterapia</option>
                 <option value="FONOAUDIOLOGIA">Fonoaudiologia</option>
@@ -1045,7 +1045,7 @@ button,input,select,textarea{font-family:inherit}
                 <option value="OUTRA">Outra</option>
               </select>
             </div>
-            <div class="s-field"><label>CRP / Registro</label><input id="conf-crp" placeholder="CRP 00/00000"/></div>
+            <div class="s-field"><label id="conf-crp-label">CRP / Registro</label><input id="conf-crp" placeholder="CRP 00/00000"/></div>
           </div>
           <div class="settings-footer"><button class="btn-primary-sm" onclick="saveProfile()">Salvar perfil</button></div>
         </div>
@@ -1795,6 +1795,27 @@ function populateConfCities(state, currentCity) {
 }
 
 // ── PERFIL DO USUÁRIO ─────────────────────────────────────────────
+
+/** Atualiza label e placeholder do campo de registro conforme especialidade */
+function updateRegistryLabel() {
+  const sp = document.getElementById('conf-specialty');
+  const lbl = document.getElementById('conf-crp-label');
+  const inp = document.getElementById('conf-crp');
+  if (!sp || !lbl || !inp) return;
+  const map = {
+    PSICOLOGIA:         { label: 'CRP / Registro',       placeholder: 'CRP 06/123456' },
+    FISIOTERAPIA:       { label: 'CREFITO / Registro',   placeholder: 'CREFITO-3/123456' },
+    FONOAUDIOLOGIA:     { label: 'CRFa / Registro',      placeholder: 'CRFa 2/0000-CRFa' },
+    PSICOPEDAGOGIA:     { label: 'Registro Profissional', placeholder: 'Nº do registro' },
+    NUTRICAO:           { label: 'CRN / Registro',       placeholder: 'CRN-3 12345' },
+    TERAPIA_OCUPACIONAL:{ label: 'CREFITO / Registro',   placeholder: 'CREFITO-3/123456' },
+    OUTRA:              { label: 'Registro Profissional', placeholder: 'Nº do registro' },
+  };
+  const entry = map[sp.value] || map['OUTRA'];
+  lbl.textContent = entry.label;
+  inp.placeholder = entry.placeholder;
+}
+
 async function loadProfileForm() {
   try {
     const profile = await api('/auth/profile');
@@ -1811,6 +1832,8 @@ async function loadProfileForm() {
       st.value = profile.state;
       populateConfCities(profile.state, profile.city);
     }
+    // Atualiza label do conselho regional conforme especialidade carregada
+    updateRegistryLabel();
   } catch (err) {
     console.error('[loadProfileForm]', err);
   }
