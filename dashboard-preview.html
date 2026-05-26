@@ -2528,7 +2528,7 @@ function openProntuario(id) {
 // ── AGENDA ────────────────────────────────────────────────────────
 const MONTHS   = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 const WEEKDAYS = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
-let currentDay = new Date(2026, 4, 19);
+let currentDay = new Date(); // sempre inicia no dia atual
 
 const STATUS_CLASSES = {
   SCHEDULED:'scheduled', CONFIRMED:'confirmed',
