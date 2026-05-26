@@ -869,38 +869,7 @@ button,input,select,textarea{font-family:inherit}
               Nova sessão
             </button>
           </div>
-          <div id="detail-sessions-list">
-            <div class="detail-session-row">
-              <div style="flex:1;min-width:0">
-                <div class="ds-date">Segunda, 19 de maio de 2026</div>
-                <div class="ds-meta">
-                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>08:00 · 50min · Online · R$ 200,00
-                </div>
-              </div>
-              <span class="badge confirmed">Confirmada</span>
-              <span style="font-size:11px;padding:3px 8px;border-radius:20px;background:#6B8E7F22;color:var(--sage-dark)">Pago</span>
-            </div>
-            <div class="detail-session-row">
-              <div style="flex:1;min-width:0">
-                <div class="ds-date">Segunda, 12 de maio de 2026</div>
-                <div class="ds-meta">
-                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>08:00 · 50min · Online · R$ 200,00
-                </div>
-              </div>
-              <span class="badge completed">Concluída</span>
-              <span style="font-size:11px;padding:3px 8px;border-radius:20px;background:#C97B5C1A;color:var(--terracotta)">Pendente</span>
-            </div>
-            <div class="detail-session-row">
-              <div style="flex:1;min-width:0">
-                <div class="ds-date">Segunda, 5 de maio de 2026</div>
-                <div class="ds-meta">
-                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>08:00 · 50min · Online · R$ 200,00
-                </div>
-              </div>
-              <span class="badge completed">Concluída</span>
-              <span style="font-size:11px;padding:3px 8px;border-radius:20px;background:#6B8E7F22;color:var(--sage-dark)">Pago</span>
-            </div>
-          </div>
+          <div id="detail-sessions-list"></div>
         </div>
       </div>
     </div><!-- /paciente-detail -->
@@ -2287,6 +2256,52 @@ const SVG_PHONE = `<svg width="13" height="13" fill="none" stroke="currentColor"
 const SVG_EMAIL = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`;
 const SVG_MONEY = `<svg width="13" height="13" fill="none" stroke="var(--muted)" stroke-width="1.8" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`;
 
+function renderDetailSessions(patientId) {
+  const el = document.getElementById('detail-sessions-list');
+  if (!el) return;
+  // Coleta todas as sessões do paciente de todos os dias
+  const all = [];
+  Object.values(agendaSessions).forEach(arr => {
+    arr.forEach(s => { if (String(s.patientId) === String(patientId)) all.push(s); });
+  });
+  // Ordena da mais recente para a mais antiga
+  all.sort((a, b) => (b.dateKey + b.time).localeCompare(a.dateKey + a.time));
+  if (all.length === 0) {
+    el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Nenhuma sessão registrada.</div>`;
+    return;
+  }
+  const STATUS_LABELS = { scheduled:'Agendada', confirmed:'Confirmada', completed:'Concluída', canceled:'Cancelada', noshow:'Não compareceu' };
+  const STATUS_CLASSES = { scheduled:'scheduled', confirmed:'confirmed', completed:'completed', canceled:'canceled', noshow:'noshow' };
+  const PAY_LABELS = { paid:'Pago', pending:'Pendente', overdue:'Em atraso', canceled:'Cancelado' };
+  el.innerHTML = all.map(s => {
+    const [y, m, d] = s.dateKey.split('-');
+    const dt = new Date(Number(y), Number(m)-1, Number(d));
+    const wd = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'][dt.getDay()];
+    const mo = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][dt.getMonth()];
+    const dateStr = `${wd}, ${d} de ${mo} de ${y}`;
+    const val = s.value ? `R$ ${Number(s.value).toLocaleString('pt-BR',{minimumFractionDigits:2})}` : '';
+    const modeStr = s.mode === 'ONLINE' ? 'Online' : 'Presencial';
+    const statusCls = STATUS_CLASSES[s.status] || 'scheduled';
+    const statusLbl = STATUS_LABELS[s.status] || s.status;
+    // pagamento
+    const pay = paymentsData.find(p => p.sessionId === s.id);
+    const payLbl = pay ? (PAY_LABELS[pay.status] || pay.status) : '';
+    const payColor = pay?.status === 'paid' ? '#6B8E7F22;color:var(--sage-dark)' : '#C97B5C1A;color:var(--terracotta)';
+    const payBadge = pay ? `<span style="font-size:11px;padding:3px 8px;border-radius:20px;background:${payColor}">${payLbl}</span>` : '';
+    return `<div class="detail-session-row">
+      <div style="flex:1;min-width:0">
+        <div class="ds-date">${dateStr}</div>
+        <div class="ds-meta">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${s.time} · ${s.dur}min · ${modeStr}${val ? ' · ' + val : ''}
+        </div>
+      </div>
+      <span class="badge ${statusCls}">${statusLbl}</span>
+      ${payBadge}
+    </div>`;
+  }).join('');
+}
+
 function openPatientDetail(id) {
   currentPatientId = String(id);
   const p = patients.find(x => String(x.id) === String(id)) || patients[0];
@@ -2314,6 +2329,7 @@ function openPatientDetail(id) {
     `;
   }
 
+  renderDetailSessions(currentPatientId);
   navigate('paciente-detail');
 }
 
