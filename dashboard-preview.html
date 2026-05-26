@@ -21,9 +21,9 @@ button,input,select,textarea{font-family:inherit}
 .screen.active{display:flex}
 #screen-login.active{min-height:100vh;align-items:center;justify-content:center;background:var(--cream)}
 #app-shell.active{min-height:100vh;flex-direction:row}
-.app-page{display:none;width:100%;overflow-y:auto}
-.app-page.active{display:flex;flex-direction:column;align-items:center;width:100%}
-#screen-prontuario.active{display:flex;flex-direction:column;overflow:hidden;align-items:stretch}
+.app-page{display:none;width:100%}
+.app-page.active{display:grid;justify-items:center;width:100%;overflow-y:auto}
+#screen-prontuario.active{display:flex;flex-direction:column;overflow:hidden}
 
 /* ── SIDEBAR ── */
 .sidebar{
@@ -538,6 +538,31 @@ button,input,select,textarea{font-family:inherit}
 }
 .btn-delete-sm:hover{background:rgba(201,123,92,.08);border-color:var(--terracotta)}
 .btn-delete-sm svg{width:13px;height:13px}
+
+/* ── RESPONSIVIDADE ── */
+@media (max-width:768px){
+  #app-shell.active{flex-direction:column}
+  .sidebar{
+    width:100%;min-height:auto;flex-direction:row;align-items:center;
+    padding:10px 16px;position:sticky;top:0;z-index:40;
+    border-bottom:1px solid rgba(255,255,255,.15)
+  }
+  .sidebar-logo{padding:0;border:none;margin:0;font-size:16px}
+  .sidebar-logo svg{display:none}
+  .nav-items-wrapper{display:flex;flex-direction:row;gap:4px;flex:1;justify-content:center}
+  .nav-item{padding:8px 10px;margin:0;font-size:12px}
+  .nav-icon{width:15px;height:15px}
+  .sidebar-footer{display:none}
+  .content-area{max-height:calc(100vh - 56px);overflow-y:auto}
+  .page-inner{padding:16px}
+  .kpi-grid{grid-template-columns:1fr !important}
+  .payments-table{font-size:12px}
+  .payments-table th:nth-child(3),.payments-table td:nth-child(3){display:none}
+}
+@media (max-width:480px){
+  .nav-item span{display:none}
+  .nav-item{padding:10px}
+}
 </style>
 </head>
 <body>
@@ -714,25 +739,27 @@ button,input,select,textarea{font-family:inherit}
       </svg>
       Prontua
     </div>
+    <div class="nav-items-wrapper">
     <div class="nav-item active" data-nav="dashboard" onclick="navigate('dashboard',this)">
       <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Dashboard
+      <span>Dashboard</span>
     </div>
     <div class="nav-item" data-nav="pacientes" onclick="navigate('pacientes',this)">
       <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-      Pacientes
+      <span>Pacientes</span>
     </div>
     <div class="nav-item" data-nav="agenda" onclick="navigate('agenda',this)">
       <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Agenda
+      <span>Agenda</span>
     </div>
     <div class="nav-item" data-nav="financeiro" onclick="navigate('financeiro',this)">
       <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      Financeiro
+      <span>Financeiro</span>
     </div>
     <div class="nav-item" data-nav="config" onclick="navigate('config',this)">
       <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
-      Configurações
+      <span>Configurações</span>
+    </div>
     </div>
     <div class="sidebar-footer" onclick="goToProfile()" style="cursor:pointer" title="Abrir perfil">
       <div class="avatar">A</div>
