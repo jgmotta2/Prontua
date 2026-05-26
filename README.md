@@ -42,5 +42,3 @@ Copie `sereno-mvp/backend/.env.example` e preencha:
 | `JWT_REFRESH_SECRET` | Segredo do refresh token |
 | `ENCRYPTION_MASTER_KEY` | Chave AES-256 em base64 (`openssl rand -base64 32`) |
 | `HASH_PEPPER` | Pepper para hashes de IP/CPF |
-
-> **Nunca commite o `.env` real.** O `.gitignore` já o exclui.
