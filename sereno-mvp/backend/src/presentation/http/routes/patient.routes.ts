@@ -191,7 +191,15 @@ router.delete(
   audit('PATIENT_DELETE', (req) => ({ resourceType: 'Patient', resourceId: req.params.id })),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await req.db!.patient.delete({ where: { id: req.params.id } });
+      const { id } = req.params;
+      // Deleta em ordem para respeitar as restrições de FK:
+      // 1. Pagamentos do paciente (Payment.patientId → Restrict)
+      // 2. Sessões do paciente (Session.patientId → Restrict)
+      //    SessionNote e VoiceSessionReport cascadeiam ao deletar a sessão
+      // 3. Paciente (PatientConsent cascadeia automaticamente)
+      await req.db!.payment.deleteMany({ where: { patientId: id } });
+      await req.db!.session.deleteMany({ where: { patientId: id } });
+      await req.db!.patient.delete({ where: { id } });
       res.status(204).send();
     } catch (err) {
       next(err);
