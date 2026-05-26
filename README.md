@@ -1,18 +1,18 @@
 # Prontua
 
-Sistema de gestão clínica para profissionais de saúde — pacientes, agenda, sessões, financeiro e prontuário com IA.
+Sistema de gestão clínica para profissionais de saúde, pacientes, agenda, sessões, financeiro e prontuário com IA.
 
 ## Stack
 
-- **Backend** — Node.js + Express + Prisma + SQLite (dev) / PostgreSQL (prod)
-- **Frontend** — React + Vite + Tailwind CSS
-- **Auth** — JWT em cookies HttpOnly + Argon2id
+- **Backend**  Node.js + Express + Prisma + SQLite (dev) / PostgreSQL (prod)
+- **Frontend**  React + Vite + Tailwind CSS
+- **Auth**  JWT em cookies HttpOnly + Argon2id
 
 ## Rodando localmente
 
 ```bash
 # 1. Backend
-cd sereno-mvp/backend
+cd serenomvp/backend
 cp .env.example .env        # preencha DATABASE_URL e os segredos
 npm install
 npx prisma migrate dev
@@ -25,7 +25,7 @@ npm run dev                 # http://localhost:4000
 ## Estrutura
 
 ```
-sereno-mvp/
+serenomvp/
   backend/   → API REST (Express + Prisma)
   frontend/  → App React (Vite)
 dashboard-preview.html → versão standalone servida pelo backend em dev
