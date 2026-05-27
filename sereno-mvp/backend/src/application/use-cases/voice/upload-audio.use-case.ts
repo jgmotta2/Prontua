@@ -44,6 +44,7 @@ export async function uploadAudioUseCase(
     where: { id: sessionId },
     select: {
       id: true,
+      tenantId: true,
       patientId: true,
       status: true,
       voiceReport: { select: { id: true, isFinalized: true } },
@@ -117,6 +118,7 @@ export async function uploadAudioUseCase(
   } else {
     const created = await db.voiceSessionReport.create({
       data: {
+        tenantId: session.tenantId,
         sessionId,
         authorId,
         rawTranscription: transcription.text,

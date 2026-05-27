@@ -66,7 +66,7 @@ export async function registerUseCase(
       select: { id: true, role: true },
     });
 
-    return { tenantId: tenant.id, userId: user.id, role: user.role };
+    return { tenantId: tenant.id, userId: user.id, role: user.role as UserRole };
   });
 
   await auditLogger.log({
