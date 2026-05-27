@@ -15,7 +15,7 @@ export function CtaSection() {
           href="/app.html"
           className="btn-primary mt-8 inline-flex bg-sage hover:bg-sage-dark"
         >
-          Experimente grátis agora
+          Cadastre seu email. Lançamento dia 08/06/2026!
           <ArrowRight className="h-4 w-4" aria-hidden />
         </a>
       </div>

@@ -1,16 +1,13 @@
 import { Instagram, Mail, Phone } from 'lucide-react';
-import {
-  IDS_SECAO_LANDING,
-  INFORMACOES_CONTATO,
-} from '../constants/landing-content';
+import { CONTACT_INFO, LANDING_SECTION_IDS } from '../constants/landing-content';
 import { ContactCard } from './ContactCard';
 
 export function ContactSection() {
-  const contato = INFORMACOES_CONTATO;
+  const contact = CONTACT_INFO;
 
   return (
     <section
-      id={IDS_SECAO_LANDING.CONTATO}
+      id={LANDING_SECTION_IDS.CONTACT}
       className="scroll-mt-28 border-t border-sage/10 bg-white/50 px-4 py-16 sm:px-6 sm:py-20"
     >
       <div className="mx-auto max-w-6xl">
@@ -25,46 +22,37 @@ export function ContactSection() {
 
         <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <li>
-            <ContactCard
-              icone={<Phone className="h-5 w-5" aria-hidden />}
-              titulo="Telefone"
-            >
+            <ContactCard icon={<Phone className="h-5 w-5" aria-hidden />} title="Telefone">
               <a
-                href={contato.telefoneUri}
+                href={contact.phoneUri}
                 className="font-medium text-sage-dark transition-colors hover:text-ink"
               >
-                {contato.telefoneExibicao}
+                {contact.phoneDisplay}
               </a>
             </ContactCard>
           </li>
 
           <li>
-            <ContactCard
-              icone={<Mail className="h-5 w-5" aria-hidden />}
-              titulo="E-mail"
-            >
+            <ContactCard icon={<Mail className="h-5 w-5" aria-hidden />} title="E-mail">
               <a
-                href={`mailto:${contato.email}`}
+                href={`mailto:${contact.email}`}
                 className="font-medium text-sage-dark transition-colors hover:text-ink"
               >
-                {contato.email}
+                {contact.email}
               </a>
             </ContactCard>
           </li>
 
           <li className="sm:col-span-2 lg:col-span-1">
-            <ContactCard
-              icone={<Instagram className="h-5 w-5" aria-hidden />}
-              titulo="Instagram"
-            >
+            <ContactCard icon={<Instagram className="h-5 w-5" aria-hidden />} title="Instagram">
               <a
-                href={contato.instagramUrl}
+                href={contact.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-sage-dark transition-colors hover:text-ink"
-                aria-label={`Instagram ${contato.instagramRotulo} (abre em nova aba)`}
+                aria-label={`Instagram ${contact.instagramHandle} (abre em nova aba)`}
               >
-                {contato.instagramRotulo}
+                {contact.instagramHandle}
               </a>
             </ContactCard>
           </li>

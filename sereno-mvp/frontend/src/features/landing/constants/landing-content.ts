@@ -2,7 +2,7 @@ import {
   CalendarDays,
   FileText,
   Lock,
-  Shield,
+  Mic,
   Users,
   Wallet,
 } from 'lucide-react';
@@ -10,44 +10,46 @@ import agendaScreenImage from '@assets/Tela-agenda.png';
 import clientsScreenImage from '@assets/Tela-clientes.png';
 import dashboardScreenImage from '@assets/Tela-Dashboard.png';
 import financeScreenImage from '@assets/Tela-financeiro.png';
+import recordingScreenImage from '@assets/Tela-IA.png';
 import type {
-  DepoimentoLanding,
-  FuncionalidadeLanding,
+  FaqItem,
+  FlowStep,
+  HeaderNavLink,
   HeroSlide,
-  ItemPerguntaFrequente,
-  InformacoesContatoLanding,
-  LinkNavegacaoHeader,
-  PassoFluxo,
-  PlanoLanding,
+  LandingContactInfo,
+  LandingFeature,
+  LandingPlan,
+  LandingTestimonial,
 } from '../types/landing.types';
+import { RECORDING_SLIDE_DESKTOP_IMAGE_MAX_WIDTH_PX } from './landing-carousel-layout.constants';
 
-export const IDS_SECAO_LANDING = {
-  FUNCIONALIDADES: 'funcionalidades',
+export const LANDING_SECTION_IDS = {
+  FEATURES: 'funcionalidades',
   FEEDBACKS: 'feedbacks',
-  PLANOS: 'planos',
+  PRICING: 'planos',
   FAQ: 'faq',
-  CONTATO: 'contato',
+  CONTACT: 'contato',
 } as const;
 
-export const LINKS_NAVEGACAO_HEADER: readonly LinkNavegacaoHeader[] = [
-  { rotulo: 'Funcionalidades', idSecao: IDS_SECAO_LANDING.FUNCIONALIDADES },
-  { rotulo: 'Feedbacks', idSecao: IDS_SECAO_LANDING.FEEDBACKS },
-  { rotulo: 'Planos', idSecao: IDS_SECAO_LANDING.PLANOS },
-  { rotulo: 'FAQ', idSecao: IDS_SECAO_LANDING.FAQ },
-  { rotulo: 'Contato', idSecao: IDS_SECAO_LANDING.CONTATO },
+export const HEADER_NAV_LINKS: readonly HeaderNavLink[] = [
+  { label: 'Funcionalidades', sectionId: LANDING_SECTION_IDS.FEATURES },
+  { label: 'Feedbacks', sectionId: LANDING_SECTION_IDS.FEEDBACKS },
+  { label: 'Planos', sectionId: LANDING_SECTION_IDS.PRICING },
+  { label: 'FAQ', sectionId: LANDING_SECTION_IDS.FAQ },
+  { label: 'Contato', sectionId: LANDING_SECTION_IDS.CONTACT },
 ] as const;
 
-export const INFORMACOES_CONTATO: InformacoesContatoLanding = {
-  telefoneExibicao: '54 9928-2014',
-  telefoneUri: 'tel:+5554999282014',
+export const CONTACT_INFO: LandingContactInfo = {
+  phoneDisplay: '54 9928-2014',
+  phoneUri: 'tel:+5554999282014',
   email: 'prontuasoftware@gmail.com',
   instagramUrl: 'https://www.instagram.com/prontuasoftware/',
-  instagramRotulo: '@prontuasoftware',
+  instagramHandle: '@prontuasoftware',
 };
 
-export const TITULO_MARCA = 'Prontua';
+export const BRAND_TITLE = 'Prontua';
 
-export const TAGLINE_MARCA = 'Gestão de clínicas com privacidade por design';
+export const BRAND_TAGLINE = 'Gestão de clínicas com privacidade por design';
 
 export const HERO_CAROUSEL_INTERVAL_MS = 6000;
 
@@ -57,7 +59,7 @@ export const HERO_SLIDES: readonly HeroSlide[] = [
     id: 'intro',
     eyebrow: 'Para psicólogos e clínicas de saúde mental',
     title: 'Prontuário, agenda e financeiro em um só lugar',
-    description: `${TAGLINE_MARCA}. Menos burocracia, mais tempo com seus pacientes — com criptografia, LGPD e ética profissional desde o primeiro dia.`,
+    description: `${BRAND_TAGLINE}. Menos burocracia, mais tempo com seus pacientes — com criptografia, LGPD e ética profissional desde o primeiro dia.`,
     footnote: '3 dias gratuitos · Sem cartão para começar',
   },
   {
@@ -92,99 +94,108 @@ export const HERO_SLIDES: readonly HeroSlide[] = [
     description:
       'Receitas, pendências e gráficos para acompanhar a saúde da clínica.',
   },
+  {
+    kind: 'feature',
+    id: 'recording',
+    url: recordingScreenImage,
+    imageMaxWidthPx: RECORDING_SLIDE_DESKTOP_IMAGE_MAX_WIDTH_PX,
+    title: 'Gravação e transcrição com IA',
+    description:
+      'Grave a sessão no consultório, transcreva automaticamente e transforme o áudio em prontuário estruturado — com consentimento do paciente antes de gravar.',
+  },
 ] as const;
 
-export const PASSOS_FLUXO: PassoFluxo[] = [
+export const FLOW_STEPS: FlowStep[] = [
   {
-    ordem: 1,
-    titulo: 'Agende a sessão',
-    descricao:
+    order: 1,
+    title: 'Agende a sessão',
+    description:
       'Organize sua agenda com lembretes e confirmações. Tudo em um só lugar, sem planilhas.',
   },
   {
-    ordem: 2,
-    titulo: 'Registre o atendimento',
-    descricao:
+    order: 2,
+    title: 'Registre o atendimento',
+    description:
       'Evoluções e anotações clínicas com histórico completo por paciente, pronto para o dia a dia.',
   },
   {
-    ordem: 3,
-    titulo: 'Prontuário protegido',
-    descricao:
+    order: 3,
+    title: 'Prontuário protegido',
+    description:
       'Dados criptografados em repouso (AES-256-GCM), auditoria de acesso e conformidade LGPD.',
   },
 ];
 
-export const FUNCIONALIDADES: FuncionalidadeLanding[] = [
+export const FEATURES: LandingFeature[] = [
   {
-    titulo: 'Prontuário criptografado',
-    descricao:
+    title: 'Prontuário criptografado',
+    description:
       'Conteúdo clínico protegido em repouso. Mesmo em vazamento de banco, os dados permanecem ilegíveis.',
-    icone: Lock,
+    icon: Lock,
   },
   {
-    titulo: 'Agenda inteligente',
-    descricao:
+    title: 'Agenda inteligente',
+    description:
       'Sessões, status e lembretes. Notificações administrativas via WhatsApp, sem expor dados sensíveis.',
-    icone: CalendarDays,
+    icon: CalendarDays,
   },
   {
-    titulo: 'Gestão de pacientes',
-    descricao:
+    title: 'Gestão de pacientes',
+    description:
       'Cadastro, busca rápida e linha do tempo clínica. Histórico organizado para cada paciente.',
-    icone: Users,
+    icon: Users,
   },
   {
-    titulo: 'Controle financeiro',
-    descricao:
+    title: 'Controle financeiro',
+    description:
       'Pagamentos, pendências e visão de receita. Acompanhe o financeiro da clínica com clareza.',
-    icone: Wallet,
+    icon: Wallet,
   },
   {
-    titulo: 'Exportação e compartilhamento',
-    descricao:
+    title: 'Exportação e compartilhamento',
+    description:
       'Exporte prontuários em PDF e compartilhe com segurança quando necessário.',
-    icone: FileText,
+    icon: FileText,
   },
   {
-    titulo: 'LGPD e ética profissional',
-    descricao:
-      'Auditoria de acesso, sigilo profissional e diretrizes do CFP. Privacidade desde o desenho.',
-    icone: Shield,
+    title: 'Gravação e transcrição de áudio',
+    description:
+      'Grave a sessão, transcreva com IA e revise o prontuário antes de finalizar. Fluxo com consentimento explícito e exportação em PDF.',
+    icon: Mic,
   },
 ];
 
-export const DEPOIMENTOS: DepoimentoLanding[] = [
+export const TESTIMONIALS: LandingTestimonial[] = [
   {
-    texto:
+    text:
       'Finalmente um sistema que entende a rotina do consultório. Prontuário, agenda e financeiro sem ficar pulando entre ferramentas.',
-    autor: 'Dra. Ana Ribeiro',
-    local: 'São Paulo/SP',
+    author: 'Dra. Ana Ribeiro',
+    location: 'São Paulo/SP',
   },
   {
-    texto:
+    text:
       'A criptografia e o registro de acesso me dão tranquilidade com dados sensíveis. Atendo com mais foco no paciente.',
-    autor: 'Dr. Marcos Oliveira',
-    local: 'Belo Horizonte/MG',
+    author: 'Dr. Marcos Oliveira',
+    location: 'Belo Horizonte/MG',
   },
   {
-    texto:
+    text:
       'Configurar a clínica foi rápido. Em poucos dias já estava com agenda e prontuários organizados.',
-    autor: 'Dra. Juliana Costa',
-    local: 'Curitiba/PR',
+    author: 'Dra. Juliana Costa',
+    location: 'Curitiba/PR',
   },
 ];
 
-export const PLANOS: PlanoLanding[] = [
+export const PRICING_PLANS: LandingPlan[] = [
   {
     id: 'trial',
-    nome: 'Teste gratuito',
-    subtitulo: '3 dias para conhecer',
-    preco: 'R$ 0',
-    periodo: 'por 3 dias',
-    destaque: true,
-    disponivel: true,
-    recursos: [
+    name: 'Teste gratuito',
+    subtitle: '3 dias para conhecer',
+    price: 'R$ 0',
+    period: 'por 3 dias',
+    highlighted: true,
+    available: true,
+    features: [
       'Pacientes e sessões ilimitados',
       'Prontuário criptografado',
       'Agenda e financeiro',
@@ -193,13 +204,13 @@ export const PLANOS: PlanoLanding[] = [
   },
   {
     id: 'pro',
-    nome: 'Prontua Pro',
-    subtitulo: 'Para consultórios em crescimento',
-    preco: 'Sob consulta',
-    periodo: '/mês',
-    destaque: false,
-    disponivel: true,
-    recursos: [
+    name: 'Prontua Pro',
+    subtitle: 'Para consultórios em crescimento',
+    price: 'Sob consulta',
+    period: '/mês',
+    highlighted: false,
+    available: true,
+    features: [
       'Tudo do período de teste',
       'Multi-profissional na clínica',
       'Relatórios e exportação PDF',
@@ -209,42 +220,42 @@ export const PLANOS: PlanoLanding[] = [
   },
 ];
 
-export const PERGUNTAS_FREQUENTES: ItemPerguntaFrequente[] = [
+export const FAQ_ITEMS: FaqItem[] = [
   {
-    pergunta: 'Meus dados e dos pacientes ficam seguros?',
-    resposta:
+    question: 'Meus dados e dos pacientes ficam seguros?',
+    answer:
       'Sim. Prontuários são criptografados em repouso (AES-256-GCM), sessões usam cookies HttpOnly e há auditoria de acesso. Seguimos LGPD e o Código de Ética do CFP.',
   },
   {
-    pergunta: 'É difícil de usar?',
-    resposta:
+    question: 'É difícil de usar?',
+    answer:
       'O Prontua foi pensado para o dia a dia do consultório: agenda, pacientes e prontuário em fluxos simples, sem telas genéricas de hospital.',
   },
   {
-    pergunta: 'Posso testar antes de assinar?',
-    resposta:
+    question: 'Posso testar antes de assinar?',
+    answer:
       'Sim. Você tem 3 dias gratuitos para explorar todas as funcionalidades. Depois, assine quando fizer sentido para sua clínica.',
   },
   {
-    pergunta: 'Funciona no celular?',
-    resposta:
+    question: 'Funciona no celular?',
+    answer:
       'Sim. A interface é responsiva e o menu inferior no mobile facilita agenda, pacientes e financeiro em qualquer lugar.',
   },
   {
-    pergunta: 'Preciso instalar algo?',
-    resposta:
+    question: 'Preciso instalar algo?',
+    answer:
       'Não. Basta o navegador. Acesse pelo computador ou celular com sua conta.',
   },
 ];
 
-export const ITENS_PUBLICO_POSITIVO = [
+export const POSITIVE_AUDIENCE_ITEMS = [
   'Você é psicólogo(a), fisioterapeuta, fonoaudiólogo(a) ou profissional de saúde mental',
   'Atende em consultório ou clínica',
   'Quer prontuário, agenda e financeiro integrados',
   'Valoriza sigilo, LGPD e registro ético',
 ];
 
-export const ITENS_PUBLICO_NEGATIVO = [
+export const NEGATIVE_AUDIENCE_ITEMS = [
   'Busca apenas um sistema genérico de hospital',
   'Não precisa de prontuário clínico digital',
 ];

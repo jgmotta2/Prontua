@@ -1,37 +1,37 @@
 import type { LucideIcon } from 'lucide-react';
 
-export interface PassoFluxo {
-  titulo: string;
-  descricao: string;
-  ordem: number;
+export interface FlowStep {
+  title: string;
+  description: string;
+  order: number;
 }
 
-export interface FuncionalidadeLanding {
-  titulo: string;
-  descricao: string;
-  icone: LucideIcon;
+export interface LandingFeature {
+  title: string;
+  description: string;
+  icon: LucideIcon;
 }
 
-export interface DepoimentoLanding {
-  texto: string;
-  autor: string;
-  local: string;
+export interface LandingTestimonial {
+  text: string;
+  author: string;
+  location: string;
 }
 
-export interface PlanoLanding {
+export interface LandingPlan {
   id: string;
-  nome: string;
-  subtitulo: string;
-  preco: string;
-  periodo: string;
-  destaque: boolean;
-  disponivel: boolean;
-  recursos: string[];
+  name: string;
+  subtitle: string;
+  price: string;
+  period: string;
+  highlighted: boolean;
+  available: boolean;
+  features: string[];
 }
 
-export interface ItemPerguntaFrequente {
-  pergunta: string;
-  resposta: string;
+export interface FaqItem {
+  question: string;
+  answer: string;
 }
 
 export interface HeroIntroSlide {
@@ -43,25 +43,30 @@ export interface HeroIntroSlide {
   footnote: string;
 }
 
+export type HeroImageMaxWidthToken = '2xl' | '3xl' | '4xl';
+
 export interface HeroFeatureSlide {
   kind: 'feature';
   id: string;
   url: string;
   title: string;
   description: string;
+  imageMaxWidthToken?: HeroImageMaxWidthToken;
+  /** Desktop (`sm+`) max width in pixels; mobile uses viewport-based width. */
+  imageMaxWidthPx?: number;
 }
 
 export type HeroSlide = HeroIntroSlide | HeroFeatureSlide;
 
-export interface LinkNavegacaoHeader {
-  rotulo: string;
-  idSecao: string;
+export interface HeaderNavLink {
+  label: string;
+  sectionId: string;
 }
 
-export interface InformacoesContatoLanding {
-  telefoneExibicao: string;
-  telefoneUri: string;
+export interface LandingContactInfo {
+  phoneDisplay: string;
+  phoneUri: string;
   email: string;
   instagramUrl: string;
-  instagramRotulo: string;
+  instagramHandle: string;
 }

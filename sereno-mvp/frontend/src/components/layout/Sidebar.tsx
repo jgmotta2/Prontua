@@ -8,6 +8,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
+import logoProntua from '@assets/Silver-P.svg';
 import { useLogout } from '@features/auth/hooks/useLogin';
 
 const NAV_ITEMS = [
@@ -35,7 +36,16 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col bg-ink text-cream/85">
       <div className="px-6 py-7">
-        <h1 className="font-display text-2xl font-semibold text-cream tracking-tight">Prontua</h1>
+        <div className="flex items-center gap-2.5">
+          <img
+            src={logoProntua}
+            alt=""
+            className="h-10 w-auto shrink-0 scale-[1.45] origin-left"
+          />
+          <h1 className="font-display text-2xl font-semibold text-cream tracking-tight">
+            Prontua
+          </h1>
+        </div>
         <p className="mt-0.5 text-xs text-cream/50">Bem-vindo de volta</p>
       </div>
 
