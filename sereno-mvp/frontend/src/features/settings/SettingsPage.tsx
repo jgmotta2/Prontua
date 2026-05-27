@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { User, Mail, RotateCcw, Check, AlertCircle } from 'lucide-react';
+import { User, Mail, RotateCcw, Check, AlertCircle, Camera, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, ApiClientError } from '@lib/api/client';
 import { BR_STATES, SPECIALTIES } from '@lib/validation/auth.schema';
@@ -19,6 +19,7 @@ interface UserProfile {
   state: string;
   specialty: string;
   registry: string | null;
+  photo: string | null;
   emailVerifiedAt: string | null;
   createdAt: string;
 }
@@ -29,8 +30,8 @@ const profileSchema = z.object({
   name:      z.string().trim().min(3, 'Nome muito curto').max(120),
   whatsapp:  z.string().min(10, 'WhatsApp inválido'),
   city:      z.string().trim().min(2, 'Informe a cidade').max(80),
-  state:     z.enum(BR_STATES as [string, ...string[]], { errorMap: () => ({ message: 'Selecione o estado' }) }),
-  specialty: z.enum(SPECIALTIES as [string, ...string[]], { errorMap: () => ({ message: 'Selecione a especialidade' }) }),
+  state:     z.enum(BR_STATES as unknown as [string, ...string[]], { errorMap: () => ({ message: 'Selecione o estado' }) }),
+  specialty: z.enum(SPECIALTIES as unknown as [string, ...string[]], { errorMap: () => ({ message: 'Selecione a especialidade' }) }),
   registry:  z.string().trim().max(50).optional().or(z.literal('')),
 });
 
@@ -59,13 +60,60 @@ function useUpdateProfile() {
   });
 }
 
+// ─── Hook: foto de perfil ─────────────────────────────────────────────────────
+
+function useUpdatePhoto() {
+  const qc = useQueryClient();
+  return useMutation<void, ApiClientError, string | null>({
+    mutationFn: (photo) => api.patch<void>('/auth/photo', { photo }),
+    onSuccess: (_data, photo) => {
+      // Atualiza cache do perfil com a nova foto
+      qc.setQueryData<UserProfile>(['user-profile'], (old) =>
+        old ? { ...old, photo } : old,
+      );
+      // Atualiza a sessão para o avatar da sidebar
+      qc.invalidateQueries({ queryKey: ['session'] });
+    },
+  });
+}
+
+/** Comprime uma imagem para max 400×400 px e qualidade 0.82. */
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const MAX = 400;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width;
+        let h = img.height;
+        if (w > h && w > MAX) { h = Math.round((h * MAX) / w); w = MAX; }
+        else if (h >= w && h > MAX) { w = Math.round((w * MAX) / h); h = MAX; }
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(w, 1);
+        canvas.height = Math.max(h, 1);
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = reject;
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 // ─── Componente principal ────────────────────────────────────────────────────
 
 export function SettingsPage() {
   const { data: profile, isLoading, isError } = useUserProfile();
   const update = useUpdateProfile();
+  const updatePhoto = useUpdatePhoto();
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const [saved, setSaved] = useState(false);
   const [tourReset, setTourReset] = useState(false);
+  const [photoError, setPhotoError] = useState('');
+  const [photoSuccess, setPhotoSuccess] = useState(false);
 
   const {
     register,
@@ -124,6 +172,43 @@ export function SettingsPage() {
     }, 1200);
   };
 
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!e.target) return;
+    // Reset input para permitir re-upload do mesmo arquivo
+    e.target.value = '';
+    if (!file) return;
+    setPhotoError('');
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('Imagem muito grande. Use no máximo 5 MB.');
+      return;
+    }
+    try {
+      const dataUrl = await compressImage(file);
+      await updatePhoto.mutateAsync(dataUrl);
+      setPhotoSuccess(true);
+      setTimeout(() => setPhotoSuccess(false), 3000);
+    } catch {
+      setPhotoError('Erro ao salvar foto. Tente novamente.');
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    setPhotoError('');
+    try {
+      await updatePhoto.mutateAsync(null);
+      setPhotoSuccess(true);
+      setTimeout(() => setPhotoSuccess(false), 3000);
+    } catch {
+      setPhotoError('Erro ao remover foto. Tente novamente.');
+    }
+  };
+
+  // Iniciais para avatar de fallback
+  const initials = profile?.name
+    ? profile.name.split(' ').filter(Boolean).slice(0, 2).map((n) => (n[0] ?? '').toUpperCase()).join('')
+    : '?';
+
   if (isLoading) {
     return (
       <div className="mx-auto max-w-2xl p-4 sm:p-6 lg:p-8 space-y-6 animate-pulse">
@@ -161,6 +246,80 @@ export function SettingsPage() {
         <div className="flex items-center gap-3 border-b border-warm px-6 py-4">
           <User className="h-4 w-4 text-sage" strokeWidth={1.8} />
           <h2 className="font-display font-semibold text-ink">Perfil profissional</h2>
+        </div>
+
+        {/* Foto de perfil */}
+        <div className="flex items-center gap-5 px-6 py-5 border-b border-warm">
+          {/* Avatar */}
+          <div className="relative shrink-0">
+            <div className="h-20 w-20 overflow-hidden rounded-full bg-warm flex items-center justify-center">
+              {profile?.photo ? (
+                <img
+                  src={profile.photo}
+                  alt="Foto de perfil"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-2xl font-semibold text-sage-dark">{initials}</span>
+              )}
+            </div>
+            {/* Botão câmera sobreposto */}
+            <button
+              type="button"
+              onClick={() => photoInputRef.current?.click()}
+              disabled={updatePhoto.isPending}
+              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center
+                         rounded-full bg-sage text-white shadow-md hover:bg-sage-dark
+                         transition disabled:opacity-50"
+              title="Alterar foto"
+            >
+              <Camera className="h-3.5 w-3.5" />
+            </button>
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePhotoChange}
+            />
+          </div>
+
+          {/* Texto e ações */}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-ink">Foto de perfil</p>
+            <p className="text-xs text-muted mt-0.5">JPG, PNG ou WebP — máx 5 MB.</p>
+            <div className="mt-2 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                disabled={updatePhoto.isPending}
+                className="text-xs text-sage hover:text-sage-dark transition font-medium disabled:opacity-50"
+              >
+                {updatePhoto.isPending ? 'Salvando...' : 'Alterar foto'}
+              </button>
+              {profile?.photo && (
+                <>
+                  <span className="text-warm-dark">·</span>
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    disabled={updatePhoto.isPending}
+                    className="text-xs text-terracotta hover:text-terracotta/80 transition disabled:opacity-50 flex items-center gap-1"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    Remover
+                  </button>
+                </>
+              )}
+            </div>
+            {photoError && <p className="mt-1 text-xs text-terracotta">{photoError}</p>}
+            {photoSuccess && (
+              <p className="mt-1 flex items-center gap-1 text-xs text-sage-dark">
+                <Check className="h-3 w-3" />
+                Foto atualizada!
+              </p>
+            )}
+          </div>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4 p-6">

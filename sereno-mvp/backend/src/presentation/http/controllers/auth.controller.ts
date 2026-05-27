@@ -200,13 +200,14 @@ export const authController = {
     try {
       const user = await prisma.user.findUnique({
         where: { id: req.auth!.sub },
-        select: { name: true },
+        select: { name: true, photo: true },
       });
       res.json({
         userId: req.auth!.sub,
         tenantId: req.auth!.tenantId,
         role: req.auth!.role,
         name: user?.name ?? '',
+        photo: user?.photo ?? null,
       });
     } catch (err) {
       next(err);

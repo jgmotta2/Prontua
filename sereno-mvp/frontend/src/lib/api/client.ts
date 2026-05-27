@@ -6,6 +6,7 @@
  *  - Nunca lê/grava token em localStorage/sessionStorage (mitiga XSS).
  *  - Content-Type: application/json em mutações.
  *  - Captura erros do backend no formato { error: { code, message } }.
+ *  - Auto-refresh: em 401, tenta renovar via POST /auth/refresh e reexecuta uma vez.
  */
 
 export interface ApiError {
@@ -38,7 +39,33 @@ interface RequestOptions extends Omit<RequestInit, 'body'> {
   query?: Record<string, string | number | boolean | undefined>;
 }
 
-async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+// ── Auto-refresh de token ────────────────────────────────────────────────────
+// Paths cujas respostas 401 NÃO devem disparar refresh (evita loops infinitos)
+const NO_REFRESH_PATHS = ['/auth/refresh', '/auth/login', '/auth/mfa', '/auth/logout'];
+
+let _isRefreshing = false;
+let _refreshPromise: Promise<boolean> | null = null;
+
+/** Tenta renovar o access token via refresh cookie.
+ *  Se já houver uma renovação em progresso, aguarda a mesma Promise. */
+async function tryRefresh(): Promise<boolean> {
+  if (_isRefreshing && _refreshPromise) return _refreshPromise;
+  _isRefreshing = true;
+  _refreshPromise = fetch(`${BASE_URL}/auth/refresh`, {
+    method: 'POST',
+    credentials: 'include',
+  })
+    .then((r) => r.ok)
+    .finally(() => {
+      _isRefreshing = false;
+      _refreshPromise = null;
+    });
+  return _refreshPromise;
+}
+
+// ── Função central de requisição ─────────────────────────────────────────────
+
+async function request<T>(path: string, opts: RequestOptions = {}, _retry = false): Promise<T> {
   const { body, query, headers, ...rest } = opts;
 
   let url = `${BASE_URL}${path}`;
@@ -63,6 +90,25 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   };
 
   const res = await fetch(url, init);
+
+  // ── Auto-refresh em 401 ────────────────────────────────────────────────────
+  if (
+    res.status === 401 &&
+    !_retry &&
+    !NO_REFRESH_PATHS.some((p) => path.startsWith(p))
+  ) {
+    const refreshed = await tryRefresh();
+    if (refreshed) {
+      return request<T>(path, opts, true); // reexecuta uma vez com token renovado
+    }
+    // Refresh também falhou → sessão encerrada, redireciona para login
+    window.location.href = '/entrar';
+    throw new ApiClientError({
+      code: 'UNAUTHENTICATED',
+      message: 'Sessão expirada. Redirecionando...',
+      status: 401,
+    });
+  }
 
   if (res.status === 204) return undefined as T;
 
@@ -98,7 +144,7 @@ export const api = {
    * Upload multipart/form-data (áudio, arquivos).
    * Não define Content-Type — o browser calcula o boundary automaticamente.
    */
-  upload: async <T>(path: string, formData: FormData): Promise<T> => {
+  upload: async <T>(path: string, formData: FormData, _retry = false): Promise<T> => {
     const url = `${BASE_URL}${path}`;
     const res = await fetch(url, {
       method: 'POST',
@@ -106,6 +152,18 @@ export const api = {
       body: formData,
       // NÃO definir Content-Type aqui — o browser adiciona com o boundary correto
     });
+
+    // Auto-refresh em 401
+    if (res.status === 401 && !_retry) {
+      const refreshed = await tryRefresh();
+      if (refreshed) return api.upload<T>(path, formData, true);
+      window.location.href = '/entrar';
+      throw new ApiClientError({
+        code: 'UNAUTHENTICATED',
+        message: 'Sessão expirada. Redirecionando...',
+        status: 401,
+      });
+    }
 
     if (res.status === 204) return undefined as T;
 
