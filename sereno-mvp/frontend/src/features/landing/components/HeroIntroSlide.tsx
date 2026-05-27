@@ -1,4 +1,5 @@
 import { ArrowRight, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import type { HeroIntroSlide as HeroIntroSlideData } from '../types/landing.types';
 
 interface HeroIntroSlideProps {
@@ -22,10 +23,10 @@ export function HeroIntroSlide({ slide }: HeroIntroSlideProps) {
       </p>
 
       <div className="mt-10 flex w-full max-w-md flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row sm:gap-4">
-        <a href="/app.html" className="btn-primary w-full sm:w-auto">
+        <Link to="/cadastro" className="btn-primary w-full sm:w-auto">
           Experimente grátis
           <ArrowRight className="h-4 w-4" aria-hidden />
-        </a>
+        </Link>
         <a href="#como-funciona" className="btn-secondary w-full sm:w-auto">
           Ver como funciona
         </a>

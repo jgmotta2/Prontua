@@ -45,18 +45,18 @@ export function LandingHeader() {
           className="flex items-center justify-end gap-2 sm:gap-3"
           aria-label="Ações da página inicial"
         >
-          <a
-            href="/app.html"
+          <Link
+            to="/entrar"
             className="btn-secondary px-4 py-2 text-sm sm:px-5 sm:py-2.5"
           >
             Entrar
-          </a>
-          <a
-            href="/app.html"
+          </Link>
+          <Link
+            to="/cadastro"
             className="btn-primary px-4 py-2 text-sm sm:px-5 sm:py-2.5"
           >
             Criar conta
-          </a>
+          </Link>
         </nav>
       </div>
     </header>
