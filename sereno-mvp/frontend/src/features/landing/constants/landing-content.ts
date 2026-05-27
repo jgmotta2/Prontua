@@ -51,6 +51,15 @@ export const BRAND_TITLE = 'Prontua';
 
 export const BRAND_TAGLINE = 'Gestão de clínicas com privacidade por design';
 
+export const LANDING_CTA_EMAIL = {
+  placeholderEmail: 'Seu melhor e-mail',
+  submitLabel: 'Quero ser avisado',
+  launchNotice: 'Lançamento dia 08/06/2026',
+  successMessage:
+    'Obrigado! Entraremos em contato quando o Prontua for lançado.',
+  emailLabel: 'E-mail para aviso de lançamento',
+} as const;
+
 export const HERO_CAROUSEL_INTERVAL_MS = 6000;
 
 export const HERO_SLIDES: readonly HeroSlide[] = [
