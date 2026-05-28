@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Video, MapPin, Mic } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Video, MapPin, Mic, ClipboardList } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatBRL, formatTime } from '@lib/utils/format';
 import { useSessions, useUpdateSessionStatus, type SessionItem } from '../hooks/useSessions';
@@ -145,21 +145,30 @@ export function AgendaPage() {
                     {NEXT_STATUS[s.status] === 'CONFIRMED' ? 'Confirmar' : 'Concluir'}
                   </button>
                 )}
-                {/* Acesso ao módulo de voz — disponível em qualquer sessão não cancelada */}
                 {s.status !== 'CANCELED' && s.status !== 'NO_SHOW' && (
-                  <Link
-                    to={`/agenda/${s.id}/prontuario-voz`}
-                    state={{
-                      patientId: s.patientId,
-                      patientName: s.patientName,
-                      scheduledAt: s.scheduledAt,
-                    }}
-                    className="flex items-center gap-1 rounded-xl border border-sage/20 px-2.5 py-1 text-[11px] font-medium text-sage-dark hover:bg-sage/5 transition"
-                    title="Prontuário por Voz (IA)"
-                  >
-                    <Mic className="h-3 w-3" />
-                    <span className="hidden sm:inline">Prontuário voz</span>
-                  </Link>
+                  <>
+                    <Link
+                      to={`/pacientes/${s.patientId}/prontuario`}
+                      className="flex items-center gap-1 rounded-xl border border-sage/20 px-2.5 py-1 text-[11px] font-medium text-sage-dark hover:bg-sage/5 transition"
+                      title="Prontuário clínico"
+                    >
+                      <ClipboardList className="h-3 w-3" />
+                      <span className="hidden sm:inline">Prontuário</span>
+                    </Link>
+                    <Link
+                      to={`/agenda/${s.id}/prontuario-voz`}
+                      state={{
+                        patientId: s.patientId,
+                        patientName: s.patientName,
+                        scheduledAt: s.scheduledAt,
+                      }}
+                      className="flex items-center gap-1 rounded-xl border border-sage/20 px-2.5 py-1 text-[11px] font-medium text-sage-dark hover:bg-sage/5 transition"
+                      title="Prontuário por voz (IA)"
+                    >
+                      <Mic className="h-3 w-3" />
+                      <span className="hidden sm:inline">Prontuário por voz</span>
+                    </Link>
+                  </>
                 )}
               </div>
             </li>

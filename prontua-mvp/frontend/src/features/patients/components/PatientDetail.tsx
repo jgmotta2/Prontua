@@ -1,14 +1,21 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Pencil, Phone, Mail, CalendarDays, ClipboardList } from 'lucide-react';
+import { ArrowLeft, Pencil, Phone, Mail, CalendarDays, ClipboardList, Mic } from 'lucide-react';
 import { formatBRL, formatFullDate } from '@lib/utils/format';
 import { usePatient } from '../hooks/usePatients';
+import { usePatientSessions } from '@features/notes/hooks/useNotes';
 import { PatientModal } from './PatientModal';
 
 export function PatientDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: patient, isLoading, isError } = usePatient(id ?? '');
+  const { data: sessionsData } = usePatientSessions(id ?? '');
   const [editOpen, setEditOpen] = useState(false);
+
+  // Sessão mais recente não cancelada para link de voz
+  const lastSession = sessionsData?.sessions.find(
+    (s) => s.status !== 'CANCELED' && s.status !== 'NO_SHOW',
+  );
 
   if (isLoading) {
     return (
@@ -48,6 +55,20 @@ export function PatientDetail() {
           <ClipboardList className="h-3.5 w-3.5" />
           Prontuário
         </Link>
+        {lastSession && (
+          <Link
+            to={`/agenda/${lastSession.id}/prontuario-voz`}
+            state={{
+              patientId: id,
+              patientName: patient.fullName,
+              scheduledAt: lastSession.scheduledAt,
+            }}
+            className="btn-secondary flex items-center gap-2 text-sm py-2"
+          >
+            <Mic className="h-3.5 w-3.5" />
+            Prontuário por voz
+          </Link>
+        )}
         <button onClick={() => setEditOpen(true)} className="btn-secondary flex items-center gap-2 text-sm py-2">
           <Pencil className="h-3.5 w-3.5" />
           Editar
