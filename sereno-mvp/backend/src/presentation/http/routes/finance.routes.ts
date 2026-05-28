@@ -7,7 +7,6 @@ import { validate } from '@presentation/http/middlewares/validation.middleware';
 import { listPaymentsUseCase } from '@application/use-cases/finance/list-payments.use-case';
 import { NotFoundError } from '@shared/errors/app-error';
 import { z } from 'zod';
-import { PaymentMethod, PaymentStatus } from '@shared/constants/enums';
 import type { Request, Response, NextFunction } from 'express';
 
 const router = Router();
@@ -45,17 +44,19 @@ router.get(
 router.patch(
   '/payments/:id/pay',
   validate({ params: paymentIdParams, body: markPaidBody }),
-  audit('PAYMENT_UPDATE', (req) => ({ resourceType: 'Payment', resourceId: req.params.id })),
+  audit('PAYMENT_UPDATE', (req) => ({ resourceType: 'Payment', resourceId: req.params['id'] as string })),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const id = req.params['id'] as string;
+
       const payment = await req.db!.payment.findUnique({
-        where: { id: req.params.id },
+        where: { id },
         select: { id: true, status: true },
       });
       if (!payment) throw new NotFoundError('Pagamento');
 
       const updated = await req.db!.payment.update({
-        where: { id: req.params.id },
+        where: { id },
         data: {
           status: 'PAID',
           paidAt: new Date(),

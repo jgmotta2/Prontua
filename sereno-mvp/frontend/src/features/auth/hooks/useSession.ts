@@ -6,6 +6,7 @@ export interface SessionInfo {
   tenantId: string;
   role: 'OWNER' | 'ADMIN' | 'PROFESSIONAL' | 'ASSISTANT';
   name: string;
+  photo: string | null;
 }
 
 /**

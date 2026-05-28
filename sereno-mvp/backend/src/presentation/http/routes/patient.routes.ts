@@ -55,11 +55,12 @@ router.get(
 router.get(
   '/:id',
   validate({ params: patientIdParams }),
-  audit('PATIENT_VIEW', (req) => ({ resourceType: 'Patient', resourceId: req.params.id })),
+  audit('PATIENT_VIEW', (req) => ({ resourceType: 'Patient', resourceId: req.params['id'] as string })),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const id = req.params['id'] as string;
       const patient = await req.db!.patient.findUnique({
-        where: { id: req.params.id, deletedAt: null },
+        where: { id, deletedAt: null },
         // Nunca retornar campos de criptografia ao cliente.
         // documentEnc/documentIv/documentTag são dados sensíveis que só
         // o servidor deve tocar — o cliente não tem como descriptografar.
@@ -139,11 +140,12 @@ router.post(
 router.patch(
   '/:id',
   validate({ params: patientIdParams }),
-  audit('PATIENT_UPDATE', (req) => ({ resourceType: 'Patient', resourceId: req.params.id })),
+  audit('PATIENT_UPDATE', (req) => ({ resourceType: 'Patient', resourceId: req.params['id'] as string })),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const id = req.params['id'] as string;
       const patient = await req.db!.patient.findUnique({
-        where: { id: req.params.id, deletedAt: null },
+        where: { id, deletedAt: null },
         select: { id: true },
       });
       if (!patient) throw new NotFoundError('Paciente');
@@ -162,7 +164,7 @@ router.patch(
         : {};
 
       const updated = await req.db!.patient.update({
-        where: { id: req.params.id },
+        where: { id },
         data: {
           ...(body.fullName !== undefined ? { fullName: body.fullName } : {}),
           ...(body.email !== undefined ? { email: body.email } : {}),
@@ -188,10 +190,10 @@ router.delete(
   '/:id',
   sensitiveRateLimiter,
   validate({ params: patientIdParams }),
-  audit('PATIENT_DELETE', (req) => ({ resourceType: 'Patient', resourceId: req.params.id })),
+  audit('PATIENT_DELETE', (req) => ({ resourceType: 'Patient', resourceId: req.params['id'] as string })),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params;
+      const id = req.params['id'] as string;
       // Deleta em ordem para respeitar as restrições de FK:
       // 1. Pagamentos do paciente (Payment.patientId → Restrict)
       // 2. Sessões do paciente (Session.patientId → Restrict)

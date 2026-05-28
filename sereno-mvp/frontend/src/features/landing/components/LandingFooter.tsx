@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import {
   BRAND_TAGLINE,
   BRAND_TITLE,
@@ -19,12 +20,12 @@ export function LandingFooter() {
           className="flex flex-wrap items-center justify-center gap-4 text-sm"
           aria-label="Links do rodapé"
         >
-          <a href="/app.html" className="text-muted hover:text-sage-dark transition">
+          <Link to="/entrar" className="text-muted hover:text-sage-dark transition">
             Entrar
-          </a>
-          <a href="/app.html" className="text-muted hover:text-sage-dark transition">
+          </Link>
+          <Link to="/cadastro" className="text-muted hover:text-sage-dark transition">
             Criar conta
-          </a>
+          </Link>
           <a
             href={`#${LANDING_SECTION_IDS.FAQ}`}
             className="text-muted hover:text-sage-dark transition"

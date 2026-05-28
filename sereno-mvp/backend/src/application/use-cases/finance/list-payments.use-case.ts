@@ -46,7 +46,7 @@ export async function listPaymentsUseCase(
   return payments.map((p) => ({
     id: p.id,
     amount: p.amount instanceof Prisma.Decimal ? Number(p.amount.toString()) : Number(p.amount),
-    status: p.status,
+    status: p.status as PaymentStatus,
     method: p.method ?? null,
     paidAt: p.paidAt?.toISOString() ?? null,
     dueDate: p.dueDate?.toISOString() ?? null,

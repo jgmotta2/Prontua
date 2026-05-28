@@ -92,7 +92,7 @@ router.post(
   upload.single('audio'),
   audit('VOICE_UPLOAD', (req) => ({
     resourceType: 'VoiceSessionReport',
-    resourceId: req.params.sessionId,
+    resourceId: req.params['sessionId'] as string,
   })),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -100,10 +100,11 @@ router.post(
         throw new AppError('MISSING_FILE', 'Arquivo de áudio não enviado.', 400);
       }
 
+      const sessionId = req.params['sessionId'] as string;
       const specialty = (req.auth as any)?.specialty ?? 'OUTRA';
 
       const result = await uploadAudioUseCase(req.db!, {
-        sessionId: req.params.sessionId,
+        sessionId,
         authorId: req.auth!.sub,
         tempFilePath: req.file.path,
         mimeType: req.file.mimetype,
@@ -124,7 +125,7 @@ router.get(
   validate({ params: sessionReportParamsSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const report = await getReportBySessionUseCase(req.db!, req.params.sessionId);
+      const report = await getReportBySessionUseCase(req.db!, req.params['sessionId'] as string);
       if (!report) {
         return res.status(404).json({
           error: { code: 'NOT_FOUND', message: 'Nenhum prontuário de voz para esta sessão.' },
@@ -143,7 +144,7 @@ router.get(
   validate({ params: reportParamsSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const report = await getReportUseCase(req.db!, req.params.reportId);
+      const report = await getReportUseCase(req.db!, req.params['reportId'] as string);
       res.json(report);
     } catch (err) {
       next(err);
@@ -159,7 +160,7 @@ router.patch(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await updateReportUseCase(req.db!, {
-        reportId: req.params.reportId,
+        reportId: req.params['reportId'] as string,
         structuredReport: req.body.structuredReport,
       });
       res.json(result);
@@ -176,12 +177,13 @@ router.post(
   validate({ params: reportParamsSchema }),
   audit('VOICE_REPORT_FINALIZE', (req) => ({
     resourceType: 'VoiceSessionReport',
-    resourceId: req.params.reportId,
+    resourceId: req.params['reportId'] as string,
   })),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const reportId = req.params['reportId'] as string;
       const result = await finalizeReportUseCase(req.db!, {
-        reportId: req.params.reportId,
+        reportId,
         authorId: req.auth!.sub,
       });
 
@@ -206,18 +208,19 @@ router.get(
   validate({ params: reportParamsSchema }),
   audit('VOICE_PDF_DOWNLOAD', (req) => ({
     resourceType: 'VoiceSessionReport',
-    resourceId: req.params.reportId,
+    resourceId: req.params['reportId'] as string,
   })),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { buffer, patientName } = await getPdfBufferUseCase(req.db!, req.params.reportId);
+      const reportId = req.params['reportId'] as string;
+      const { buffer, patientName } = await getPdfBufferUseCase(req.db!, reportId);
 
       const safePatientName = patientName.replace(/[^a-zA-Z0-9À-ɏ ]/g, '').trim().replace(/\s+/g, '-');
 
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader(
         'Content-Disposition',
-        `attachment; filename="prontuario-${safePatientName}-${req.params.reportId.slice(0, 8)}.pdf"`,
+        `attachment; filename="prontuario-${safePatientName}-${reportId.slice(0, 8)}.pdf"`,
       );
       res.setHeader('Content-Length', buffer.byteLength);
       res.end(buffer);

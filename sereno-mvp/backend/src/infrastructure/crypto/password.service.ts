@@ -14,7 +14,7 @@ import { env } from '@config/env';
  */
 class PasswordService {
   private readonly options = {
-    type: argon2.argon2id as const,
+    type: argon2.argon2id,
     memoryCost: env.ARGON_MEMORY_COST,
     timeCost: env.ARGON_TIME_COST,
     parallelism: env.ARGON_PARALLELISM,

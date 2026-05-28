@@ -23,7 +23,7 @@ router.get(
   validate({ params: consentParamsSchema }),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const status = await checkConsentUseCase(req.db!, req.params.patientId);
+      const status = await checkConsentUseCase(req.db!, req.params['patientId'] as string);
       res.json(status);
     } catch (err) {
       next(err);
@@ -41,12 +41,12 @@ router.post(
   validate({ params: consentParamsSchema }),
   audit('CONSENT_CREATE', (req) => ({
     resourceType: 'PatientConsent',
-    resourceId: req.params.patientId,
+    resourceId: req.params['patientId'] as string,
   })),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await recordConsentUseCase(req.db!, {
-        patientId: req.params.patientId,
+        patientId: req.params['patientId'] as string,
         professionalId: req.auth!.sub,
         rawIp: req.ip ?? req.socket.remoteAddress ?? 'unknown',
       });
