@@ -43,6 +43,13 @@ interface RequestOptions extends Omit<RequestInit, 'body'> {
 // Paths cujas respostas 401 NÃO devem disparar refresh (evita loops infinitos)
 const NO_REFRESH_PATHS = ['/auth/refresh', '/auth/login', '/auth/mfa', '/auth/logout'];
 
+// Rotas públicas do frontend — não redirecionar para /entrar se já estiver nelas
+const PUBLIC_FRONTEND_PATHS = ['/', '/entrar', '/cadastro', '/verificar-email'];
+function redirectToLogin() {
+  const isPublic = PUBLIC_FRONTEND_PATHS.some((p) => window.location.pathname === p);
+  if (!isPublic) window.location.href = '/entrar';
+}
+
 let _isRefreshing = false;
 let _refreshPromise: Promise<boolean> | null = null;
 
@@ -102,7 +109,7 @@ async function request<T>(path: string, opts: RequestOptions = {}, _retry = fals
       return request<T>(path, opts, true); // reexecuta uma vez com token renovado
     }
     // Refresh também falhou → sessão encerrada, redireciona para login
-    window.location.href = '/entrar';
+    redirectToLogin();
     throw new ApiClientError({
       code: 'UNAUTHENTICATED',
       message: 'Sessão expirada. Redirecionando...',
@@ -157,7 +164,7 @@ export const api = {
     if (res.status === 401 && !_retry) {
       const refreshed = await tryRefresh();
       if (refreshed) return api.upload<T>(path, formData, true);
-      window.location.href = '/entrar';
+      redirectToLogin();
       throw new ApiClientError({
         code: 'UNAUTHENTICATED',
         message: 'Sessão expirada. Redirecionando...',

@@ -59,16 +59,6 @@ export const authController = {
         userAgent: req.get('user-agent') ?? undefined,
       });
 
-      if (result.step === 'mfa_required') {
-        // Não emite cookies ainda — aguarda verificação do OTP.
-        res.status(200).json({
-          step: 'mfa_required',
-          preAuthToken: result.preAuthToken,
-          userId: result.userId,
-        });
-        return;
-      }
-
       jwt.setAuthCookies(res, result.accessToken, result.refreshTokenRaw);
       res.status(200).json({ step: 'authenticated', userId: result.userId, tenantId: result.tenantId });
     } catch (err) {

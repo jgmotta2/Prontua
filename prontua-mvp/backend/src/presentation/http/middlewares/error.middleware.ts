@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+import { Prisma } from '@prisma/client';
 import { AppError } from '@shared/errors/app-error';
 import { logger } from '@shared/utils/logger';
 
@@ -20,6 +21,15 @@ export const errorHandler: ErrorRequestHandler = (
   const requestId = (req as any).id;
   const userId = req.auth?.sub;
   const tenantId = req.auth?.tenantId;
+
+  // Unique constraint violation (ex: CPF ou email duplicado)
+  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+    res.status(409).json({
+      error: { code: 'CONFLICT', message: 'Registro já existente. Verifique os dados informados.' },
+      requestId,
+    });
+    return;
+  }
 
   if (err instanceof AppError) {
     logger.warn({ requestId, userId, tenantId, code: err.code, message: err.message }, 'app_error');

@@ -1,7 +1,6 @@
 import express, { type Express } from 'express';
 import cookieParser from 'cookie-parser';
 import pinoHttp from 'pino-http';
-import path from 'node:path';
 import { env } from '@config/env';
 import { logger } from '@shared/utils/logger';
 
@@ -20,6 +19,7 @@ import { sessionRoutes } from '@presentation/http/routes/session.routes';
 import { financeRoutes } from '@presentation/http/routes/finance.routes';
 import { consentRoutes } from '@presentation/http/routes/consent.routes';
 import { voiceRoutes } from '@presentation/http/routes/voice.routes';
+import { noteRoutes } from '@presentation/http/routes/note.routes';
 
 /**
  * Composição do servidor.
@@ -89,20 +89,6 @@ export function buildServer(): Express {
   // ─── Health check (não-autenticado) ───
   app.get('/health', (_req, res) => res.json({ status: 'ok', ts: Date.now() }));
 
-  // ─── Frontend SPA (dev only) ───────────────────────────────────────
-  // Serve o dashboard-preview.html em http://localhost:4000/
-  // Mesmo origin da API → sem CORS, sem problemas de SameSite em cookies.
-  if (env.NODE_ENV !== 'production') {
-    // process.cwd() = backend/ → ../../ = prontua/ where the HTML lives
-    const htmlFile = path.resolve(process.cwd(), '../../dashboard-preview.html');
-    app.get('/', (_req, res) => {
-      // Remove o CSP do helmet para o HTML — inline <script> precisa rodar
-      res.removeHeader('Content-Security-Policy');
-      res.removeHeader('X-Content-Security-Policy');
-      res.sendFile(htmlFile);
-    });
-  }
-
   // ─── Rotas ───
   app.use('/auth', authRoutes);
   app.use('/patients', patientRoutes);
@@ -111,6 +97,7 @@ export function buildServer(): Express {
   app.use('/finance', financeRoutes);
   app.use('/consent', consentRoutes);
   app.use('/voice', voiceRoutes);
+  app.use('/notes', noteRoutes);
 
   // 404
   app.use((_req, res) => {

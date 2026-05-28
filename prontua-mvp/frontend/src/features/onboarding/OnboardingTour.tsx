@@ -60,7 +60,7 @@ export function useOnboardingTour() {
             popover: {
               title: '📅 Agenda de hoje',
               description:
-                'Todas as sessões do dia aparecem aqui — com horário, paciente, modalidade e status. Clique no nome do paciente para ver o prontuário.',
+                'Todas as sessões do dia aparecem aqui, com horário, paciente, modalidade e status. Clique no nome do paciente para ver o prontuário.',
               side: 'top',
               align: 'start',
             },

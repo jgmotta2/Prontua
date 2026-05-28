@@ -3,8 +3,6 @@ import { passwordService } from '@infrastructure/crypto/password.service';
 import { JwtService } from '@infrastructure/crypto/jwt.service';
 import { auditLogger } from '@infrastructure/security/audit.logger';
 import { UnauthorizedError } from '@shared/errors/app-error';
-import { emailService } from '@infrastructure/messaging/email.service';
-import { logger } from '@shared/utils/logger';
 import { randomUUID } from 'node:crypto';
 
 /**
@@ -26,8 +24,7 @@ interface LoginInput {
 }
 
 export type LoginOutput =
-  | { step: 'mfa_required'; preAuthToken: string; userId: string; tenantId: string }
-  | { step: 'authenticated'; accessToken: string; refreshTokenRaw: string; userId: string; tenantId: string };
+  { step: 'authenticated'; accessToken: string; refreshTokenRaw: string; userId: string; tenantId: string };
 
 const jwt = new JwtService();
 const LOCK_THRESHOLD = 10;
@@ -106,34 +103,23 @@ export async function loginUseCase(input: LoginInput): Promise<LoginOutput> {
     data: { lastLoginAt: new Date(), failedLoginCount: 0, lockedUntil: null },
   });
 
-  // ── MFA obrigatório via OTP por e-mail ───────────────────────────────────
-  // Gera código de 6 dígitos, armazena com expiração de 10 min,
-  // envia ao e-mail do usuário (ou loga em dev quando Resend não configurado).
-  const otpCode = String(Math.floor(100000 + Math.random() * 900000));
-  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { verificationCode: otpCode, verificationCodeExpiry: otpExpiry },
-  });
-
-  // Envia e-mail assincronamente; falha silenciosa para não bloquear o login.
-  emailService.sendLoginOtp(user.email, user.name, otpCode).catch((err) => {
-    // Em dev sem RESEND_API_KEY, loga o código no console para facilitar testes.
-    logger.warn({ err, otpCode, userId: user.id }, 'mfa_email_failed — use code from log in dev');
-  });
-
-  const preAuthToken = jwt.signPreAuth(user.id);
+  const { accessToken, refreshTokenRaw } = await issueTokens(
+    user.id,
+    user.tenantId,
+    user.role,
+    input.ipHash,
+    input.userAgent,
+  );
 
   await auditLogger.log({
-    action: 'AUTH_MFA_INITIATED',
+    action: 'AUTH_LOGIN',
     tenantId: user.tenantId,
     userId: user.id,
     ipHash: input.ipHash,
     userAgent: input.userAgent,
   });
 
-  return { step: 'mfa_required', preAuthToken, userId: user.id, tenantId: user.tenantId };
+  return { step: 'authenticated', accessToken, refreshTokenRaw, userId: user.id, tenantId: user.tenantId };
 }
 
 /**

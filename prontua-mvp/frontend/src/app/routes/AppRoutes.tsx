@@ -15,6 +15,7 @@ import { AgendaPage } from '@features/sessions/components/AgendaPage';
 import { FinancePage } from '@features/finance/components/FinancePage';
 import { VoicePage } from '@features/voice/components/VoicePage';
 import { SettingsPage } from '@features/settings/SettingsPage';
+import { ProntuarioPage } from '@features/notes/components/ProntuarioPage';
 
 function FullScreenLoader() {
   return (
@@ -85,6 +86,7 @@ export function AppRoutes() {
       <Route path="/painel"        element={<Private><Dashboard /></Private>} />
       <Route path="/pacientes"     element={<Private><PatientList /></Private>} />
       <Route path="/pacientes/:id" element={<Private><PatientDetail /></Private>} />
+      <Route path="/pacientes/:id/prontuario" element={<Private><ProntuarioPage /></Private>} />
       <Route path="/agenda"        element={<Private><AgendaPage /></Private>} />
       <Route path="/agenda/:sessionId/prontuario-voz" element={<Private><VoicePage /></Private>} />
       <Route path="/financeiro"    element={<Private><FinancePage /></Private>} />

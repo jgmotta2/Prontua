@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -75,7 +75,7 @@ export function Sidebar() {
 
       {/* Avatar + nome do usuário */}
       {session && (
-        <div className="mx-3 mb-2 flex items-center gap-3 rounded-xl px-3 py-2.5">
+        <Link to="/config" className="mx-3 mb-2 flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-white/5 transition">
           <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-sage/30 flex items-center justify-center">
             {session.photo ? (
               <img
@@ -91,7 +91,7 @@ export function Sidebar() {
             <p className="truncate text-sm font-medium text-cream">{session.name}</p>
             <p className="truncate text-xs text-cream/50 capitalize">{(session.role ?? '').toLowerCase()}</p>
           </div>
-        </div>
+        </Link>
       )}
 
       <button

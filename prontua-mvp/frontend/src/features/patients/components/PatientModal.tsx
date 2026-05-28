@@ -126,11 +126,15 @@ export function PatientModal({ open, onClose, editing }: Props) {
             <div>
               <label className="label">Valor / sessão (R$) *</label>
               <input
-                type="number"
-                min={0.01}
-                step={0.01}
+                type="text"
+                inputMode="decimal"
+                placeholder="0,00"
                 className={`input ${errors.sessionValue ? 'input-error' : ''}`}
                 {...register('sessionValue')}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/[^0-9,\.]/g, '').replace(',', '.');
+                  setValue('sessionValue', v as any, { shouldValidate: true });
+                }}
               />
               {errors.sessionValue && <p className="helper-error">{errors.sessionValue.message}</p>}
             </div>

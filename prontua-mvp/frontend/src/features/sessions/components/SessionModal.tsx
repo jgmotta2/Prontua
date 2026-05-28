@@ -8,10 +8,16 @@ import { useCreateSession } from '../hooks/useSessions';
 
 const schema = z.object({
   patientId: z.string().uuid('Selecione um paciente'),
-  scheduledAt: z.string().min(1, 'Informe data e hora'),
+  schedDate: z.string().min(1, 'Informe a data'),
+  schedTime: z.string().min(1, 'Informe o horário'),
   durationMin: z.coerce.number().int().min(15).max(240).default(50),
   mode: z.enum(['PRESENCIAL', 'ONLINE']).default('PRESENCIAL'),
   value: z.coerce.number().min(0.01, 'Valor deve ser maior que zero').max(99999),
+});
+
+const TIME_OPTIONS = Array.from({ length: 31 }, (_, i) => {
+  const totalMin = 7 * 60 + i * 30;
+  return `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`;
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -20,9 +26,10 @@ interface Props {
   open: boolean;
   onClose: () => void;
   defaultDate?: Date;
+  defaultPatientId?: string;
 }
 
-export function SessionModal({ open, onClose, defaultDate }: Props) {
+export function SessionModal({ open, onClose, defaultDate, defaultPatientId }: Props) {
   const { data: patientsData } = usePatients();
   const create = useCreateSession();
 
@@ -48,9 +55,11 @@ export function SessionModal({ open, onClose, defaultDate }: Props) {
             .toISOString()
             .slice(0, 16)
         : '';
-      reset({ patientId: '', scheduledAt: dtLocal, durationMin: 50, mode: 'PRESENCIAL', value: 0 });
+      const [datePart = '', timePart = '08:00'] = dtLocal.split('T');
+      const roundedTime = TIME_OPTIONS.find((t) => t >= timePart.slice(0, 5)) ?? '08:00';
+      reset({ patientId: defaultPatientId ?? '', schedDate: datePart, schedTime: roundedTime, durationMin: 50, mode: 'PRESENCIAL', value: 0 });
     }
-  }, [open, defaultDate, reset]);
+  }, [open, defaultDate, defaultPatientId, reset]);
 
   // Preenche valor ao selecionar paciente
   useEffect(() => {
@@ -62,8 +71,9 @@ export function SessionModal({ open, onClose, defaultDate }: Props) {
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      const scheduledAt = new Date(values.scheduledAt).toISOString();
-      await create.mutateAsync({ ...values, scheduledAt });
+      const scheduledAt = new Date(`${values.schedDate}T${values.schedTime}`).toISOString();
+      const { schedDate: _d, schedTime: _t, ...rest } = values;
+      await create.mutateAsync({ ...rest, scheduledAt });
       onClose();
     } catch (err: any) {
       setError('root', { message: err?.message ?? 'Erro ao criar sessão' });
@@ -84,27 +94,43 @@ export function SessionModal({ open, onClose, defaultDate }: Props) {
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4 p-5">
-          <div>
-            <label className="label">Paciente *</label>
-            <select className={`input ${errors.patientId ? 'input-error' : ''}`} {...register('patientId')}>
-              <option value="">Selecionar paciente...</option>
-              {patientsData?.patients.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.fullName}
-                </option>
-              ))}
-            </select>
-            {errors.patientId && <p className="helper-error">{errors.patientId.message}</p>}
-          </div>
+          {!defaultPatientId && (
+            <div>
+              <label className="label">Paciente *</label>
+              <select className={`input ${errors.patientId ? 'input-error' : ''}`} {...register('patientId')}>
+                <option value="">Selecionar paciente...</option>
+                {patientsData?.patients.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.fullName}
+                  </option>
+                ))}
+              </select>
+              {errors.patientId && <p className="helper-error">{errors.patientId.message}</p>}
+            </div>
+          )}
 
-          <div>
-            <label className="label">Data e hora *</label>
-            <input
-              type="datetime-local"
-              className={`input ${errors.scheduledAt ? 'input-error' : ''}`}
-              {...register('scheduledAt')}
-            />
-            {errors.scheduledAt && <p className="helper-error">{errors.scheduledAt.message}</p>}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Data *</label>
+              <input
+                type="date"
+                className={`input ${errors.schedDate ? 'input-error' : ''}`}
+                {...register('schedDate')}
+              />
+              {errors.schedDate && <p className="helper-error">{errors.schedDate.message}</p>}
+            </div>
+            <div>
+              <label className="label">Horário *</label>
+              <select
+                className={`input ${errors.schedTime ? 'input-error' : ''}`}
+                {...register('schedTime')}
+              >
+                {TIME_OPTIONS.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              {errors.schedTime && <p className="helper-error">{errors.schedTime.message}</p>}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -130,11 +156,15 @@ export function SessionModal({ open, onClose, defaultDate }: Props) {
           <div>
             <label className="label">Valor (R$) *</label>
             <input
-              type="number"
-              min={0.01}
-              step={0.01}
+              type="text"
+              inputMode="decimal"
+              placeholder="0,00"
               className={`input ${errors.value ? 'input-error' : ''}`}
               {...register('value')}
+              onChange={(e) => {
+                const v = e.target.value.replace(/[^0-9,\.]/g, '').replace(',', '.');
+                setValue('value', v as any, { shouldValidate: true });
+              }}
             />
             {errors.value && <p className="helper-error">{errors.value.message}</p>}
           </div>

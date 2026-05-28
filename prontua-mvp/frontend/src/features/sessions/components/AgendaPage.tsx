@@ -158,7 +158,7 @@ export function AgendaPage() {
                     title="Prontuário por Voz (IA)"
                   >
                     <Mic className="h-3 w-3" />
-                    <span className="hidden sm:inline">Prontuário</span>
+                    <span className="hidden sm:inline">Prontuário voz</span>
                   </Link>
                 )}
               </div>

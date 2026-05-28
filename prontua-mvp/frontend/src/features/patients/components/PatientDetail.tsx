@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Pencil, Phone, Mail, CalendarDays } from 'lucide-react';
+import { ArrowLeft, Pencil, Phone, Mail, CalendarDays, ClipboardList } from 'lucide-react';
 import { formatBRL, formatFullDate } from '@lib/utils/format';
 import { usePatient } from '../hooks/usePatients';
 import { PatientModal } from './PatientModal';
@@ -41,6 +41,13 @@ export function PatientDetail() {
         <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink flex-1 min-w-0 truncate">
           {patient.fullName}
         </h1>
+        <Link
+          to={`/pacientes/${id}/prontuario`}
+          className="btn-primary flex items-center gap-2 text-sm py-2"
+        >
+          <ClipboardList className="h-3.5 w-3.5" />
+          Prontuário
+        </Link>
         <button onClick={() => setEditOpen(true)} className="btn-secondary flex items-center gap-2 text-sm py-2">
           <Pencil className="h-3.5 w-3.5" />
           Editar

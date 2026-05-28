@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { User, Mail, RotateCcw, Check, AlertCircle, Camera, Trash2 } from 'lucide-react';
+import { User, Mail, RotateCcw, Check, AlertCircle, Camera, Trash2, Send } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, ApiClientError } from '@lib/api/client';
 import { BR_STATES, SPECIALTIES } from '@lib/validation/auth.schema';
@@ -23,6 +23,16 @@ interface UserProfile {
   emailVerifiedAt: string | null;
   createdAt: string;
 }
+
+const REGISTRY_PLACEHOLDER: Record<string, string> = {
+  PSICOLOGIA:          'CRP 00/00000',
+  FISIOTERAPIA:        'CREFITO-0 000000-F',
+  FONOAUDIOLOGIA:      'CRFa 0-0000',
+  PSICOPEDAGOGIA:      'Registro profissional',
+  NUTRICAO:            'CRN0 000000',
+  TERAPIA_OCUPACIONAL: 'CREFITO-0 000000-F',
+  OUTRA:               'Registro profissional',
+};
 
 // ─── Schema de validação do formulário ────────────────────────────────────────
 
@@ -56,6 +66,26 @@ function useUpdateProfile() {
     onSuccess: (updated) => {
       qc.setQueryData(['user-profile'], updated);
       qc.invalidateQueries({ queryKey: ['session'] }); // atualiza nome no header
+    },
+  });
+}
+
+// ─── Hook: enviar código de verificação ──────────────────────────────────────
+
+function useSendVerification() {
+  return useMutation<void, ApiClientError>({
+    mutationFn: () => api.post<void>('/auth/send-verification'),
+  });
+}
+
+// ─── Hook: confirmar código de verificação ────────────────────────────────────
+
+function useConfirmVerification() {
+  const qc = useQueryClient();
+  return useMutation<void, ApiClientError, string>({
+    mutationFn: (code) => api.post<void>('/auth/verify-email', { code }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['user-profile'] });
     },
   });
 }
@@ -109,6 +139,11 @@ export function SettingsPage() {
   const { data: profile, isLoading, isError } = useUserProfile();
   const update = useUpdateProfile();
   const updatePhoto = useUpdatePhoto();
+  const sendVerification = useSendVerification();
+  const confirmVerification = useConfirmVerification();
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationError, setVerificationError] = useState('');
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [saved, setSaved] = useState(false);
   const [tourReset, setTourReset] = useState(false);
@@ -128,6 +163,7 @@ export function SettingsPage() {
   });
 
   const whatsapp = watch('whatsapp');
+  const specialty = watch('specialty');
 
   // Preenche o formulário quando o perfil carrega
   useEffect(() => {
@@ -346,7 +382,7 @@ export function SettingsPage() {
             <div>
               <label className="label">Registro profissional</label>
               <input
-                placeholder="CRP 00/00000"
+                placeholder={REGISTRY_PLACEHOLDER[specialty] ?? 'Registro profissional'}
                 className={`input ${errors.registry ? 'input-error' : ''}`}
                 {...register('registry')}
               />
@@ -425,11 +461,68 @@ export function SettingsPage() {
               readOnly
               disabled
             />
-            <p className="helper">
-              {profile?.emailVerifiedAt
-                ? `Verificado em ${new Date(profile.emailVerifiedAt).toLocaleDateString('pt-BR')}`
-                : 'E-mail ainda não verificado.'}
-            </p>
+            {profile?.emailVerifiedAt ? (
+              <p className="helper">
+                Verificado em {new Date(profile.emailVerifiedAt).toLocaleDateString('pt-BR')}
+              </p>
+            ) : (
+              <div className="mt-2 space-y-3">
+                <div className="flex items-center gap-3">
+                  <p className="helper text-terracotta/80">E-mail ainda não verificado.</p>
+                  <button
+                    type="button"
+                    disabled={sendVerification.isPending}
+                    onClick={async () => {
+                      setVerificationError('');
+                      setVerificationCode('');
+                      await sendVerification.mutateAsync();
+                      setVerificationSent(true);
+                    }}
+                    className="flex items-center gap-1.5 text-xs font-medium text-sage hover:text-sage-dark transition disabled:opacity-50"
+                  >
+                    <Send className="h-3 w-3" />
+                    {sendVerification.isPending ? 'Enviando...' : verificationSent ? 'Reenviar código' : 'Enviar código'}
+                  </button>
+                </div>
+                {verificationSent && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted">Código enviado! Digite abaixo para verificar.</p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        placeholder="000000"
+                        value={verificationCode}
+                        onChange={(e) => {
+                          setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6));
+                          setVerificationError('');
+                        }}
+                        className="input w-36 text-center tracking-widest font-semibold"
+                      />
+                      <button
+                        type="button"
+                        disabled={verificationCode.length < 6 || confirmVerification.isPending}
+                        onClick={async () => {
+                          try {
+                            setVerificationError('');
+                            await confirmVerification.mutateAsync(verificationCode);
+                          } catch (err: any) {
+                            setVerificationError(err?.message ?? 'Código inválido ou expirado.');
+                          }
+                        }}
+                        className="btn-primary py-2 text-sm disabled:opacity-50"
+                      >
+                        {confirmVerification.isPending ? 'Verificando...' : 'Confirmar'}
+                      </button>
+                    </div>
+                    {verificationError && (
+                      <p className="text-xs text-terracotta">{verificationError}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div>
             <label className="label">Membro desde</label>
