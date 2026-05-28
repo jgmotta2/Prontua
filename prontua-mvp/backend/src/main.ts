@@ -2,9 +2,11 @@ import { buildServer } from '@presentation/http/server';
 import { env } from '@config/env';
 import { logger } from '@shared/utils/logger';
 import { prisma } from '@config/prisma';
+import { startCronJobs } from '@infrastructure/cron/jobs';
 
 async function bootstrap(): Promise<void> {
   const app = buildServer();
+  startCronJobs();
 
   const server = app.listen(env.PORT, () => {
     logger.info(

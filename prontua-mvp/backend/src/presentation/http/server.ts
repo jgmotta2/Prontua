@@ -1,11 +1,12 @@
 import express, { type Express } from 'express';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { prisma } from '@config/prisma';
 import pinoHttp from 'pino-http';
 import { env } from '@config/env';
 import { logger } from '@shared/utils/logger';
 
-import { helmetMiddleware } from '@presentation/http/middlewares/helmet.middleware';
+import { helmetMiddleware, permissionsPolicyMiddleware } from '@presentation/http/middlewares/helmet.middleware';
 import { corsMiddleware } from '@presentation/http/middlewares/cors.middleware';
 import { requestId } from '@presentation/http/middlewares/request-id.middleware';
 import { ipHashMiddleware } from '@presentation/http/middlewares/audit.middleware';
@@ -48,8 +49,12 @@ export function buildServer(): Express {
   // 2. Request ID
   app.use(requestId());
 
-  // 3. Helmet (headers de segurança)
+  // 3. Helmet (headers de segurança) + Permissions-Policy
   app.use(helmetMiddleware);
+  app.use(permissionsPolicyMiddleware);
+
+  // 3b. Compressão gzip para todas as respostas
+  app.use(compression());
 
   // 4. CORS
   app.use(corsMiddleware);

@@ -1,20 +1,23 @@
 import type { Config } from 'tailwindcss';
 
-/**
- * Design tokens do Sereno (espelham as CSS vars do protótipo).
- * Paleta verde-sálvia + terracota sobre creme.
- */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        cream:    '#F5F1E8',
-        sage:     { DEFAULT: '#6B8E7F', dark: '#4A6B5E' },
-        terracotta:'#C97B5C',
-        ink:      '#2D3B36',
-        muted:    '#7A8B85',
-        warm:     '#E8DDC8',
+        // CSS var com suporte a opacidade (bg-cream/50, text-ink/80, etc.)
+        cream:      'rgb(var(--color-cream) / <alpha-value>)',
+        sage:       {
+          DEFAULT: 'rgb(var(--color-sage) / <alpha-value>)',
+          dark:    'rgb(var(--color-sage-dark) / <alpha-value>)',
+        },
+        terracotta: 'rgb(var(--color-terracotta) / <alpha-value>)',
+        ink:        'rgb(var(--color-ink) / <alpha-value>)',
+        muted:      'rgb(var(--color-muted) / <alpha-value>)',
+        warm:       'rgb(var(--color-warm) / <alpha-value>)',
+        // Sidebar permanece escuro em ambos os modos
+        sidebar:    'rgb(var(--color-sidebar) / <alpha-value>)',
       },
       fontFamily: {
         display: ['Fraunces', 'serif'],

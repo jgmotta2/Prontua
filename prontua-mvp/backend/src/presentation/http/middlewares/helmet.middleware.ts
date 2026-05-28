@@ -11,6 +11,14 @@ import { env } from '@config/env';
  *  - Cross-Origin-Resource-Policy: same-site
  *  - Remove X-Powered-By
  */
+export const permissionsPolicyMiddleware = (_req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) => {
+  res.setHeader(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), payment=(), usb=(), fullscreen=(self)',
+  );
+  next();
+};
+
 export const helmetMiddleware = helmet({
   contentSecurityPolicy: {
     useDefaults: true,

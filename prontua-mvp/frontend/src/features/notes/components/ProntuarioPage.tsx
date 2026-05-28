@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Check, Loader2, Search, Printer } from 'lucide-react';
+import { ArrowLeft, Plus, Check, Loader2, Search, Printer, X } from 'lucide-react';
+import { useSession } from '@features/auth/hooks/useSession';
+import { formatBRL } from '@lib/utils/format';
 import { usePatient } from '@features/patients/hooks/usePatients';
 import { usePatientSessions, useSessionNote, useSaveNote } from '../hooks/useNotes';
 import { SessionModal } from '@features/sessions/components/SessionModal';
-import { formatBRL } from '@lib/utils/format';
 
 const HUMOR_OPTIONS = [
   { value: 1, emoji: '😞', label: 'Muito baixo' },
@@ -44,13 +45,17 @@ function formatShortDate(iso: string) {
   return d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+const HUMOR_LABELS = ['', 'Muito baixo 😞', 'Baixo 😕', 'Regular 😐', 'Bem 🙂', 'Excelente 😊'];
+
 export function ProntuarioPage() {
   const { id: patientId } = useParams<{ id: string }>();
   const { data: patient } = usePatient(patientId ?? '');
+  const { data: sessionInfo } = useSession();
   const { data: sessionsData, isLoading: sessionsLoading } = usePatientSessions(patientId ?? '');
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [newSessionOpen, setNewSessionOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   // Seleciona a primeira sessão ao carregar
   useEffect(() => {
@@ -222,14 +227,85 @@ export function ProntuarioPage() {
             <div className="h-32 rounded-xl bg-warm/30" />
           </div>
         ) : noteData ? (
+          <>
+          {/* Modal de preview do prontuário */}
+          {previewOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4">
+              <div className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-xl overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-warm shrink-0">
+                  <h3 className="font-display font-semibold text-ink">Preview do prontuário</h3>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      to={`/pacientes/${patientId}/prontuario/${selectedSessionId}/imprimir`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 rounded-lg bg-sage px-3 py-1.5 text-xs font-medium text-cream hover:bg-sage-dark transition"
+                    >
+                      <Printer className="h-3.5 w-3.5" />
+                      Abrir para imprimir
+                    </Link>
+                    <button onClick={() => setPreviewOpen(false)} className="text-muted hover:text-ink transition">
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+                <div className="overflow-y-auto p-6 space-y-4 text-sm">
+                  <div className="border border-sage/20 rounded-lg p-3 text-[11px] text-muted leading-relaxed">
+                    <strong>DOCUMENTO CONFIDENCIAL — PRONTUÁRIO CLÍNICO.</strong> Protegido pela LGPD (Lei nº 13.709/2018) e sigilo profissional.
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted mb-1">Paciente</p>
+                    <p className="font-semibold text-ink">{patient?.fullName}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 p-3 bg-cream/60 rounded-lg text-xs">
+                    <div><span className="text-muted">Data: </span><span className="capitalize">{formatSessionDate(noteData.scheduledAt)}</span></div>
+                    <div><span className="text-muted">Hora: </span>{formatSessionTime(noteData.scheduledAt)}</div>
+                    <div><span className="text-muted">Duração: </span>{noteData.durationMin}min</div>
+                    <div><span className="text-muted">Modalidade: </span>{noteData.mode === 'ONLINE' ? 'Online' : 'Presencial'}</div>
+                  </div>
+                  {noteData.humor !== null && (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted mb-1">Humor</p>
+                      <p>{noteData.humor}/5 — {HUMOR_LABELS[noteData.humor]}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted mb-1">Evolução clínica</p>
+                    <p className="whitespace-pre-wrap text-ink/80 leading-relaxed min-h-[60px]">
+                      {noteData.evolutionNote || <span className="text-muted italic">Sem registro.</span>}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted mb-1">Próximos passos</p>
+                    <p className="whitespace-pre-wrap text-ink/80 leading-relaxed min-h-[40px]">
+                      {noteData.nextSteps || <span className="text-muted italic">Sem registro.</span>}
+                    </p>
+                  </div>
+                  {sessionInfo?.name && (
+                    <p className="text-xs text-muted pt-2 border-t border-warm">Profissional: {sessionInfo.name}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="max-w-2xl space-y-6">
             {/* Header da sessão */}
             <div className="rounded-2xl bg-white p-5 shadow-soft">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium mb-2 ${STATUS_STYLE[noteData.status] ?? 'bg-warm text-ink/70'}`}>
-                    {STATUS_LABEL[noteData.status] ?? noteData.status}
-                  </span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_STYLE[noteData.status] ?? 'bg-warm text-ink/70'}`}>
+                      {STATUS_LABEL[noteData.status] ?? noteData.status}
+                    </span>
+                    {(() => {
+                      const idx = sessions.findIndex((s) => s.id === selectedSessionId);
+                      const num = sessions.length - idx;
+                      return (
+                        <span className="text-xs text-muted">Sessão {num} de {sessions.length}</span>
+                      );
+                    })()}
+                  </div>
                   <p className="font-display text-lg font-semibold text-ink capitalize">
                     {formatSessionDate(noteData.scheduledAt)}
                   </p>
@@ -248,15 +324,13 @@ export function ProntuarioPage() {
                     )}
                     {saveStatus === 'idle' && 'Auto-save ativo'}
                   </span>
-                  <Link
-                    to={`/pacientes/${patientId}/prontuario/${selectedSessionId}/imprimir`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => setPreviewOpen(true)}
                     className="flex items-center gap-1.5 rounded-lg border border-warm px-2.5 py-1 text-xs text-muted hover:text-ink hover:border-sage/40 transition"
                   >
                     <Printer className="h-3 w-3" />
                     Imprimir
-                  </Link>
+                  </button>
                 </div>
               </div>
             </div>
@@ -306,6 +380,7 @@ export function ProntuarioPage() {
               />
             </div>
           </div>
+          </>
         ) : null}
       </main>
 

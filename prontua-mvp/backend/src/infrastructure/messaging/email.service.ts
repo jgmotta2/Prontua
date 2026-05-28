@@ -113,6 +113,62 @@ export const emailService = {
     logger.info({ to }, 'password_reset_email_sent');
   },
 
+  async sendMonthlyReport(to: string, name: string, data: {
+    month: string;
+    sessions: number;
+    revenue: number;
+    newPatients: number;
+    pendingRevenue: number;
+  }): Promise<void> {
+    const formatBRL = (v: number) =>
+      v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    const { error } = await getResend().emails.send({
+      from: FROM,
+      to,
+      subject: `Relatório de ${data.month} — ${APP_NAME}`,
+      html: `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#F5F1E8;font-family:'DM Sans',Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F1E8;padding:40px 16px">
+    <tr><td align="center">
+      <table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;padding:40px;max-width:520px">
+        <tr><td>
+          <h1 style="margin:0 0 4px;font-size:24px;font-weight:600;color:#2D3B36">${APP_NAME}</h1>
+          <p style="margin:0 0 32px;font-size:13px;color:#7A8B85">Relatório mensal — ${data.month}</p>
+          <p style="margin:0 0 24px;font-size:15px;color:#2D3B36">Olá, <strong>${name.split(' ')[0]}</strong>! Confira o resumo do mês:</p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px">
+            ${[
+              ['Sessões realizadas', `${data.sessions}`],
+              ['Receita recebida', formatBRL(data.revenue)],
+              ['A receber', formatBRL(data.pendingRevenue)],
+              ['Novos pacientes', `${data.newPatients}`],
+            ].map(([label, value]) => `
+            <tr>
+              <td style="padding:12px 16px;border-bottom:1px solid #F5F1E8;font-size:14px;color:#7A8B85">${label}</td>
+              <td style="padding:12px 16px;border-bottom:1px solid #F5F1E8;font-size:14px;font-weight:600;color:#2D3B36;text-align:right">${value}</td>
+            </tr>`).join('')}
+          </table>
+          <p style="margin:0;font-size:12px;color:#7A8B85;line-height:1.6">
+            Este é um relatório automático do ${APP_NAME}. Acesse o sistema para mais detalhes.
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+    });
+
+    if (error) {
+      logger.error({ error, to }, 'monthly_report_email_failed');
+    } else {
+      logger.info({ to }, 'monthly_report_email_sent');
+    }
+  },
+
   /** OTP de login (segundo fator obrigatório) */
   async sendLoginOtp(to: string, name: string, code: string): Promise<void> {
     const { error } = await getResend().emails.send({

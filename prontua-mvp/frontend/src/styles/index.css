@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import driver.js styles */
+@import 'driver.js/dist/driver.css';
+
 @keyframes sessionEnter {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0);   }
@@ -11,14 +14,26 @@
 }
 
 @layer base {
+  /* ── Light mode (padrão) — valores em R G B (sem rgb()) para suporte a opacity ── */
   :root {
-    --color-cream: #F5F1E8;
-    --color-sage: #6B8E7F;
-    --color-sage-dark: #4A6B5E;
-    --color-terracotta: #C97B5C;
-    --color-ink: #2D3B36;
-    --color-muted: #7A8B85;
-    --color-warm: #E8DDC8;
+    --color-cream:      245 241 232;   /* #F5F1E8 */
+    --color-sage:       107 142 127;   /* #6B8E7F */
+    --color-sage-dark:  74 107 94;     /* #4A6B5E */
+    --color-terracotta: 201 123 92;    /* #C97B5C */
+    --color-ink:        45 59 54;      /* #2D3B36 */
+    --color-muted:      122 139 133;   /* #7A8B85 */
+    --color-warm:       232 221 200;   /* #E8DDC8 */
+    --color-sidebar:    45 59 54;      /* igual ink — sidebar escuro */
+  }
+
+  /* ── Dark mode ─────────────────────────────────────────────────────────── */
+  html.dark {
+    --color-cream:      18 26 23;      /* #12191a — fundo muito escuro */
+    --color-ink:        218 232 225;   /* #dae8e1 — texto claro */
+    --color-muted:      138 160 152;   /* #8aa098 — secundário claro */
+    --color-warm:       32 46 40;      /* #202e28 — bordas sutis */
+    --color-sidebar:    12 20 17;      /* #0c1411 — sidebar ainda mais escuro */
+    /* sage e terracotta permanecem iguais — são cores de marca/acento */
   }
 
   html, body, #root {
@@ -26,16 +41,14 @@
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    html {
-      scroll-behavior: smooth;
-    }
+    html { scroll-behavior: smooth; }
   }
 
   body {
     font-feature-settings: 'cv11', 'ss03';
+    @apply bg-cream text-ink transition-colors duration-200;
   }
 
-  /* Tipografia display */
   .font-display {
     letter-spacing: -0.02em;
   }
@@ -50,14 +63,14 @@
 
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-xl border border-sage/20
-           bg-white/60 px-5 py-3 font-medium text-ink transition hover:bg-white
-           disabled:opacity-50;
+           bg-white/60 dark:bg-warm/30 px-5 py-3 font-medium text-ink transition
+           hover:bg-white dark:hover:bg-warm/50 disabled:opacity-50;
   }
 
   .input {
-    @apply w-full rounded-xl border border-sage/20 bg-white/80 px-4 py-3 text-ink
-           outline-none transition focus:border-sage focus:ring-2 focus:ring-sage/20
-           disabled:opacity-50;
+    @apply w-full rounded-xl border border-sage/20 bg-white/80 dark:bg-warm/30
+           dark:border-warm px-4 py-3 text-ink outline-none transition
+           focus:border-sage focus:ring-2 focus:ring-sage/20 disabled:opacity-50;
   }
 
   .input-error {
@@ -74,5 +87,10 @@
 
   .helper-error {
     @apply mt-1 text-xs text-terracotta;
+  }
+
+  /* Cards brancos adaptam ao dark mode */
+  .bg-white {
+    @apply dark:bg-warm/20;
   }
 }

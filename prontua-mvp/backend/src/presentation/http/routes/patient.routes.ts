@@ -197,6 +197,53 @@ router.patch(
   },
 );
 
+// GET /patients/:id/stats — estatísticas clínicas e financeiras do paciente
+router.get(
+  '/:id/stats',
+  validate({ params: patientIdParams }),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params['id'] as string;
+
+      const [sessions, revenue] = await Promise.all([
+        req.db!.session.findMany({
+          where: { patientId: id },
+          select: { scheduledAt: true, status: true },
+          orderBy: { scheduledAt: 'asc' },
+        }),
+        req.db!.payment.aggregate({
+          where: { patientId: id, status: 'PAID' },
+          _sum: { amount: true },
+        }),
+      ]);
+
+      const completed = sessions.filter((s) => s.status === 'COMPLETED');
+
+      let avgFrequencyWeeks: number | null = null;
+      if (completed.length >= 2) {
+        const first = completed[0]!.scheduledAt.getTime();
+        const last = completed[completed.length - 1]!.scheduledAt.getTime();
+        const weeks = (last - first) / (7 * 24 * 60 * 60 * 1000);
+        avgFrequencyWeeks = Math.round((weeks / (completed.length - 1)) * 10) / 10;
+      }
+
+      const nextSession = sessions.find(
+        (s) => s.status === 'SCHEDULED' || s.status === 'CONFIRMED',
+      );
+
+      res.json({
+        totalSessions: sessions.length,
+        completedSessions: completed.length,
+        totalRevenue: Number(revenue._sum.amount ?? 0),
+        avgFrequencyWeeks,
+        nextSessionAt: nextSession?.scheduledAt ?? null,
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 // DELETE /patients/:id  (LGPD: hard delete sob solicitação)
 router.delete(
   '/:id',
