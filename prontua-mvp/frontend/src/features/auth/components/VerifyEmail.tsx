@@ -2,6 +2,7 @@ import { useRef, useState, useEffect, type KeyboardEvent, type ClipboardEvent } 
 import { useNavigate } from 'react-router-dom';
 import { Mail, RefreshCw } from 'lucide-react';
 import { useSendVerification, useConfirmVerification } from '../hooks/useVerifyEmail';
+import { useLogout } from '../hooks/useLogin';
 
 const DIGITS = 6;
 
@@ -14,6 +15,7 @@ export function VerifyEmail() {
 
   const confirm = useConfirmVerification();
   const resend = useSendVerification();
+  const logout = useLogout();
 
   // Foca no primeiro campo ao montar
   useEffect(() => { inputs.current[0]?.focus(); }, []);
@@ -133,10 +135,13 @@ export function VerifyEmail() {
 
         <button
           type="button"
-          onClick={() => navigate('/', { replace: true })}
+          onClick={async () => {
+            await logout.mutateAsync();
+            navigate('/entrar', { replace: true });
+          }}
           className="text-xs text-muted hover:text-ink"
         >
-          Verificar depois
+          Sair e verificar depois
         </button>
       </div>
     </div>

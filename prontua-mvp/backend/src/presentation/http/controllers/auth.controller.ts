@@ -223,7 +223,7 @@ export const authController = {
     try {
       const user = await prisma.user.findUnique({
         where: { id: req.auth!.sub },
-        select: { name: true, photo: true },
+        select: { name: true, photo: true, emailVerifiedAt: true },
       });
       res.json({
         userId: req.auth!.sub,
@@ -231,6 +231,7 @@ export const authController = {
         role: req.auth!.role,
         name: user?.name ?? '',
         photo: user?.photo ?? null,
+        emailVerifiedAt: user?.emailVerifiedAt?.toISOString() ?? null,
       });
     } catch (err) {
       next(err);

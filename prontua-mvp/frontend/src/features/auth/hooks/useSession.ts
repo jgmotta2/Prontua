@@ -7,6 +7,7 @@ export interface SessionInfo {
   role: 'OWNER' | 'ADMIN' | 'PROFESSIONAL' | 'ASSISTANT';
   name: string;
   photo: string | null;
+  emailVerifiedAt: string | null;
 }
 
 /**
