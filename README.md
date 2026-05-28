@@ -12,7 +12,7 @@ Sistema de gestão clínica para profissionais de saúde: pacientes, agenda, ses
 ## Estrutura do repositório
 
 ```
-sereno-mvp/
+prontua-mvp/
   backend/    → API REST (Express + Prisma + Clean Architecture)
   frontend/   → App React (Vite + React Router + TanStack Query)
 dashboard-preview.html → protótipo estático (referência de UI)
@@ -22,21 +22,21 @@ dashboard-preview.html → protótipo estático (referência de UI)
 
 ```bash
 # 1. Backend
-cd sereno-mvp/backend
+cd prontua-mvp/backend
 cp .env.example .env        # preencha as variáveis (ver tabela abaixo)
 npm install
 npx prisma migrate dev
 npm run dev                 # → http://localhost:4000
 
 # 2. Frontend (em outro terminal)
-cd sereno-mvp/frontend
+cd prontua-mvp/frontend
 npm install
 npm run dev                 # → http://localhost:5173
 ```
 
 ## Variáveis de ambiente
 
-Copie `sereno-mvp/backend/.env.example` e preencha:
+Copie `prontua-mvp/backend/.env.example` e preencha:
 
 | Variável | Descrição |
 |---|---|

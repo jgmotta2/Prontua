@@ -8,7 +8,7 @@ Implementação completa do pipeline **Gravação → Transcrição → Prontuá
 
 ```bash
 # Backend
-cd sereno-mvp/backend
+cd prontua-mvp/backend
 npm install openai multer puppeteer
 npm install -D @types/multer
 
@@ -38,7 +38,7 @@ TCLE_VERSION="v1.0"
 ## 3. Migração do banco
 
 ```bash
-cd sereno-mvp/backend
+cd prontua-mvp/backend
 npx prisma migrate dev --name add_voice_module
 npx prisma generate
 ```
