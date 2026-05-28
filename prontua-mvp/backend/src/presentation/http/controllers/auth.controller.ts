@@ -12,6 +12,7 @@ import { prisma } from '@config/prisma';
 import { passwordService } from '@infrastructure/crypto/password.service';
 import { AppError } from '@shared/errors/app-error';
 import { auditLogger } from '@infrastructure/security/audit.logger';
+import { emailService } from '@infrastructure/messaging/email.service';
 import type { UpdateProfileInput, ChangePasswordInput } from '@presentation/http/schemas/auth.schema';
 
 async function isPasswordBreached(password: string): Promise<boolean> {
@@ -360,10 +361,69 @@ export const authController = {
       res.json({
         logs: logs.map((l) => ({
           ...l,
-          label: ACTION_LABELS[l.action] ?? l.action,
+          actionLabel: ACTION_LABELS[l.action] ?? l.action,
           createdAt: l.createdAt.toISOString(),
         })),
       });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email } = req.body as { email: string };
+      const user = await prisma.user.findFirst({
+        where: { email },
+        select: { id: true, name: true, email: true },
+      });
+
+      // Sempre retorna 204 para não revelar se o e-mail existe (prevenção de enumeração)
+      if (user) {
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        const expiry = new Date(Date.now() + 15 * 60 * 1000);
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { verificationCode: code, verificationCodeExpiry: expiry },
+        });
+        emailService.sendPasswordResetCode(user.email, user.name, code).catch(() => {});
+      }
+
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email, code, newPassword } = req.body as { email: string; code: string; newPassword: string };
+
+      const user = await prisma.user.findFirst({
+        where: { email, verificationCode: code },
+        select: { id: true, verificationCodeExpiry: true },
+      });
+
+      if (!user || !user.verificationCodeExpiry || user.verificationCodeExpiry < new Date()) {
+        throw new AppError('VALIDATION_ERROR', 'Código inválido ou expirado.', 422);
+      }
+
+      if (await isPasswordBreached(newPassword)) {
+        throw new AppError('VALIDATION_ERROR', 'Esta senha já foi exposta em vazamentos de dados conhecidos. Escolha uma senha diferente.', 422);
+      }
+
+      const newHash = await passwordService.hash(newPassword);
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash: newHash,
+          passwordChangedAt: new Date(),
+          verificationCode: null,
+          verificationCodeExpiry: null,
+        },
+      });
+
+      res.status(204).send();
     } catch (err) {
       next(err);
     }

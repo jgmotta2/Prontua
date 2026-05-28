@@ -7,6 +7,8 @@ import { AppShell } from '@components/layout/AppShell';
 import { LoginForm } from '@features/auth/components/LoginForm';
 import { RegisterForm } from '@features/auth/components/RegisterForm';
 import { VerifyEmail } from '@features/auth/components/VerifyEmail';
+import { ForgotPasswordPage } from '@features/auth/components/ForgotPasswordPage';
+import { ProntuarioPrintPage } from '@features/notes/components/ProntuarioPrintPage';
 import { LandingPage } from '@features/landing/components/LandingPage';
 import { Dashboard } from '@features/dashboard/components/Dashboard';
 import { PatientList } from '@features/patients/components/PatientList';
@@ -34,6 +36,16 @@ function Private({ children }: { children: ReactNode }) {
   if (isLoading) return <FullScreenLoader />;
   if (isError) return <Navigate to="/entrar" replace />;
   return <AppShell>{children}</AppShell>;
+}
+
+/**
+ * Guard de rota privada sem AppShell — para páginas de impressão.
+ */
+function PrivatePrint({ children }: { children: ReactNode }) {
+  const { isLoading, isError } = useSession();
+  if (isLoading) return <FullScreenLoader />;
+  if (isError) return <Navigate to="/entrar" replace />;
+  return <>{children}</>;
 }
 
 /**
@@ -75,12 +87,14 @@ export function AppRoutes() {
       <Route path="/entrar"   element={<PublicOnly><LoginForm /></PublicOnly>} />
       <Route path="/cadastro" element={<PublicOnly><RegisterForm /></PublicOnly>} />
       <Route path="/verificar-email" element={<AuthLayout><VerifyEmail /></AuthLayout>} />
+      <Route path="/esqueci-senha" element={<AuthLayout><ForgotPasswordPage /></AuthLayout>} />
 
       {/* Privadas */}
       <Route path="/painel"        element={<Private><Dashboard /></Private>} />
       <Route path="/pacientes"     element={<Private><PatientList /></Private>} />
       <Route path="/pacientes/:id" element={<Private><PatientDetail /></Private>} />
       <Route path="/pacientes/:id/prontuario" element={<Private><ProntuarioPage /></Private>} />
+      <Route path="/pacientes/:id/prontuario/:sessionId/imprimir" element={<PrivatePrint><ProntuarioPrintPage /></PrivatePrint>} />
       <Route path="/agenda"        element={<Private><AgendaPage /></Private>} />
       <Route path="/agenda/:sessionId/prontuario-voz" element={<Private><VoicePage /></Private>} />
       <Route path="/financeiro"    element={<Private><FinancePage /></Private>} />

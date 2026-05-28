@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle, Clock, TrendingUp } from 'lucide-react';
+import { CheckCircle, Clock, TrendingUp, Download, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatBRL, formatTime } from '@lib/utils/format';
 import { usePayments, useMarkPaid, type PaymentItem } from '../hooks/useFinance';
@@ -28,10 +28,7 @@ function PaymentCard({ payment, onPay }: { payment: PaymentItem; onPay: (id: str
       </div>
 
       <div className="flex-1 min-w-0">
-        <Link
-          to={`/pacientes/${payment.patientId}`}
-          className="font-medium text-ink hover:text-sage-dark truncate block"
-        >
+        <Link to={`/pacientes/${payment.patientId}`} className="font-medium text-ink hover:text-sage-dark truncate block">
           {payment.patientName}
         </Link>
         <p className="text-xs text-muted mt-0.5">
@@ -69,16 +66,57 @@ function PaymentCard({ payment, onPay }: { payment: PaymentItem; onPay: (id: str
   );
 }
 
+function exportCSV(payments: PaymentItem[], tab: Tab) {
+  const header = ['Paciente', 'Data da sessão', 'Valor', 'Status', 'Método', 'Pago em'];
+  const rows = payments.map((p) => [
+    p.patientName,
+    p.sessionScheduledAt
+      ? new Date(p.sessionScheduledAt).toLocaleDateString('pt-BR')
+      : new Date(p.createdAt).toLocaleDateString('pt-BR'),
+    p.amount.toFixed(2).replace('.', ','),
+    p.status === 'PAID' ? 'Recebido' : 'Pendente',
+    p.method ? (METHOD_OPTIONS.find(m => m.value === p.method)?.label ?? p.method) : '',
+    p.paidAt ? new Date(p.paidAt).toLocaleDateString('pt-BR') : '',
+  ]);
+
+  const csv = [header, ...rows].map((r) => r.map((c) => `"${c}"`).join(';')).join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `financeiro-${tab.toLowerCase()}-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function FinancePage() {
   const [tab, setTab] = useState<Tab>('PENDING');
-  const { data, isLoading } = usePayments(tab);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [patientSearch, setPatientSearch] = useState('');
+
+  const filter = {
+    status: tab,
+    from: dateFrom || undefined,
+    to: dateTo ? dateTo + 'T23:59:59' : undefined,
+  };
+
+  const { data, isLoading } = usePayments(filter);
   const markPaid = useMarkPaid();
   const { data: allData } = usePayments();
 
-  const payments = data?.payments ?? [];
+  const allPayments = allData?.payments ?? [];
+  const totalPending = allPayments.filter(p => p.status === 'PENDING').reduce((s, p) => s + p.amount, 0);
+  const totalPaid = allPayments.filter(p => p.status === 'PAID').reduce((s, p) => s + p.amount, 0);
+
+  const payments = (data?.payments ?? []).filter((p) =>
+    patientSearch.trim()
+      ? p.patientName.toLowerCase().includes(patientSearch.toLowerCase())
+      : true,
+  );
   const total = payments.reduce((s, p) => s + p.amount, 0);
-  const totalPending = (allData?.payments ?? []).filter(p => p.status === 'PENDING').reduce((s, p) => s + p.amount, 0);
-  const totalPaid = (allData?.payments ?? []).filter(p => p.status === 'PAID').reduce((s, p) => s + p.amount, 0);
+
+  const hasFilters = dateFrom || dateTo || patientSearch;
 
   function handlePay(id: string, method?: string) {
     markPaid.mutate({ id, method });
@@ -137,6 +175,53 @@ export function FinancePage() {
         </button>
       </div>
 
+      {/* Filtros */}
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="relative flex-1 min-w-[160px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
+          <input
+            value={patientSearch}
+            onChange={(e) => setPatientSearch(e.target.value)}
+            placeholder="Buscar paciente..."
+            className="input pl-9 text-sm"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="input text-sm"
+            title="De"
+          />
+          <span className="text-muted text-xs">até</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="input text-sm"
+            title="Até"
+          />
+        </div>
+        {hasFilters && (
+          <button
+            onClick={() => { setPatientSearch(''); setDateFrom(''); setDateTo(''); }}
+            className="text-xs text-muted hover:text-ink transition"
+          >
+            Limpar filtros
+          </button>
+        )}
+        {payments.length > 0 && (
+          <button
+            onClick={() => exportCSV(payments, tab)}
+            className="flex items-center gap-1.5 rounded-xl border border-sage/30 px-3 py-2 text-xs font-medium text-sage-dark hover:bg-sage/5 transition"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Exportar CSV
+          </button>
+        )}
+      </div>
+
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -146,7 +231,9 @@ export function FinancePage() {
       ) : payments.length === 0 ? (
         <div className="rounded-2xl border-2 border-dashed border-sage/30 bg-sage/5 p-10 text-center">
           <p className="text-sm text-muted">
-            {tab === 'PENDING'
+            {hasFilters
+              ? 'Nenhum pagamento encontrado para os filtros aplicados.'
+              : tab === 'PENDING'
               ? 'Nenhum pagamento pendente. Bom trabalho!'
               : 'Nenhum pagamento recebido ainda.'}
           </p>
@@ -158,7 +245,8 @@ export function FinancePage() {
           ))}
           <div className="flex justify-end pt-1">
             <span className="text-sm font-medium text-muted">
-              Total: <span className="text-ink font-semibold">{formatBRL(total)}</span>
+              {hasFilters && <span className="mr-2 text-xs">{payments.length} resultado{payments.length !== 1 ? 's' : ''} · </span>}
+              Total: <span className="text-ink font-semibold ml-1">{formatBRL(total)}</span>
             </span>
           </div>
         </div>

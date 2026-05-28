@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Check, Loader2, Search } from 'lucide-react';
+import { ArrowLeft, Plus, Check, Loader2, Search, Printer } from 'lucide-react';
 import { usePatient } from '@features/patients/hooks/usePatients';
 import { usePatientSessions, useSessionNote, useSaveNote } from '../hooks/useNotes';
 import { SessionModal } from '@features/sessions/components/SessionModal';
@@ -237,15 +237,26 @@ export function ProntuarioPage() {
                     {formatSessionTime(noteData.scheduledAt)} · {noteData.durationMin}min · {noteData.mode === 'ONLINE' ? 'Online' : 'Presencial'} · {formatBRL(noteData.value)}
                   </p>
                 </div>
-                {/* Status do auto-save */}
-                <div className="shrink-0 text-xs text-muted flex items-center gap-1">
-                  {saveStatus === 'saving' && (
-                    <><Loader2 className="h-3 w-3 animate-spin" /> Salvando...</>
-                  )}
-                  {saveStatus === 'saved' && (
-                    <><Check className="h-3 w-3 text-sage-dark" /> Salvo</>
-                  )}
-                  {saveStatus === 'idle' && 'Auto-save ativo'}
+                {/* Status do auto-save + botão imprimir */}
+                <div className="shrink-0 flex items-center gap-3">
+                  <span className="text-xs text-muted flex items-center gap-1">
+                    {saveStatus === 'saving' && (
+                      <><Loader2 className="h-3 w-3 animate-spin" /> Salvando...</>
+                    )}
+                    {saveStatus === 'saved' && (
+                      <><Check className="h-3 w-3 text-sage-dark" /> Salvo</>
+                    )}
+                    {saveStatus === 'idle' && 'Auto-save ativo'}
+                  </span>
+                  <Link
+                    to={`/pacientes/${patientId}/prontuario/${selectedSessionId}/imprimir`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 rounded-lg border border-warm px-2.5 py-1 text-xs text-muted hover:text-ink hover:border-sage/40 transition"
+                  >
+                    <Printer className="h-3 w-3" />
+                    Imprimir
+                  </Link>
                 </div>
               </div>
             </div>

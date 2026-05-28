@@ -97,7 +97,6 @@ interface AuditEntry {
   action: string;
   actionLabel: string;
   resourceType: string | null;
-  ipAddress: string | null;
   createdAt: string;
 }
 
@@ -605,8 +604,8 @@ export function SettingsPage() {
                 <li key={entry.id} className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
                   <div className="min-w-0">
                     <p className="text-sm text-ink truncate">{entry.actionLabel}</p>
-                    {entry.ipAddress && (
-                      <p className="text-xs text-muted mt-0.5">IP: {entry.ipAddress}</p>
+                    {entry.resourceType && (
+                      <p className="text-xs text-muted mt-0.5">{entry.resourceType}</p>
                     )}
                   </div>
                   <time className="shrink-0 text-xs text-muted tabular-nums">

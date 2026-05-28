@@ -17,10 +17,22 @@ export interface PaymentItem {
 
 const QUERY_KEY = 'payments';
 
-export function usePayments(status?: 'PENDING' | 'PAID') {
+export interface PaymentsFilter {
+  status?: 'PENDING' | 'PAID';
+  from?: string;
+  to?: string;
+}
+
+export function usePayments(filter?: PaymentsFilter) {
   return useQuery<{ payments: PaymentItem[] }, ApiClientError>({
-    queryKey: [QUERY_KEY, status],
-    queryFn: () => api.get('/finance/payments', { query: status ? { status } : undefined }),
+    queryKey: [QUERY_KEY, filter],
+    queryFn: () => {
+      const query: Record<string, string> = {};
+      if (filter?.status) query['status'] = filter.status;
+      if (filter?.from) query['from'] = filter.from;
+      if (filter?.to) query['to'] = filter.to;
+      return api.get('/finance/payments', { query: Object.keys(query).length ? query : undefined });
+    },
   });
 }
 

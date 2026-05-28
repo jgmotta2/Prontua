@@ -7,12 +7,15 @@ import {
   loginRateLimiter,
   registerRateLimiter,
   sensitiveRateLimiter,
+  passwordResetRateLimiter,
 } from '@presentation/http/middlewares/rate-limit.middleware';
 import {
   registerSchema,
   loginSchema,
   updateProfileSchema,
   changePasswordSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from '@presentation/http/schemas/auth.schema';
 
 const router = Router();
@@ -75,6 +78,22 @@ router.patch(
   authRequired(),
   validate({ body: changePasswordSchema }),
   authController.changePassword,
+);
+
+// POST /auth/forgot-password — solicita código de redefinição (público, 3/h)
+router.post(
+  '/forgot-password',
+  passwordResetRateLimiter,
+  validate({ body: forgotPasswordSchema }),
+  authController.forgotPassword,
+);
+
+// POST /auth/reset-password — redefine senha com código (público, 3/h)
+router.post(
+  '/reset-password',
+  passwordResetRateLimiter,
+  validate({ body: resetPasswordSchema }),
+  authController.resetPassword,
 );
 
 export { router as authRoutes };

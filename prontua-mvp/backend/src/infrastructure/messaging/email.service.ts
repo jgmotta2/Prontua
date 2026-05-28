@@ -70,6 +70,49 @@ export const emailService = {
     logger.info({ to }, 'verification_email_sent');
   },
 
+  async sendPasswordResetCode(to: string, name: string, code: string): Promise<void> {
+    const { error } = await getResend().emails.send({
+      from: FROM,
+      to,
+      subject: `${code} é seu código de redefinição de senha — ${APP_NAME}`,
+      html: `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#F5F1E8;font-family:'DM Sans',Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F1E8;padding:40px 16px">
+    <tr><td align="center">
+      <table width="480" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;padding:40px;max-width:480px">
+        <tr><td>
+          <h1 style="margin:0 0 4px;font-size:24px;font-weight:600;color:#2D3B36;letter-spacing:-0.02em">${APP_NAME}</h1>
+          <p style="margin:0 0 32px;font-size:13px;color:#7A8B85">Redefinição de senha</p>
+          <p style="margin:0 0 8px;font-size:15px;color:#2D3B36">Olá, <strong>${name.split(' ')[0]}</strong>!</p>
+          <p style="margin:0 0 32px;font-size:14px;color:#7A8B85;line-height:1.6">
+            Recebemos uma solicitação para redefinir a senha da sua conta. Use o código abaixo. Ele expira em <strong>15 minutos</strong>.
+          </p>
+          <div style="background:#F5F1E8;border-radius:12px;padding:24px;text-align:center;margin-bottom:32px">
+            <span style="font-size:40px;font-weight:700;letter-spacing:12px;color:#2D3B36;font-family:monospace">
+              ${code}
+            </span>
+          </div>
+          <p style="margin:0;font-size:12px;color:#7A8B85;line-height:1.6">
+            Se você não solicitou a redefinição, ignore este e-mail — sua conta continua segura.
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+    });
+
+    if (error) {
+      logger.error({ error, to }, 'password_reset_email_failed');
+      throw new Error('Falha ao enviar e-mail de redefinição de senha');
+    }
+    logger.info({ to }, 'password_reset_email_sent');
+  },
+
   /** OTP de login (segundo fator obrigatório) */
   async sendLoginOtp(to: string, name: string, code: string): Promise<void> {
     const { error } = await getResend().emails.send({

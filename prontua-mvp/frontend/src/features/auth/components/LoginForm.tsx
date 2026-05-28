@@ -80,6 +80,12 @@ export function LoginForm() {
         </div>
       )}
 
+      <div className="flex justify-end -mt-2">
+        <Link to="/esqueci-senha" className="text-xs text-muted hover:text-ink transition">
+          Esqueci minha senha
+        </Link>
+      </div>
+
       <button type="submit" className="btn-primary w-full" disabled={isSubmitting}>
         {isSubmitting ? 'Entrando...' : 'Entrar'}
       </button>

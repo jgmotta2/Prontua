@@ -80,7 +80,19 @@ export const changePasswordSchema = z
   })
   .strict();
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email().max(255),
+}).strict();
+
+export const resetPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email().max(255),
+  code: z.string().length(6).regex(/^\d{6}$/, 'Código deve ter 6 dígitos numéricos'),
+  newPassword: passwordPolicy,
+}).strict();
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
