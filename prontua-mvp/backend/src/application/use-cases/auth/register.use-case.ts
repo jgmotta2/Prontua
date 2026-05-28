@@ -1,9 +1,27 @@
+import { createHash } from 'node:crypto';
 import { prisma } from '@config/prisma';
 import { passwordService } from '@infrastructure/crypto/password.service';
 import { auditLogger } from '@infrastructure/security/audit.logger';
-import { ConflictError } from '@shared/errors/app-error';
+import { ConflictError, AppError } from '@shared/errors/app-error';
 import type { RegisterInput } from '@presentation/http/schemas/auth.schema';
 import { UserRole } from '@shared/constants/enums';
+
+async function isPasswordBreached(password: string): Promise<boolean> {
+  try {
+    const hash = createHash('sha1').update(password).digest('hex').toUpperCase();
+    const prefix = hash.slice(0, 5);
+    const suffix = hash.slice(5);
+    const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
+      headers: { 'Add-Padding': 'true', 'User-Agent': 'Prontua/1.0' },
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!res.ok) return false;
+    const text = await res.text();
+    return text.split('\n').some((line) => line.split(':')[0]?.trim() === suffix);
+  } catch {
+    return false; // fail open — não bloquear cadastro se HIBP estiver fora
+  }
+}
 
 interface RegisterUseCaseInput extends RegisterInput {
   ipHash: string | null;
@@ -38,6 +56,10 @@ export async function registerUseCase(
   });
   if (existing) {
     throw new ConflictError('E-mail já cadastrado');
+  }
+
+  if (await isPasswordBreached(input.password)) {
+    throw new AppError('VALIDATION_ERROR', 'Esta senha já foi exposta em vazamentos de dados conhecidos. Escolha uma senha diferente.', 422);
   }
 
   const passwordHash = await passwordService.hash(input.password);

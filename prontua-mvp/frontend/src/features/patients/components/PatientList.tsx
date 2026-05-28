@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { UserPlus, Search, Phone, Mail } from 'lucide-react';
+import { UserPlus, Search, Phone, Mail, AlertCircle } from 'lucide-react';
 import { formatBRL } from '@lib/utils/format';
 import { usePatients } from '../hooks/usePatients';
 import { PatientModal } from './PatientModal';
@@ -72,7 +72,12 @@ export function PatientList() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="font-medium text-ink truncate">{p.fullName}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-medium text-ink truncate">{p.fullName}</p>
+                    {p.hasOverduePayment && (
+                      <AlertCircle className="h-3.5 w-3.5 shrink-0 text-terracotta" aria-label="Pagamento em atraso" />
+                    )}
+                  </div>
                   {p.frequencyTag && (
                     <span className="inline-block mt-1 rounded-full bg-sage/10 px-2 py-0.5 text-[11px] font-medium text-sage-dark">
                       {p.frequencyTag}

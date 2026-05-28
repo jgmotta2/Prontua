@@ -31,18 +31,30 @@ router.get(
   '/',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const patients = await req.db!.patient.findMany({
-        where: { deletedAt: null },
-        orderBy: { fullName: 'asc' },
-        select: {
-          id: true, fullName: true, whatsapp: true, sessionValue: true,
-          frequencyTag: true, tags: true, createdAt: true,
-        },
-      });
-      // tags is stored as JSON string in SQLite — parse back to array
-      const result = patients.map(p => ({
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+      const [patients, overduePayments] = await Promise.all([
+        req.db!.patient.findMany({
+          where: { deletedAt: null },
+          orderBy: { fullName: 'asc' },
+          select: {
+            id: true, fullName: true, whatsapp: true, sessionValue: true,
+            frequencyTag: true, tags: true, createdAt: true,
+          },
+        }),
+        req.db!.payment.findMany({
+          where: { status: 'PENDING', createdAt: { lt: thirtyDaysAgo } },
+          select: { patientId: true },
+          distinct: ['patientId'],
+        }),
+      ]);
+
+      const overdueSet = new Set(overduePayments.map((p) => p.patientId));
+
+      const result = patients.map((p) => ({
         ...p,
         tags: (() => { try { return JSON.parse(p.tags as string); } catch { return []; } })(),
+        hasOverduePayment: overdueSet.has(p.id),
       }));
       res.json({ patients: result });
     } catch (err) {

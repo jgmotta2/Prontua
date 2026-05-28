@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { User, Mail, RotateCcw, Check, AlertCircle, Camera, Trash2, Send } from 'lucide-react';
+import { User, Mail, RotateCcw, Check, AlertCircle, Camera, Trash2, Send, ShieldCheck } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, ApiClientError } from '@lib/api/client';
 import { BR_STATES, SPECIALTIES } from '@lib/validation/auth.schema';
@@ -90,6 +90,25 @@ function useConfirmVerification() {
   });
 }
 
+// ─── Hook: log de auditoria ───────────────────────────────────────────────────
+
+interface AuditEntry {
+  id: string;
+  action: string;
+  actionLabel: string;
+  resourceType: string | null;
+  ipAddress: string | null;
+  createdAt: string;
+}
+
+function useAuditLog() {
+  return useQuery<{ logs: AuditEntry[] }, ApiClientError>({
+    queryKey: ['audit-log'],
+    queryFn: () => api.get<{ logs: AuditEntry[] }>('/auth/audit-log'),
+    staleTime: 60 * 1000,
+  });
+}
+
 // ─── Hook: foto de perfil ─────────────────────────────────────────────────────
 
 function useUpdatePhoto() {
@@ -137,6 +156,7 @@ function compressImage(file: File): Promise<string> {
 
 export function SettingsPage() {
   const { data: profile, isLoading, isError } = useUserProfile();
+  const { data: auditData } = useAuditLog();
   const update = useUpdateProfile();
   const updatePhoto = useUpdatePhoto();
   const sendVerification = useSendVerification();
@@ -561,6 +581,44 @@ export function SettingsPage() {
               {tourReset ? 'Redirecionando...' : 'Reiniciar tour'}
             </button>
           </div>
+        </div>
+      </section>
+
+      {/* ── Log de acesso ──────────────────────────────────────────────────── */}
+      <section className="rounded-2xl bg-white shadow-soft overflow-hidden">
+        <div className="flex items-center gap-3 border-b border-warm px-6 py-4">
+          <ShieldCheck className="h-4 w-4 text-sage" strokeWidth={1.8} />
+          <h2 className="font-display font-semibold text-ink">Log de acesso</h2>
+        </div>
+        <div className="p-6">
+          {!auditData ? (
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-10 rounded-lg bg-warm/40 animate-pulse" />
+              ))}
+            </div>
+          ) : auditData.logs.length === 0 ? (
+            <p className="text-sm text-muted">Nenhum evento registrado.</p>
+          ) : (
+            <ul className="divide-y divide-warm">
+              {auditData.logs.map((entry) => (
+                <li key={entry.id} className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
+                  <div className="min-w-0">
+                    <p className="text-sm text-ink truncate">{entry.actionLabel}</p>
+                    {entry.ipAddress && (
+                      <p className="text-xs text-muted mt-0.5">IP: {entry.ipAddress}</p>
+                    )}
+                  </div>
+                  <time className="shrink-0 text-xs text-muted tabular-nums">
+                    {new Date(entry.createdAt).toLocaleString('pt-BR', {
+                      day: '2-digit', month: '2-digit', year: '2-digit',
+                      hour: '2-digit', minute: '2-digit',
+                    })}
+                  </time>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
     </div>

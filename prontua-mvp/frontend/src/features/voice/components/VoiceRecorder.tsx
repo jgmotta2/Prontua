@@ -1,4 +1,4 @@
-import { Mic, MicOff, Square, RotateCcw, Loader2, Upload } from 'lucide-react';
+import { Mic, Square, RotateCcw, Loader2, Upload } from 'lucide-react';
 import { useVoiceRecording } from '../hooks/useVoiceRecording';
 import { useUploadAudio } from '../hooks/useVoiceReport';
 

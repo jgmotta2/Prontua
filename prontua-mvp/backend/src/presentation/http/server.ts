@@ -1,5 +1,6 @@
 import express, { type Express } from 'express';
 import cookieParser from 'cookie-parser';
+import { prisma } from '@config/prisma';
 import pinoHttp from 'pino-http';
 import { env } from '@config/env';
 import { logger } from '@shared/utils/logger';
@@ -86,8 +87,30 @@ export function buildServer(): Express {
   // 10. Rate limit global
   app.use(apiRateLimiter);
 
-  // ─── Health check (não-autenticado) ───
-  app.get('/health', (_req, res) => res.json({ status: 'ok', ts: Date.now() }));
+  // ─── Health check detalhado (não-autenticado) ───
+  app.get('/health', async (_req, res) => {
+    const start = Date.now();
+    let dbStatus = 'ok';
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+    } catch {
+      dbStatus = 'error';
+    }
+    const mem = process.memoryUsage();
+    res.status(dbStatus === 'ok' ? 200 : 503).json({
+      status: dbStatus === 'ok' ? 'ok' : 'degraded',
+      ts: Date.now(),
+      latencyMs: Date.now() - start,
+      db: dbStatus,
+      uptime: Math.round(process.uptime()),
+      memory: {
+        heapUsedMB: Math.round(mem.heapUsed / 1024 / 1024),
+        heapTotalMB: Math.round(mem.heapTotal / 1024 / 1024),
+        rssMB: Math.round(mem.rss / 1024 / 1024),
+      },
+      version: process.env['npm_package_version'] ?? 'dev',
+    });
+  });
 
   // ─── Rotas ───
   app.use('/auth', authRoutes);

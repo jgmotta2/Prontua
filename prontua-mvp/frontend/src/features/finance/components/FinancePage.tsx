@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CheckCircle, Clock, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { formatBRL, formatTime, formatFullDate } from '@lib/utils/format';
+import { formatBRL, formatTime } from '@lib/utils/format';
 import { usePayments, useMarkPaid, type PaymentItem } from '../hooks/useFinance';
 
 type Tab = 'PENDING' | 'PAID';

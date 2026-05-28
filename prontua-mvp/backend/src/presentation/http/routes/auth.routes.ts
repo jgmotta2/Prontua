@@ -65,6 +65,9 @@ router.patch(
   authController.updatePhoto,
 );
 
+// GET /auth/audit-log — histórico de acessos do próprio usuário
+router.get('/audit-log', authRequired(), authController.auditLog);
+
 // PATCH /auth/change-password — troca senha (rate-limited + Zod)
 router.patch(
   '/change-password',

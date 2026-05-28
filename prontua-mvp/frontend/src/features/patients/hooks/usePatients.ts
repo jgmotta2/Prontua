@@ -10,6 +10,7 @@ export interface Patient {
   frequencyTag?: string;
   tags: string[];
   createdAt: string;
+  hasOverduePayment?: boolean;
 }
 
 export interface PatientDetail extends Patient {

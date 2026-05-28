@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, Plus, Check, Loader2, Search } from 'lucide-react';
 import { usePatient } from '@features/patients/hooks/usePatients';
 import { usePatientSessions, useSessionNote, useSaveNote } from '../hooks/useNotes';
 import { SessionModal } from '@features/sessions/components/SessionModal';
@@ -50,6 +50,7 @@ export function ProntuarioPage() {
   const { data: sessionsData, isLoading: sessionsLoading } = usePatientSessions(patientId ?? '');
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [newSessionOpen, setNewSessionOpen] = useState(false);
+  const [search, setSearch] = useState('');
 
   // Seleciona a primeira sessão ao carregar
   useEffect(() => {
@@ -107,7 +108,14 @@ export function ProntuarioPage() {
     triggerSave({ humor, evolutionNote, nextSteps: v });
   };
 
-  const sessions = sessionsData?.sessions ?? [];
+  const sessions = (sessionsData?.sessions ?? []).filter((s) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return (
+      formatShortDate(s.scheduledAt).toLowerCase().includes(q) ||
+      STATUS_LABEL[s.status]?.toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="flex h-full min-h-screen bg-cream">
@@ -131,6 +139,19 @@ export function ProntuarioPage() {
               <Plus className="h-3 w-3" />
               Nova
             </button>
+          </div>
+        </div>
+
+        {/* Busca */}
+        <div className="px-3 py-2 border-b border-warm">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar sessão..."
+              className="w-full rounded-lg border border-warm bg-cream/50 py-1.5 pl-8 pr-3 text-xs text-ink placeholder:text-muted/60 focus:border-sage focus:outline-none"
+            />
           </div>
         </div>
 

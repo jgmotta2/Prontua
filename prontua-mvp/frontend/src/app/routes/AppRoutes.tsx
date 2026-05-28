@@ -57,12 +57,6 @@ function PublicLandingRoute({ children }: { children: ReactNode }) {
   return <LayoutLanding>{children}</LayoutLanding>;
 }
 
-const PlaceholderPage = ({ title }: { title: string }) => (
-  <div className="p-8">
-    <h1 className="font-display text-3xl font-semibold text-ink">{title}</h1>
-    <p className="text-muted mt-2">Tela em construção.</p>
-  </div>
-);
 
 export function AppRoutes() {
   return (

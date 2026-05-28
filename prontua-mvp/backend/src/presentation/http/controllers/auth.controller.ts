@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import type { Request, Response, NextFunction } from 'express';
 import { registerUseCase } from '@application/use-cases/auth/register.use-case';
 import { loginUseCase, issueTokens } from '@application/use-cases/auth/login.use-case';
@@ -12,6 +13,37 @@ import { passwordService } from '@infrastructure/crypto/password.service';
 import { AppError } from '@shared/errors/app-error';
 import { auditLogger } from '@infrastructure/security/audit.logger';
 import type { UpdateProfileInput, ChangePasswordInput } from '@presentation/http/schemas/auth.schema';
+
+async function isPasswordBreached(password: string): Promise<boolean> {
+  try {
+    const hash = createHash('sha1').update(password).digest('hex').toUpperCase();
+    const prefix = hash.slice(0, 5);
+    const suffix = hash.slice(5);
+    const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
+      headers: { 'Add-Padding': 'true', 'User-Agent': 'Prontua/1.0' },
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!res.ok) return false;
+    const text = await res.text();
+    return text.split('\n').some((line) => line.split(':')[0]?.trim() === suffix);
+  } catch {
+    return false;
+  }
+}
+
+const ACTION_LABELS: Record<string, string> = {
+  AUTH_LOGIN: 'Entrou na conta',
+  AUTH_REGISTER: 'Criou a conta',
+  AUTH_LOGOUT: 'Saiu da conta',
+  AUTH_REFRESH_TOKEN_REUSE: 'Reuso de token detectado',
+  AUTH_MFA_INITIATED: 'Verificação em dois fatores iniciada',
+  AUTH_MFA_FAILED: 'Falha na verificação em dois fatores',
+  AUTH_LOGIN_FAILED: 'Tentativa de login falhou',
+  PATIENT_VIEW: 'Visualizou prontuário',
+  PATIENT_CREATE: 'Cadastrou paciente',
+  PATIENT_UPDATE: 'Editou paciente',
+  PATIENT_DELETE: 'Removeu paciente',
+};
 
 const jwt = new JwtService();
 
@@ -317,6 +349,26 @@ export const authController = {
    * Validação Zod já aplicada pelo middleware (changePasswordSchema).
    * Rate-limited a 10 tentativas/hora pelo sensitiveRateLimiter.
    */
+  async auditLog(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const logs = await prisma.auditLog.findMany({
+        where: { userId: req.auth!.sub },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+        select: { id: true, action: true, resourceType: true, createdAt: true },
+      });
+      res.json({
+        logs: logs.map((l) => ({
+          ...l,
+          label: ACTION_LABELS[l.action] ?? l.action,
+          createdAt: l.createdAt.toISOString(),
+        })),
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async changePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { currentPassword, newPassword } = req.body as ChangePasswordInput;
@@ -328,9 +380,11 @@ export const authController = {
       if (!user) throw new AppError('NOT_FOUND', 'Usuário não encontrado', 404);
 
       const { valid } = await passwordService.verify(user.passwordHash, currentPassword);
-      // Usa mesma mensagem para "senha atual errada" e "usuário não encontrado"
-      // para evitar enumeração via mensagem de erro.
       if (!valid) throw new AppError('UNAUTHORIZED', 'Senha atual incorreta', 401);
+
+      if (await isPasswordBreached(newPassword)) {
+        throw new AppError('VALIDATION_ERROR', 'Esta senha já foi exposta em vazamentos de dados conhecidos. Escolha uma senha diferente.', 422);
+      }
 
       const newHash = await passwordService.hash(newPassword);
       await prisma.user.update({
