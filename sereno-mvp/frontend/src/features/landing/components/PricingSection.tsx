@@ -1,6 +1,6 @@
 import { CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { IDS_SECAO_LANDING, PLANOS } from '../constants/landing-content';
+import { LANDING_SECTION_IDS, PRICING_PLANS } from '../constants/landing-content';
 
 export function PricingSection() {
   return (
@@ -75,12 +75,12 @@ export function PricingSection() {
               </ul>
 
               <div className="p-6 pt-0">
-                {plano.disponivel ? (
+                {plan.available ? (
                   <Link
                     to="/cadastro"
-                    className={plano.destaque ? 'btn-primary w-full' : 'btn-secondary w-full'}
+                    className={plan.highlighted ? 'btn-primary w-full' : 'btn-secondary w-full'}
                   >
-                    {plano.id === 'trial' ? 'Começar teste grátis' : 'Criar conta'}
+                    {plan.id === 'trial' ? 'Começar teste grátis' : 'Criar conta'}
                   </Link>
                 ) : (
                   <span className="btn-secondary w-full pointer-events-none opacity-60">

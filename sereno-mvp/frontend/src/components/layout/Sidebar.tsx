@@ -48,17 +48,17 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col bg-ink text-cream/85">
       <div className="px-6 py-7">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-0.5">
           <img
             src={logoProntua}
             alt=""
-            className="h-6 w-auto shrink-0 scale-[1.45] origin-left"
+            className="h-6 w-auto shrink-0 mb-4 scale-[1.45]"
           />
           <h1 className="font-display text-2xl font-semibold text-cream tracking-tight">
             Prontua
           </h1>
         </div>
-        <p className="mt-0.5 text-xs text-cream/50">Bem-vindo de volta</p>
+        <p className="text-xs text-cream/50">Bem-vindo de volta</p>
       </div>
 
       <nav className="flex-1 px-3 space-y-1">
