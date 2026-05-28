@@ -1,16 +1,16 @@
 // ============================================================================
-// PRONTUA — Prisma Schema (SQLite — desenvolvimento local)
-// Enums armazenados como String (SQLite não suporta enum nativo)
+// PRONTUA — Prisma Schema (PostgreSQL)
+// Strings armazenam JSON manualmente (compatibilidade SQLite → PG mantida)
 // ============================================================================
 
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Tenant {

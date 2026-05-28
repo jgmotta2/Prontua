@@ -1,6 +1,7 @@
 import express, { type Express } from 'express';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
+import path from 'node:path';
 import { prisma } from '@config/prisma';
 import pinoHttp from 'pino-http';
 import { env } from '@config/env';
@@ -127,10 +128,20 @@ export function buildServer(): Express {
   app.use('/voice', voiceRoutes);
   app.use('/notes', noteRoutes);
 
-  // 404
-  app.use((_req, res) => {
-    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Recurso não encontrado' } });
-  });
+  // ── Em produção, serve o frontend (build do Vite copiado para /public) ──
+  if (env.NODE_ENV === 'production') {
+    const frontendPath = path.join(process.cwd(), 'public');
+    app.use(express.static(frontendPath, { maxAge: '1y', etag: true, index: false }));
+    // SPA fallback — rotas não encontradas retornam index.html
+    app.get('*', (_req, res) => {
+      res.sendFile('index.html', { root: frontendPath });
+    });
+  } else {
+    // 404 só em desenvolvimento (em prod o SPA fallback cobre tudo)
+    app.use((_req, res) => {
+      res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Recurso não encontrado' } });
+    });
+  }
 
   // 12. Error handler centralizado (último)
   app.use(errorHandler);
