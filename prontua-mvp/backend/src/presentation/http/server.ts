@@ -23,6 +23,7 @@ import { financeRoutes } from '@presentation/http/routes/finance.routes';
 import { consentRoutes } from '@presentation/http/routes/consent.routes';
 import { voiceRoutes } from '@presentation/http/routes/voice.routes';
 import { noteRoutes } from '@presentation/http/routes/note.routes';
+import { searchRoutes } from '@presentation/http/routes/search.routes';
 
 /**
  * Composição do servidor.
@@ -127,6 +128,7 @@ export function buildServer(): Express {
   app.use('/consent', consentRoutes);
   app.use('/voice', voiceRoutes);
   app.use('/notes', noteRoutes);
+  app.use('/search', searchRoutes);
 
   // ── Em produção, serve o frontend (build do Vite copiado para /public) ──
   if (env.NODE_ENV === 'production') {

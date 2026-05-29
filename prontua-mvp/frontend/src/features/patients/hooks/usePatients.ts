@@ -36,6 +36,8 @@ export function usePatients() {
   return useQuery<{ patients: Patient[] }, ApiClientError>({
     queryKey: [QUERY_KEY],
     queryFn: () => api.get('/patients'),
+    staleTime: 3 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 }
 
@@ -44,6 +46,8 @@ export function usePatient(id: string) {
     queryKey: [QUERY_KEY, id],
     queryFn: () => api.get(`/patients/${id}`),
     enabled: !!id,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 }
 

@@ -149,8 +149,9 @@ model Session {
   value       Decimal
   status      String  @default("SCHEDULED")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient      Patient    @relation(fields: [patientId], references: [id], onDelete: Restrict)
@@ -162,6 +163,7 @@ model Session {
   @@index([tenantId])
   @@index([tenantId, scheduledAt])
   @@index([tenantId, patientId])
+  @@index([tenantId, deletedAt])
   @@map("sessions")
 }
 
