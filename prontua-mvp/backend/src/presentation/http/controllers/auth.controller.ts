@@ -68,16 +68,21 @@ export const authController = {
 
       jwt.setAuthCookies(res, accessToken, refreshTokenRaw);
 
-      // Envia email de verificação de forma assíncrona (não bloqueia resposta)
-      sendVerificationCodeUseCase(result.userId).catch(() => {
-        // falha silenciosa — usuário pode reenviar depois
+      // Auto-verifica o e-mail no cadastro (sem enviar código por e-mail).
+      // TODO: reativar verificação por e-mail antes do deploy em produção:
+      //   1. Remover o prisma.user.update abaixo
+      //   2. Descomentar o sendVerificationCodeUseCase
+      await prisma.user.update({
+        where: { id: result.userId },
+        data: { emailVerifiedAt: new Date() },
       });
+      // sendVerificationCodeUseCase(result.userId).catch(() => {});
 
       res.status(201).json({
         userId: result.userId,
         tenantId: result.tenantId,
         role: result.role,
-        emailVerified: false,
+        emailVerified: true,
       });
     } catch (err) {
       next(err);
