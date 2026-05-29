@@ -29,13 +29,13 @@ function FullScreenLoader() {
 
 /**
  * Guard de rota privada — usa /auth/me. Enquanto resolve, mostra spinner.
- * Em 401 redireciona para /entrar. Sem e-mail verificado, bloqueia em /verificar-email.
+ * Em 401 redireciona para /entrar.
+ * TODO (antes do deploy): reativar check de emailVerifiedAt quando Resend estiver configurado.
  */
 function Private({ children }: { children: ReactNode }) {
-  const { isLoading, isError, data } = useSession();
+  const { isLoading, isError } = useSession();
   if (isLoading) return <FullScreenLoader />;
   if (isError) return <Navigate to="/entrar" replace />;
-  if (!data?.emailVerifiedAt) return <Navigate to="/verificar-email" replace />;
   return <AppShell>{children}</AppShell>;
 }
 
@@ -43,10 +43,9 @@ function Private({ children }: { children: ReactNode }) {
  * Guard de rota privada sem AppShell — para páginas de impressão.
  */
 function PrivatePrint({ children }: { children: ReactNode }) {
-  const { isLoading, isError, data } = useSession();
+  const { isLoading, isError } = useSession();
   if (isLoading) return <FullScreenLoader />;
   if (isError) return <Navigate to="/entrar" replace />;
-  if (!data?.emailVerifiedAt) return <Navigate to="/verificar-email" replace />;
   return <>{children}</>;
 }
 
