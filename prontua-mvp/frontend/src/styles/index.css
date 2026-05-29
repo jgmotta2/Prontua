@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import driver.js styles */
-@import 'driver.js/dist/driver.css';
-
 @keyframes sessionEnter {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0);   }
