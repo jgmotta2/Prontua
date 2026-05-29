@@ -16,8 +16,12 @@ export default {
         ink:        'rgb(var(--color-ink) / <alpha-value>)',
         muted:      'rgb(var(--color-muted) / <alpha-value>)',
         warm:       'rgb(var(--color-warm) / <alpha-value>)',
-        // Sidebar permanece escuro em ambos os modos
-        sidebar:    'rgb(var(--color-sidebar) / <alpha-value>)',
+        // Sidebar: fundo escuro fixo; fg/muted não seguem cream do body no dark mode
+        sidebar: {
+          DEFAULT: 'rgb(var(--color-sidebar) / <alpha-value>)',
+          fg:      'rgb(var(--color-sidebar-fg) / <alpha-value>)',
+          muted:   'rgb(var(--color-sidebar-muted) / <alpha-value>)',
+        },
       },
       fontFamily: {
         display: ['Fraunces', 'serif'],

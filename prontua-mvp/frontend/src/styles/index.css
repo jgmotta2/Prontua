@@ -20,7 +20,9 @@
     --color-ink:        45 59 54;      /* #2D3B36 */
     --color-muted:      122 139 133;   /* #7A8B85 */
     --color-warm:       232 221 200;   /* #E8DDC8 */
-    --color-sidebar:    45 59 54;      /* igual ink — sidebar escuro */
+    --color-sidebar:         45 59 54;      /* #2D3B36 — fundo escuro fixo */
+    --color-sidebar-fg:      245 241 232;   /* texto claro (independente de cream) */
+    --color-sidebar-muted:   245 241 232;   /* usar com opacidade no Tailwind */
   }
 
   /* ── Dark mode ─────────────────────────────────────────────────────────── */
@@ -29,7 +31,9 @@
     --color-ink:        218 232 225;   /* #dae8e1 — texto claro */
     --color-muted:      138 160 152;   /* #8aa098 — secundário claro */
     --color-warm:       32 46 40;      /* #202e28 — bordas sutis */
-    --color-sidebar:    12 20 17;      /* #0c1411 — sidebar ainda mais escuro */
+    --color-sidebar:         12 20 17;      /* #0c1411 — sidebar ainda mais escuro */
+    --color-sidebar-fg:      218 232 225;   /* texto claro — não herda cream do body */
+    --color-sidebar-muted:   218 232 225;
     /* sage e terracotta permanecem iguais — são cores de marca/acento */
   }
 

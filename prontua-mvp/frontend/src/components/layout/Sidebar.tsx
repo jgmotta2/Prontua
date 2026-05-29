@@ -39,7 +39,7 @@ export function Sidebar({ dark, onToggleDark, onOpenSearch }: SidebarProps) {
     : '?';
 
   return (
-    <aside className="hidden md:flex w-60 shrink-0 flex-col bg-sidebar text-cream/85">
+    <aside className="hidden md:flex w-60 shrink-0 flex-col bg-sidebar text-sidebar-fg/90">
       <div className="px-6 py-7 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-0.5">
@@ -48,15 +48,15 @@ export function Sidebar({ dark, onToggleDark, onOpenSearch }: SidebarProps) {
               alt=""
               className="h-6 w-auto shrink-0 mb-4 scale-[1.45]"
             />
-            <h1 className="font-display text-2xl font-semibold text-cream tracking-tight">
+            <h1 className="font-display text-2xl font-semibold text-sidebar-fg tracking-tight">
               Prontua
             </h1>
           </div>
-          <p className="mt-0.5 text-xs text-cream/50">Bem-vindo de volta</p>
+          <p className="mt-0.5 text-xs text-sidebar-muted/55">Bem-vindo de volta</p>
         </div>
         <button
           onClick={onToggleDark}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-cream/50 hover:text-cream hover:bg-white/5 transition"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-muted/55 hover:text-sidebar-fg hover:bg-white/5 transition"
           title={dark ? 'Modo claro' : 'Modo escuro'}
         >
           {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -66,7 +66,7 @@ export function Sidebar({ dark, onToggleDark, onOpenSearch }: SidebarProps) {
       <div className="px-3 pb-3">
         <button
           onClick={onOpenSearch}
-          className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-cream/50 bg-white/5 hover:bg-white/10 transition"
+          className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-sidebar-muted/60 bg-white/5 hover:bg-white/10 transition"
         >
           <Search className="h-3.5 w-3.5 shrink-0" />
           <span className="flex-1 text-left">Buscar...</span>
@@ -85,8 +85,8 @@ export function Sidebar({ dark, onToggleDark, onOpenSearch }: SidebarProps) {
               [
                 'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition',
                 isActive
-                  ? 'bg-sage/20 text-cream font-medium'
-                  : 'text-cream/70 hover:bg-white/5 hover:text-cream',
+                  ? 'bg-sage/20 text-sidebar-fg font-medium'
+                  : 'text-sidebar-muted/75 hover:bg-white/5 hover:text-sidebar-fg',
               ].join(' ')
             }
           >
@@ -102,12 +102,12 @@ export function Sidebar({ dark, onToggleDark, onOpenSearch }: SidebarProps) {
             {session.photo ? (
               <img src={session.photo} alt={session.name} className="h-full w-full object-cover" />
             ) : (
-              <span className="text-xs font-semibold text-cream">{initials}</span>
+              <span className="text-xs font-semibold text-sidebar-fg">{initials}</span>
             )}
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-cream">{session.name}</p>
-            <p className="truncate text-xs text-cream/50 capitalize">{(session.role ?? '').toLowerCase()}</p>
+            <p className="truncate text-sm font-medium text-sidebar-fg">{session.name}</p>
+            <p className="truncate text-xs text-sidebar-muted/55 capitalize">{(session.role ?? '').toLowerCase()}</p>
           </div>
         </Link>
       )}
@@ -117,7 +117,7 @@ export function Sidebar({ dark, onToggleDark, onOpenSearch }: SidebarProps) {
         onClick={handleLogout}
         disabled={logout.isPending}
         className="mx-3 mb-4 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm
-                   text-cream/60 transition hover:bg-white/5 hover:text-cream disabled:opacity-50"
+                   text-sidebar-muted/70 transition hover:bg-white/5 hover:text-sidebar-fg disabled:opacity-50"
       >
         <LogOut className="h-4 w-4" strokeWidth={1.8} />
         {logout.isPending ? 'Saindo...' : 'Sair'}

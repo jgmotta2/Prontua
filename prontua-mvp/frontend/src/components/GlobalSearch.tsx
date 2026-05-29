@@ -47,15 +47,14 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] bg-ink/40 backdrop-blur-sm px-4"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh] bg-black/45 dark:bg-black/70 backdrop-blur-sm px-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-2xl bg-white dark:bg-warm/20 shadow-xl overflow-hidden"
+        className="w-full max-w-lg rounded-2xl bg-white dark:bg-cream border border-sage/10 dark:border-warm shadow-xl dark:shadow-2xl dark:shadow-black/40 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-warm">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-sage/15 dark:border-warm">
           <Search className="h-4 w-4 text-muted shrink-0" />
           <input
             ref={inputRef}
@@ -73,11 +72,11 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
         {q.length === 0 ? (
           <div className="px-4 py-8 text-center">
             <p className="text-xs text-muted">Digite o nome do paciente para buscar</p>
-            <div className="mt-4 flex justify-center gap-4 text-[10px] text-muted/70">
-              <span><kbd className="rounded border border-warm px-1.5 py-0.5 font-mono">N</kbd> Nova sessão</span>
-              <span><kbd className="rounded border border-warm px-1.5 py-0.5 font-mono">P</kbd> Pacientes</span>
-              <span><kbd className="rounded border border-warm px-1.5 py-0.5 font-mono">A</kbd> Agenda</span>
-              <span><kbd className="rounded border border-warm px-1.5 py-0.5 font-mono">F</kbd> Financeiro</span>
+            <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-[10px] text-muted dark:text-muted/90">
+              <span><kbd className="rounded border border-sage/20 dark:border-warm bg-warm/30 dark:bg-warm/50 px-1.5 py-0.5 font-mono text-ink/80">N</kbd> Nova sessão</span>
+              <span><kbd className="rounded border border-sage/20 dark:border-warm bg-warm/30 dark:bg-warm/50 px-1.5 py-0.5 font-mono text-ink/80">P</kbd> Pacientes</span>
+              <span><kbd className="rounded border border-sage/20 dark:border-warm bg-warm/30 dark:bg-warm/50 px-1.5 py-0.5 font-mono text-ink/80">A</kbd> Agenda</span>
+              <span><kbd className="rounded border border-sage/20 dark:border-warm bg-warm/30 dark:bg-warm/50 px-1.5 py-0.5 font-mono text-ink/80">F</kbd> Financeiro</span>
             </div>
           </div>
         ) : patients.length === 0 ? (
@@ -90,7 +89,7 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
               <li key={p.id}>
                 <button
                   onClick={() => handleSelect(p.id)}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-warm/40 dark:hover:bg-warm/20 transition text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-warm/50 dark:hover:bg-warm/60 transition text-left"
                 >
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sage/10">
                     <User className="h-4 w-4 text-sage" />
