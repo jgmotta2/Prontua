@@ -2,7 +2,6 @@ import { createHash } from 'node:crypto';
 import type { Request, Response, NextFunction } from 'express';
 import { registerUseCase } from '@application/use-cases/auth/register.use-case';
 import { loginUseCase, issueTokens } from '@application/use-cases/auth/login.use-case';
-import { verifyMfaUseCase } from '@application/use-cases/auth/verify-mfa.use-case';
 import {
   sendVerificationCodeUseCase,
   confirmVerificationCodeUseCase,
@@ -68,10 +67,10 @@ export const authController = {
 
       jwt.setAuthCookies(res, accessToken, refreshTokenRaw);
 
-      // Auto-verifica o e-mail no cadastro (sem enviar código por e-mail).
-      // TODO: reativar verificação por e-mail antes do deploy em produção:
-      //   1. Remover o prisma.user.update abaixo
-      //   2. Descomentar o sendVerificationCodeUseCase
+      // PRÉ-DEPLOY: trocar este bloco por sendVerificationCodeUseCase (abaixo).
+      // Motivo: Resend sandbox só envia para o e-mail do dono da conta.
+      // Quando o domínio estiver verificado no Resend, remover o update e
+      // descomentar a linha com sendVerificationCodeUseCase.
       await prisma.user.update({
         where: { id: result.userId },
         data: { emailVerifiedAt: new Date() },
@@ -99,29 +98,6 @@ export const authController = {
 
       jwt.setAuthCookies(res, result.accessToken, result.refreshTokenRaw);
       res.status(200).json({ step: 'authenticated', userId: result.userId, tenantId: result.tenantId });
-    } catch (err) {
-      next(err);
-    }
-  },
-
-  /** POST /auth/mfa/verify — verifica OTP e emite tokens reais */
-  async mfaVerify(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { preAuthToken, code } = req.body as { preAuthToken: string; code: string };
-      if (!preAuthToken || !code) {
-        res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'preAuthToken e code são obrigatórios' } });
-        return;
-      }
-
-      const result = await verifyMfaUseCase({
-        preAuthToken,
-        code,
-        ipHash: (req as any).ipHash,
-        userAgent: req.get('user-agent') ?? undefined,
-      });
-
-      jwt.setAuthCookies(res, result.accessToken, result.refreshTokenRaw);
-      res.status(200).json({ userId: result.userId, tenantId: result.tenantId });
     } catch (err) {
       next(err);
     }

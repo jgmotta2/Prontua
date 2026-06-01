@@ -49,19 +49,6 @@ export const loginSchema = z
   })
   .strict();
 
-export const passwordResetRequestSchema = z
-  .object({
-    email: z.string().trim().toLowerCase().email().max(255),
-  })
-  .strict();
-
-export const passwordResetConfirmSchema = z
-  .object({
-    token: z.string().min(20).max(200),
-    newPassword: passwordPolicy,
-  })
-  .strict();
-
 export const updateProfileSchema = z
   .object({
     name:      z.string().trim().min(3).max(120).optional(),

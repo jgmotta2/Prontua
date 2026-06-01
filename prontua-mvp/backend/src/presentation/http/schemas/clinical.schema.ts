@@ -40,13 +40,5 @@ export const updateSessionStatusSchema = z
   })
   .strict();
 
-export const upsertSessionNoteSchema = z
-  .object({
-    sessionId: uuid,
-    content: z.string().min(1).max(20_000),
-  })
-  .strict();
-
 export type CreatePatientInput = z.infer<typeof createPatientSchema>;
 export type CreateSessionInput = z.infer<typeof createSessionSchema>;
-export type UpsertNoteInput = z.infer<typeof upsertSessionNoteSchema>;
