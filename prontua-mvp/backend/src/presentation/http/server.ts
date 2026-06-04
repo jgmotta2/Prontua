@@ -24,6 +24,7 @@ import { consentRoutes } from '@presentation/http/routes/consent.routes';
 import { voiceRoutes } from '@presentation/http/routes/voice.routes';
 import { noteRoutes } from '@presentation/http/routes/note.routes';
 import { searchRoutes } from '@presentation/http/routes/search.routes';
+import { listaEsperaRoutes } from '@presentation/http/routes/lista-espera.routes';
 
 /**
  * Composição do servidor.
@@ -129,6 +130,7 @@ export function buildServer(): Express {
   app.use('/voice', voiceRoutes);
   app.use('/notes', noteRoutes);
   app.use('/search', searchRoutes);
+  app.use('/lista-espera', listaEsperaRoutes);
 
   // ── Em produção, serve o frontend (build do Vite copiado para /public) ──
   if (env.NODE_ENV === 'production') {

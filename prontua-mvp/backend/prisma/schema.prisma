@@ -63,6 +63,8 @@ model User {
   mfaSecretIv  String?
   mfaSecretTag String?
 
+  isAdministradorPlataforma Boolean @default(false)
+
   passwordChangedAt DateTime @default(now())
   failedLoginCount  Int      @default(0)
   lockedUntil       DateTime?
@@ -294,4 +296,16 @@ model VoiceSessionReport {
 
   @@index([tenantId])
   @@map("voice_session_reports")
+}
+
+/// Inscrições na lista de espera (landing) — escopo global, sem tenantId.
+model InscricaoListaEspera {
+  id       String   @id @default(uuid())
+  email    String   @unique
+  origem   String
+  ipHash   String?
+  criadoEm DateTime @default(now())
+
+  @@index([criadoEm])
+  @@map("inscricoes_lista_espera")
 }

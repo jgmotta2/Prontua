@@ -4,6 +4,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { loginSchema, type LoginFormValues } from '@lib/validation/auth.schema';
 import { useLogin } from '@features/auth/hooks/useLogin';
+import { api } from '@lib/api/client';
+import type { SessionInfo } from '@features/auth/hooks/useSession';
+import { rotaAposAutenticacao } from '@features/admin/utils/rotas-sessao';
 
 export function LoginForm() {
   const navigate = useNavigate();
@@ -23,18 +26,22 @@ export function LoginForm() {
   const onSubmit = handleSubmit(async (values) => {
     try {
       await login.mutateAsync(values);
-      await queryClient.invalidateQueries({ queryKey: ['session'] });
-      navigate('/painel', { replace: true });
-    } catch (err: any) {
-      if (err?.code === 'UNAUTHENTICATED') {
+      const sessao = await queryClient.fetchQuery<SessionInfo>({
+        queryKey: ['session'],
+        queryFn: () => api.get<SessionInfo>('/auth/me'),
+      });
+      navigate(rotaAposAutenticacao(sessao.isAdministradorPlataforma), { replace: true });
+    } catch (err: unknown) {
+      const erro = err as { code?: string; message?: string };
+      if (erro?.code === 'UNAUTHENTICATED') {
         setError('root', { message: 'E-mail ou senha incorretos.' });
         return;
       }
-      if (err?.code === 'RATE_LIMITED') {
+      if (erro?.code === 'RATE_LIMITED') {
         setError('root', { message: 'Muitas tentativas. Aguarde alguns minutos.' });
         return;
       }
-      setError('root', { message: err?.message ?? 'Falha ao entrar' });
+      setError('root', { message: erro?.message ?? 'Falha ao entrar' });
     }
   });
 

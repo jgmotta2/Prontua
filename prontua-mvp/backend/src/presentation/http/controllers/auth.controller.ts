@@ -11,6 +11,7 @@ import { prisma } from '@config/prisma';
 import { passwordService } from '@infrastructure/crypto/password.service';
 import { AppError } from '@shared/errors/app-error';
 import { auditLogger } from '@infrastructure/security/audit.logger';
+import { usuarioEhAdministradorPlataforma } from '@infrastructure/platform/administrador-plataforma';
 import { emailService } from '@infrastructure/messaging/email.service';
 import type { UpdateProfileInput, ChangePasswordInput } from '@presentation/http/schemas/auth.schema';
 
@@ -204,8 +205,17 @@ export const authController = {
     try {
       const user = await prisma.user.findUnique({
         where: { id: req.auth!.sub },
-        select: { name: true, photo: true, emailVerifiedAt: true },
+        select: {
+          name: true,
+          photo: true,
+          emailVerifiedAt: true,
+          email: true,
+          isAdministradorPlataforma: true,
+        },
       });
+      const isAdministradorPlataforma = user
+        ? usuarioEhAdministradorPlataforma(user.email, user.isAdministradorPlataforma)
+        : false;
       res.json({
         userId: req.auth!.sub,
         tenantId: req.auth!.tenantId,
@@ -213,6 +223,7 @@ export const authController = {
         name: user?.name ?? '',
         photo: user?.photo ?? null,
         emailVerifiedAt: user?.emailVerifiedAt?.toISOString() ?? null,
+        isAdministradorPlataforma,
       });
     } catch (err) {
       next(err);

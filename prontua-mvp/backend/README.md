@@ -72,6 +72,26 @@ npm run dev      # tsx watch
 
 API sobe em `http://localhost:4000`. Healthcheck: `GET /health`.
 
+## Dados de demonstração
+
+```bash
+npm run seed:demo
+```
+
+| Campo  | Valor              |
+|--------|--------------------|
+| E-mail | `demo@prontua.app` |
+| Senha  | `Demo1234`         |
+
+Para acessar a lista de espera como admin, configure no `.env`:
+
+```env
+EMAILS_ADMIN_PLATAFORMA=demo@prontua.app
+```
+
+Reinicie o backend e faça login no frontend — o redirect vai para `/admin/emails`.
+Detalhes completos no [README da raiz do repositório](../../README.md#lista-de-espera-landing-e-área-admin).
+
 ## Endpoints implementados (MVP)
 
 | Método | Rota                | Middlewares                                            |
@@ -84,6 +104,8 @@ API sobe em `http://localhost:4000`. Healthcheck: `GET /health`.
 | GET    | `/patients/:id`     | auth, tenant, requireClinicalAccess, audit             |
 | POST   | `/patients`         | auth, tenant, requireClinicalAccess, validate, audit   |
 | DELETE | `/patients/:id`     | + sensitiveRateLimiter (10/h)                          |
+| POST   | `/lista-espera`     | rate-limit (10/h), público (landing)                   |
+| GET    | `/lista-espera`     | authRequired, admin plataforma, paginação              |
 
 A criar (próximos sprints): `/sessions`, `/notes`, `/payments`,
 `/dashboard`, `/whatsapp`, `/lgpd/export`.
@@ -125,3 +147,4 @@ Para rotacionar `ENCRYPTION_MASTER_KEY`:
 | `npm run lint`         | ESLint                                        |
 | `npm run format`       | Prettier                                      |
 | `npm run test`         | Vitest                                        |
+| `npm run seed:demo`    | Popula clínica demo (`demo@prontua.app` / `Demo1234`) |

@@ -3,7 +3,7 @@ import { LANDING_CTA_EMAIL } from '../constants/landing-content';
 import { useCtaEmailForm } from '../hooks/useCtaEmailForm';
 
 export function CtaEmailForm() {
-  const { form, onSubmit, submitted } = useCtaEmailForm();
+  const { form, onSubmit, submitted, isSubmitting, submitError } = useCtaEmailForm();
   const {
     register,
     formState: { errors },
@@ -58,12 +58,19 @@ export function CtaEmailForm() {
 
         <button
           type="submit"
-          className="btn-primary shrink-0 bg-sage hover:bg-sage-dark sm:mt-0"
+          disabled={isSubmitting}
+          className="btn-primary shrink-0 bg-sage hover:bg-sage-dark sm:mt-0 disabled:opacity-60"
         >
           {LANDING_CTA_EMAIL.submitLabel}
           <ArrowRight className="h-4 w-4" aria-hidden />
         </button>
       </div>
+
+      {submitError ? (
+        <p role="alert" className="helper-error mt-3 text-center text-cream/90">
+          {LANDING_CTA_EMAIL.errorMessage}
+        </p>
+      ) : null}
     </form>
   );
 }
