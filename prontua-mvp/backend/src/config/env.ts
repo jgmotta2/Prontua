@@ -45,6 +45,18 @@ const envSchema = z.object({
   RATE_LIMIT_LOGIN_PER_15MIN: z.coerce.number().int().positive().default(5),
   RATE_LIMIT_REGISTER_PER_HOUR: z.coerce.number().int().positive().default(3),
   RATE_LIMIT_API_PER_MIN: z.coerce.number().int().positive().default(60),
+  RATE_LIMIT_LISTA_ESPERA_PER_HOUR: z.coerce.number().int().positive().default(10),
+
+  /** E-mails com acesso à área admin da plataforma (lista de espera). Separados por vírgula. */
+  EMAILS_ADMIN_PLATAFORMA: z
+    .string()
+    .default('')
+    .transform((valor) =>
+      valor
+        .split(',')
+        .map((email) => email.trim().toLowerCase())
+        .filter((email) => email.length > 0),
+    ),
 
   RESEND_API_KEY: z.string().optional(),
   RESEND_FROM_EMAIL: z.string().email().optional(),

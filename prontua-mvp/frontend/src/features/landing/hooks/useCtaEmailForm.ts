@@ -5,9 +5,11 @@ import {
   ctaEmailSchema,
   type CtaEmailFormValues,
 } from '@lib/validation/landing.schema';
+import { useInscreverListaEspera } from './useInscreverListaEspera';
 
 export function useCtaEmailForm() {
   const [submitted, setSubmitted] = useState(false);
+  const inscrever = useInscreverListaEspera();
 
   const form = useForm<CtaEmailFormValues>({
     resolver: zodResolver(ctaEmailSchema),
@@ -15,15 +17,21 @@ export function useCtaEmailForm() {
     defaultValues: { email: '' },
   });
 
-  const onSubmit = form.handleSubmit(() => {
-    // TODO: POST /api/waitlist quando o endpoint existir
-    setSubmitted(true);
-    form.reset();
+  const onSubmit = form.handleSubmit(async (valores) => {
+    try {
+      await inscrever.mutateAsync({ email: valores.email });
+      setSubmitted(true);
+      form.reset();
+    } catch {
+      /* erro exposto via submitError */
+    }
   });
 
   return {
     form,
     onSubmit,
     submitted,
+    isSubmitting: inscrever.isPending,
+    submitError: inscrever.error?.message ?? null,
   };
 }

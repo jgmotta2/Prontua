@@ -20,6 +20,9 @@ import { SettingsPage } from '@features/settings/SettingsPage';
 import { ProntuarioPage } from '@features/notes/components/ProntuarioPage';
 import { ProntuarioAllPage } from '@features/notes/components/ProntuarioAllPage';
 import { NotFoundPage } from '@features/errors/NotFoundPage';
+import { AdminShell } from '@features/admin/components/AdminShell';
+import { ListaEsperaEmailsPage } from '@features/admin/components/ListaEsperaEmailsPage';
+import { rotaAposAutenticacao } from '@features/admin/utils/rotas-sessao';
 
 function FullScreenLoader() {
   return (
@@ -56,20 +59,37 @@ function PrivatePrint({ children }: { children: ReactNode }) {
  * Evita usuário logado revisitando /entrar e /cadastro.
  */
 function PublicOnly({ children }: { children: ReactNode }) {
-  const { isLoading, isSuccess } = useSession();
+  const { isLoading, isSuccess, data } = useSession();
   if (isLoading) return <FullScreenLoader />;
-  if (isSuccess) return <Navigate to="/painel" replace />;
+  if (isSuccess && data) {
+    return <Navigate to={rotaAposAutenticacao(data.isAdministradorPlataforma)} replace />;
+  }
   return <AuthLayout>{children}</AuthLayout>;
 }
 
 /**
- * Rota da landing page — se já autenticado, manda pro dashboard.
+ * Rota da landing page — se já autenticado, redireciona conforme o perfil.
  */
 function PublicLandingRoute({ children }: { children: ReactNode }) {
-  const { isLoading, isSuccess } = useSession();
+  const { isLoading, isSuccess, data } = useSession();
   if (isLoading) return <FullScreenLoader />;
-  if (isSuccess) return <Navigate to="/painel" replace />;
+  if (isSuccess && data) {
+    return <Navigate to={rotaAposAutenticacao(data.isAdministradorPlataforma)} replace />;
+  }
   return <LayoutLanding>{children}</LayoutLanding>;
+}
+
+/**
+ * Área administrativa da plataforma (lista de espera da landing).
+ */
+function AdministradorPlataforma({ children }: { children: ReactNode }) {
+  const { isLoading, isError, data } = useSession();
+  if (isLoading) return <FullScreenLoader />;
+  if (isError) return <Navigate to="/entrar" replace />;
+  if (!data?.isAdministradorPlataforma) {
+    return <Navigate to="/painel" replace />;
+  }
+  return <AdminShell>{children}</AdminShell>;
 }
 
 
@@ -103,6 +123,15 @@ export function AppRoutes() {
       <Route path="/agenda/:sessionId/prontuario-voz" element={<Private><VoicePage /></Private>} />
       <Route path="/financeiro"    element={<Private><FinancePage /></Private>} />
       <Route path="/config"        element={<Private><SettingsPage /></Private>} />
+
+      <Route
+        path="/admin/emails"
+        element={
+          <AdministradorPlataforma>
+            <ListaEsperaEmailsPage />
+          </AdministradorPlataforma>
+        }
+      />
 
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

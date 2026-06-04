@@ -107,3 +107,10 @@ export const sensitiveRateLimiter: RequestHandler = makeLimiter({
   windowMs: 60 * 60 * 1000,
   max: 10,
 });
+
+/** Inscrição na lista de espera (landing): 10 por hora por IP. */
+export const listaEsperaRateLimiter: RequestHandler = makeLimiter({
+  ...baseOptions,
+  windowMs: 60 * 60 * 1000,
+  max: env.RATE_LIMIT_LISTA_ESPERA_PER_HOUR,
+});

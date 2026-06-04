@@ -8,6 +8,7 @@ export interface SessionInfo {
   name: string;
   photo: string | null;
   emailVerifiedAt: string | null;
+  isAdministradorPlataforma: boolean;
 }
 
 /**
