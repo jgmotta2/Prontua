@@ -1,7 +1,7 @@
 import { Check, X } from 'lucide-react';
 import {
-  ITENS_PUBLICO_NEGATIVO,
-  ITENS_PUBLICO_POSITIVO,
+  NEGATIVE_AUDIENCE_ITEMS,
+  POSITIVE_AUDIENCE_ITEMS,
 } from '../constants/landing-content';
 
 export function AudienceSection() {
@@ -20,7 +20,7 @@ export function AudienceSection() {
               É para você se
             </h3>
             <ul className="mt-4 space-y-3">
-              {ITENS_PUBLICO_POSITIVO.map((item) => (
+              {POSITIVE_AUDIENCE_ITEMS.map((item) => (
                 <li key={item} className="flex items-start gap-3 text-sm text-ink">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-sage-dark" aria-hidden />
                   {item}
@@ -34,7 +34,7 @@ export function AudienceSection() {
               Não é para você se
             </h3>
             <ul className="mt-4 space-y-3">
-              {ITENS_PUBLICO_NEGATIVO.map((item) => (
+              {NEGATIVE_AUDIENCE_ITEMS.map((item) => (
                 <li key={item} className="flex items-start gap-3 text-sm text-muted">
                   <X className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
                   {item}

@@ -1,12 +1,9 @@
-import {
-  FUNCIONALIDADES,
-  IDS_SECAO_LANDING,
-} from '../constants/landing-content';
+import { FEATURES, LANDING_SECTION_IDS } from '../constants/landing-content';
 
 export function FeaturesSection() {
   return (
     <section
-      id={IDS_SECAO_LANDING.FUNCIONALIDADES}
+      id={LANDING_SECTION_IDS.FEATURES}
       className="scroll-mt-28 px-4 py-16 sm:px-6 sm:py-20"
     >
       <div className="mx-auto max-w-6xl">
@@ -20,21 +17,21 @@ export function FeaturesSection() {
         </div>
 
         <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {FUNCIONALIDADES.map((item) => {
-            const Icon = item.icone;
+          {FEATURES.map((feature) => {
+            const Icon = feature.icon;
             return (
               <li
-                key={item.titulo}
+                key={feature.title}
                 className="rounded-2xl bg-white p-6 shadow-soft transition hover:shadow-md"
               >
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-sage/10 text-sage-dark">
                   <Icon className="h-5 w-5" strokeWidth={1.8} aria-hidden />
                 </span>
                 <h3 className="mt-4 font-display text-lg font-semibold text-ink">
-                  {item.titulo}
+                  {feature.title}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">
-                  {item.descricao}
+                  {feature.description}
                 </p>
               </li>
             );

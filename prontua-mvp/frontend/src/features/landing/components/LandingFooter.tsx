@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import {
-  IDS_SECAO_LANDING,
-  TAGLINE_MARCA,
-  TITULO_MARCA,
+  BRAND_TAGLINE,
+  BRAND_TITLE,
+  LANDING_SECTION_IDS,
 } from '../constants/landing-content';
 
 export function LandingFooter() {
@@ -12,8 +12,8 @@ export function LandingFooter() {
     <footer className="border-t border-sage/10 bg-white/40 px-4 py-10 sm:px-6">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 sm:flex-row">
         <div className="text-center sm:text-left">
-          <p className="font-display text-xl font-semibold text-ink">{TITULO_MARCA}</p>
-          <p className="mt-1 text-sm text-muted">{TAGLINE_MARCA}</p>
+          <p className="font-display text-xl font-semibold text-ink">{BRAND_TITLE}</p>
+          <p className="mt-1 text-sm text-muted">{BRAND_TAGLINE}</p>
         </div>
 
         <nav
@@ -27,19 +27,19 @@ export function LandingFooter() {
             Criar conta
           </Link>
           <a
-            href={`#${IDS_SECAO_LANDING.FAQ}`}
+            href={`#${LANDING_SECTION_IDS.FAQ}`}
             className="text-muted hover:text-sage-dark transition"
           >
             FAQ
           </a>
           <a
-            href={`#${IDS_SECAO_LANDING.PLANOS}`}
+            href={`#${LANDING_SECTION_IDS.PRICING}`}
             className="text-muted hover:text-sage-dark transition"
           >
             Planos
           </a>
           <a
-            href={`#${IDS_SECAO_LANDING.CONTATO}`}
+            href={`#${LANDING_SECTION_IDS.CONTACT}`}
             className="text-muted hover:text-sage-dark transition"
           >
             Contato
@@ -48,7 +48,7 @@ export function LandingFooter() {
       </div>
 
       <p className="mx-auto mt-8 max-w-6xl text-center text-xs text-muted">
-        © {currentYear} {TITULO_MARCA}. Em conformidade com LGPD e Código de Ética do CFP.
+        © {currentYear} {BRAND_TITLE}. Em conformidade com LGPD e Código de Ética do CFP.
       </p>
     </footer>
   );

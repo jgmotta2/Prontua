@@ -1,13 +1,10 @@
 import { FaqAccordion } from '@components/ui/FaqAccordion';
-import {
-  IDS_SECAO_LANDING,
-  PERGUNTAS_FREQUENTES,
-} from '../constants/landing-content';
+import { FAQ_ITEMS, LANDING_SECTION_IDS } from '../constants/landing-content';
 
 export function FaqSection() {
   return (
     <section
-      id={IDS_SECAO_LANDING.FAQ}
+      id={LANDING_SECTION_IDS.FAQ}
       className="scroll-mt-28 px-4 py-16 sm:px-6 sm:py-20"
     >
       <div className="mx-auto max-w-3xl">
@@ -18,11 +15,11 @@ export function FaqSection() {
         </div>
 
         <div className="mt-10 space-y-3">
-          {PERGUNTAS_FREQUENTES.map((item, index) => (
+          {FAQ_ITEMS.map((item, index) => (
             <FaqAccordion
-              key={item.pergunta}
-              question={item.pergunta}
-              answer={item.resposta}
+              key={item.question}
+              question={item.question}
+              answer={item.answer}
               initiallyOpen={index === 0}
             />
           ))}

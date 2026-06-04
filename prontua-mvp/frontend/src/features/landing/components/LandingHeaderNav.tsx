@@ -1,6 +1,6 @@
-import { LINKS_NAVEGACAO_HEADER } from '../constants/landing-content';
+import { HEADER_NAV_LINKS } from '../constants/landing-content';
 
-const CLASSE_LINK_SECAO =
+const SECTION_LINK_CLASS =
   'text-sm font-medium text-muted transition-colors hover:text-ink';
 
 export function LandingHeaderNav() {
@@ -9,13 +9,13 @@ export function LandingHeaderNav() {
       className="hidden items-center justify-center gap-6 lg:flex"
       aria-label="Seções da página inicial"
     >
-      {LINKS_NAVEGACAO_HEADER.map((link) => (
+      {HEADER_NAV_LINKS.map((link) => (
         <a
-          key={link.idSecao}
-          href={`#${link.idSecao}`}
-          className={CLASSE_LINK_SECAO}
+          key={link.sectionId}
+          href={`#${link.sectionId}`}
+          className={SECTION_LINK_CLASS}
         >
-          {link.rotulo}
+          {link.label}
         </a>
       ))}
     </nav>
