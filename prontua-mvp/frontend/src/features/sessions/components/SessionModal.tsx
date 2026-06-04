@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X } from 'lucide-react';
+import { X, Repeat } from 'lucide-react';
 import { usePatients } from '@features/patients/hooks/usePatients';
 import { useCreateSession } from '../hooks/useSessions';
 
@@ -33,6 +33,10 @@ export function SessionModal({ open, onClose, defaultDate, defaultPatientId }: P
   const { data: patientsData } = usePatients();
   const create = useCreateSession();
 
+  const [repeatEnabled, setRepeatEnabled] = useState(false);
+  const [repeatEvery, setRepeatEvery] = useState<'week' | 'biweekly'>('week');
+  const [repeatTimes, setRepeatTimes] = useState(4);
+
   const {
     register,
     handleSubmit,
@@ -50,10 +54,12 @@ export function SessionModal({ open, onClose, defaultDate, defaultPatientId }: P
 
   useEffect(() => {
     if (open) {
+      setRepeatEnabled(false);
+      setRepeatEvery('week');
+      setRepeatTimes(4);
       const dtLocal = defaultDate
         ? new Date(defaultDate.getTime() - defaultDate.getTimezoneOffset() * 60000)
-            .toISOString()
-            .slice(0, 16)
+            .toISOString().slice(0, 16)
         : '';
       const [datePart = '', timePart = '08:00'] = dtLocal.split('T');
       const roundedTime = TIME_OPTIONS.find((t) => t >= timePart.slice(0, 5)) ?? '08:00';
@@ -61,7 +67,6 @@ export function SessionModal({ open, onClose, defaultDate, defaultPatientId }: P
     }
   }, [open, defaultDate, defaultPatientId, reset]);
 
-  // Preenche valor ao selecionar paciente
   useEffect(() => {
     if (patientId) {
       const p = patientsData?.patients.find((x) => x.id === patientId);
@@ -73,7 +78,9 @@ export function SessionModal({ open, onClose, defaultDate, defaultPatientId }: P
     try {
       const scheduledAt = new Date(`${values.schedDate}T${values.schedTime}`).toISOString();
       const { schedDate: _d, schedTime: _t, ...rest } = values;
-      await create.mutateAsync({ ...rest, scheduledAt });
+      const payload: any = { ...rest, scheduledAt };
+      if (repeatEnabled) payload.repeat = { every: repeatEvery, times: repeatTimes };
+      await create.mutateAsync(payload);
       onClose();
     } catch (err: any) {
       setError('root', { message: err?.message ?? 'Erro ao criar sessão' });
@@ -85,8 +92,8 @@ export function SessionModal({ open, onClose, defaultDate, defaultPatientId }: P
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-ink/30 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-2xl bg-cream shadow-xl">
-        <div className="flex items-center justify-between border-b border-warm p-5">
+      <div className="relative w-full max-w-md rounded-2xl bg-cream shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between border-b border-warm p-5 sticky top-0 bg-cream z-10">
           <h2 className="font-display text-lg font-semibold text-ink">Nova sessão</h2>
           <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-warm/60 text-muted">
             <X className="h-4 w-4" />
@@ -100,9 +107,7 @@ export function SessionModal({ open, onClose, defaultDate, defaultPatientId }: P
               <select className={`input ${errors.patientId ? 'input-error' : ''}`} {...register('patientId')}>
                 <option value="">Selecionar paciente...</option>
                 {patientsData?.patients.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.fullName}
-                  </option>
+                  <option key={p.id} value={p.id}>{p.fullName}</option>
                 ))}
               </select>
               {errors.patientId && <p className="helper-error">{errors.patientId.message}</p>}
@@ -112,37 +117,21 @@ export function SessionModal({ open, onClose, defaultDate, defaultPatientId }: P
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">Data *</label>
-              <input
-                type="date"
-                className={`input ${errors.schedDate ? 'input-error' : ''}`}
-                {...register('schedDate')}
-              />
+              <input type="date" className={`input ${errors.schedDate ? 'input-error' : ''}`} {...register('schedDate')} />
               {errors.schedDate && <p className="helper-error">{errors.schedDate.message}</p>}
             </div>
             <div>
               <label className="label">Horário *</label>
-              <select
-                className={`input ${errors.schedTime ? 'input-error' : ''}`}
-                {...register('schedTime')}
-              >
-                {TIME_OPTIONS.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
+              <select className={`input ${errors.schedTime ? 'input-error' : ''}`} {...register('schedTime')}>
+                {TIME_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
-              {errors.schedTime && <p className="helper-error">{errors.schedTime.message}</p>}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">Duração (min)</label>
-              <input
-                type="number"
-                min={15}
-                max={240}
-                className="input"
-                {...register('durationMin')}
-              />
+              <input type="number" min={15} max={240} className="input" {...register('durationMin')} />
             </div>
             <div>
               <label className="label">Modalidade</label>
@@ -169,6 +158,49 @@ export function SessionModal({ open, onClose, defaultDate, defaultPatientId }: P
             {errors.value && <p className="helper-error">{errors.value.message}</p>}
           </div>
 
+          {/* Recorrência */}
+          <div className="rounded-xl border border-warm p-3 space-y-3">
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={repeatEnabled}
+                onChange={(e) => setRepeatEnabled(e.target.checked)}
+                className="h-4 w-4 rounded accent-sage"
+              />
+              <span className="flex items-center gap-1.5 text-sm font-medium text-ink">
+                <Repeat className="h-3.5 w-3.5 text-muted" />
+                Repetir sessão
+              </span>
+            </label>
+
+            {repeatEnabled && (
+              <div className="flex items-center gap-2 pl-6 flex-wrap">
+                <span className="text-sm text-muted">A cada</span>
+                <select
+                  value={repeatEvery}
+                  onChange={(e) => setRepeatEvery(e.target.value as 'week' | 'biweekly')}
+                  className="rounded-lg border border-warm px-2 py-1 text-sm text-ink bg-white dark:bg-warm/30"
+                >
+                  <option value="week">semana</option>
+                  <option value="biweekly">quinzena</option>
+                </select>
+                <span className="text-sm text-muted">por</span>
+                <input
+                  type="number"
+                  min={2}
+                  max={52}
+                  value={repeatTimes}
+                  onChange={(e) => setRepeatTimes(Math.max(2, Math.min(52, Number(e.target.value))))}
+                  className="w-16 rounded-lg border border-warm px-2 py-1 text-sm text-ink bg-white dark:bg-warm/30 text-center"
+                />
+                <span className="text-sm text-muted">semanas</span>
+                <p className="w-full text-xs text-muted">
+                  Serão criadas <strong className="text-ink">{repeatTimes}</strong> sessões no total.
+                </p>
+              </div>
+            )}
+          </div>
+
           {errors.root && (
             <div className="rounded-xl border border-terracotta/30 bg-terracotta/5 p-3 text-sm text-terracotta">
               {errors.root.message}
@@ -176,11 +208,13 @@ export function SessionModal({ open, onClose, defaultDate, defaultPatientId }: P
           )}
 
           <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose} className="btn-secondary flex-1">
-              Cancelar
-            </button>
+            <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancelar</button>
             <button type="submit" disabled={isSubmitting} className="btn-primary flex-1">
-              {isSubmitting ? 'Salvando...' : 'Agendar'}
+              {isSubmitting
+                ? 'Salvando...'
+                : repeatEnabled
+                ? `Agendar ${repeatTimes} sessões`
+                : 'Agendar'}
             </button>
           </div>
         </form>

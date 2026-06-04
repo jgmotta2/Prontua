@@ -36,9 +36,6 @@ router.post(
   authController.login,
 );
 
-// POST /auth/mfa/verify — verifica OTP e emite tokens (rate-limited: 5/15min)
-router.post('/mfa/verify', loginRateLimiter, authController.mfaVerify);
-
 // POST /auth/refresh — rotaciona refresh token (JWT rotation)
 router.post('/refresh', authController.refresh);
 

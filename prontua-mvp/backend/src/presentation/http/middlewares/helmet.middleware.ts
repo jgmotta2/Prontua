@@ -47,6 +47,5 @@ export const helmetMiddleware = helmet({
   referrerPolicy: { policy: 'no-referrer' },
   frameguard: { action: 'deny' },
   noSniff: true,
-  xssFilter: true,
-  hidePoweredBy: true,
+  // xssFilter e hidePoweredBy removidos: deprecated/no-op no Helmet v8
 });

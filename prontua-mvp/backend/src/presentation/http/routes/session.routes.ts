@@ -43,7 +43,7 @@ router.get(
   },
 );
 
-// POST /sessions
+// POST /sessions — suporta criação única ou com recorrência (repeat)
 router.post(
   '/',
   validate({ body: createSessionSchema }),
@@ -51,10 +51,23 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const body = req.body as any;
-      // professionalId padrão: o próprio usuário autenticado
-      const input = { ...body, professionalId: body.professionalId ?? req.auth!.sub };
-      const result = await createSessionUseCase(req.db!, input);
-      res.status(201).json(result);
+      const { repeat, ...sessionBody } = body;
+      const base = { ...sessionBody, professionalId: sessionBody.professionalId ?? req.auth!.sub };
+
+      if (repeat) {
+        const intervalDays = repeat.every === 'week' ? 7 : 14;
+        const results = [];
+        for (let i = 0; i < repeat.times; i++) {
+          const scheduledAt = new Date(base.scheduledAt);
+          scheduledAt.setDate(scheduledAt.getDate() + i * intervalDays);
+          const result = await createSessionUseCase(req.db!, { ...base, scheduledAt });
+          results.push(result);
+        }
+        res.status(201).json({ sessions: results, count: results.length });
+      } else {
+        const result = await createSessionUseCase(req.db!, base);
+        res.status(201).json(result);
+      }
     } catch (err) {
       next(err);
     }
@@ -71,7 +84,7 @@ router.patch(
       const id = req.params['id'] as string;
 
       const session = await req.db!.session.findUnique({
-        where: { id },
+        where: { id, deletedAt: null },
         select: { id: true },
       });
       if (!session) throw new NotFoundError('Sessão');
@@ -88,7 +101,7 @@ router.patch(
   },
 );
 
-// DELETE /sessions/:id
+// DELETE /sessions/:id — soft delete (preserva auditoria)
 router.delete(
   '/:id',
   validate({ params: sessionIdParams }),
@@ -98,14 +111,15 @@ router.delete(
       const id = req.params['id'] as string;
 
       const session = await req.db!.session.findUnique({
-        where: { id },
+        where: { id, deletedAt: null },
         select: { id: true },
       });
       if (!session) throw new NotFoundError('Sessão');
 
-      // Cascade: remove pagamento vinculado antes de excluir sessão
-      await req.db!.payment.deleteMany({ where: { sessionId: id } });
-      await req.db!.session.delete({ where: { id } });
+      await req.db!.session.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
       res.status(204).send();
     } catch (err) {
       next(err);

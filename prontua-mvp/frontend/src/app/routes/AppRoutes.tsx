@@ -18,6 +18,8 @@ import { FinancePage } from '@features/finance/components/FinancePage';
 import { VoicePage } from '@features/voice/components/VoicePage';
 import { SettingsPage } from '@features/settings/SettingsPage';
 import { ProntuarioPage } from '@features/notes/components/ProntuarioPage';
+import { ProntuarioAllPage } from '@features/notes/components/ProntuarioAllPage';
+import { NotFoundPage } from '@features/errors/NotFoundPage';
 
 function FullScreenLoader() {
   return (
@@ -95,13 +97,14 @@ export function AppRoutes() {
       <Route path="/pacientes"     element={<Private><PatientList /></Private>} />
       <Route path="/pacientes/:id" element={<Private><PatientDetail /></Private>} />
       <Route path="/pacientes/:id/prontuario" element={<Private><ProntuarioPage /></Private>} />
+      <Route path="/pacientes/:id/prontuario/exportar" element={<PrivatePrint><ProntuarioAllPage /></PrivatePrint>} />
       <Route path="/pacientes/:id/prontuario/:sessionId/imprimir" element={<PrivatePrint><ProntuarioPrintPage /></PrivatePrint>} />
       <Route path="/agenda"        element={<Private><AgendaPage /></Private>} />
       <Route path="/agenda/:sessionId/prontuario-voz" element={<Private><VoicePage /></Private>} />
       <Route path="/financeiro"    element={<Private><FinancePage /></Private>} />
       <Route path="/config"        element={<Private><SettingsPage /></Private>} />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

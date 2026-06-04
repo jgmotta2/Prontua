@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Video, MapPin, Mic, ClipboardList } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Video, MapPin, Mic, ClipboardList, CheckCircle, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatBRL, formatTime } from '@lib/utils/format';
 import { useSessions, useUpdateSessionStatus, type SessionItem } from '../hooks/useSessions';
@@ -113,6 +113,18 @@ export function AgendaPage() {
                 <div className="mt-0.5 text-[10px] uppercase tracking-wider text-muted">
                   {s.durationMin}min
                 </div>
+                {s.paymentStatus === 'PAID' && (
+                  <div className="mt-1 flex items-center gap-0.5 text-[9px] text-sage-dark">
+                    <CheckCircle className="h-2.5 w-2.5" />
+                    Pago
+                  </div>
+                )}
+                {s.paymentStatus === 'PENDING' && (
+                  <div className="mt-1 flex items-center gap-0.5 text-[9px] text-terracotta">
+                    <Clock className="h-2.5 w-2.5" />
+                    Pendente
+                  </div>
+                )}
               </div>
 
               <div className="flex-1 min-w-0">

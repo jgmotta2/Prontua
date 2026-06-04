@@ -19,7 +19,6 @@ const envSchema = z.object({
   TRUST_PROXY: z.coerce.number().int().nonnegative().default(0),
 
   JWT_ACCESS_SECRET: z.string().min(32, 'JWT_ACCESS_SECRET deve ter no mínimo 32 caracteres'),
-  JWT_REFRESH_SECRET: z.string().min(32),
   JWT_ACCESS_TTL: z.coerce.number().int().positive().default(900),
   JWT_REFRESH_TTL: z.coerce.number().int().positive().default(2_592_000),
   JWT_ISSUER: z.string().default('prontua-api'),
@@ -56,7 +55,8 @@ const envSchema = z.object({
   ZAPI_BASE_URL: z.string().url().default('https://api.z-api.io'),
   ZAPI_WEBHOOK_SECRET: z.string().optional(),
 
-  FRONTEND_URL: z.string().url(),
+  // Usado nos links de e-mail (redefinição de senha, relatórios)
+  FRONTEND_URL: z.string().url().optional(),
 
   // ── Módulo de Voz (IA) ────────────────────────────────────────────────────
   // Chave da OpenAI para Whisper (transcrição) e GPT-4o (estruturação).

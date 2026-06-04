@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Check, Loader2, Search, Printer, X } from 'lucide-react';
+import { ArrowLeft, Plus, Check, Loader2, Search, Printer, X, FileText } from 'lucide-react';
 import { useSession } from '@features/auth/hooks/useSession';
 import { formatBRL } from '@lib/utils/format';
 import { usePatient } from '@features/patients/hooks/usePatients';
@@ -72,6 +72,18 @@ export function ProntuarioPage() {
   const [nextSteps, setNextSteps] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
+  // Avisa antes de sair se há alterações não salvas
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (saveStatus === 'saving') {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [saveStatus]);
+
   useEffect(() => {
     if (noteData) {
       setHumor(noteData.humor);
@@ -137,13 +149,24 @@ export function ProntuarioPage() {
           </Link>
           <div className="flex items-center justify-between">
             <h2 className="font-display font-semibold text-ink text-sm">Histórico</h2>
-            <button
-              onClick={() => setNewSessionOpen(true)}
-              className="flex items-center gap-1 rounded-lg bg-sage px-2.5 py-1.5 text-xs font-medium text-cream hover:bg-sage-dark transition"
-            >
-              <Plus className="h-3 w-3" />
-              Nova
-            </button>
+            <div className="flex items-center gap-1">
+              <Link
+                to={`/pacientes/${patientId}/prontuario/exportar`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 rounded-lg border border-warm px-2 py-1.5 text-xs text-muted hover:text-ink hover:border-sage/40 transition"
+                title="Exportar prontuário completo"
+              >
+                <FileText className="h-3 w-3" />
+              </Link>
+              <button
+                onClick={() => setNewSessionOpen(true)}
+                className="flex items-center gap-1 rounded-lg bg-sage px-2.5 py-1.5 text-xs font-medium text-cream hover:bg-sage-dark transition"
+              >
+                <Plus className="h-3 w-3" />
+                Nova
+              </button>
+            </div>
           </div>
         </div>
 

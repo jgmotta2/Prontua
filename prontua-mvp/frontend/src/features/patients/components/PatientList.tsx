@@ -5,14 +5,23 @@ import { formatBRL } from '@lib/utils/format';
 import { usePatients } from '../hooks/usePatients';
 import { PatientModal } from './PatientModal';
 
+const FREQUENCY_OPTIONS = ['Todos', 'Semanal', 'Quinzenal', 'Mensal', 'Sem frequência'] as const;
+type FrequencyFilter = typeof FREQUENCY_OPTIONS[number];
+
 export function PatientList() {
   const { data, isLoading, isError } = usePatients();
   const [search, setSearch] = useState('');
+  const [frequency, setFrequency] = useState<FrequencyFilter>('Todos');
   const [modalOpen, setModalOpen] = useState(false);
 
-  const patients = (data?.patients ?? []).filter((p) =>
-    p.fullName.toLowerCase().includes(search.toLowerCase()),
-  );
+  const patients = (data?.patients ?? []).filter((p) => {
+    const matchesSearch = p.fullName.toLowerCase().includes(search.toLowerCase());
+    const matchesFreq =
+      frequency === 'Todos' ? true :
+      frequency === 'Sem frequência' ? !p.frequencyTag :
+      p.frequencyTag === frequency;
+    return matchesSearch && matchesFreq;
+  });
 
   return (
     <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 space-y-5">
@@ -29,14 +38,32 @@ export function PatientList() {
         </button>
       </header>
 
-      <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
-        <input
-          className="input pl-10"
-          placeholder="Buscar por nome..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="flex gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+          <input
+            className="input pl-10"
+            placeholder="Buscar por nome..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-1 flex-wrap">
+          {FREQUENCY_OPTIONS.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => setFrequency(opt)}
+              className={[
+                'rounded-full px-3 py-1.5 text-xs font-medium transition',
+                frequency === opt
+                  ? 'bg-sage text-cream'
+                  : 'bg-warm/60 text-muted hover:bg-warm',
+              ].join(' ')}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
       </div>
 
       {isError && (

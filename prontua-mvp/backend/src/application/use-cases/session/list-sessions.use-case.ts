@@ -20,6 +20,7 @@ export async function listSessionsUseCase(
   const sessions = await db.session.findMany({
     where: {
       scheduledAt: { gte: params.from, lte: params.to },
+      deletedAt: null,
     },
     orderBy: { scheduledAt: 'asc' },
     select: {
