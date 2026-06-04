@@ -1,4 +1,4 @@
-import { PASSOS_FLUXO } from '../constants/landing-content';
+import { FLOW_STEPS } from '../constants/landing-content';
 
 export function FlowSection() {
   return (
@@ -14,22 +14,22 @@ export function FlowSection() {
         </div>
 
         <ol className="mt-12 grid gap-6 sm:grid-cols-3">
-          {PASSOS_FLUXO.map((passo) => (
+          {FLOW_STEPS.map((step) => (
             <li
-              key={passo.ordem}
+              key={step.order}
               className="relative rounded-2xl bg-white p-6 shadow-soft"
             >
               <span
                 className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-sage/10 font-display text-lg font-semibold text-sage-dark"
                 aria-hidden
               >
-                {passo.ordem}
+                {step.order}
               </span>
               <h3 className="font-display text-xl font-semibold text-ink">
-                {passo.titulo}
+                {step.title}
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-muted">
-                {passo.descricao}
+                {step.description}
               </p>
             </li>
           ))}

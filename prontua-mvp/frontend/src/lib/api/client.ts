@@ -40,8 +40,14 @@ interface RequestOptions extends Omit<RequestInit, 'body'> {
 }
 
 // ── Auto-refresh de token ────────────────────────────────────────────────────
-// Paths cujas respostas 401 NÃO devem disparar refresh (evita loops infinitos)
-const NO_REFRESH_PATHS = ['/auth/refresh', '/auth/login', '/auth/mfa', '/auth/logout'];
+// Respostas 401 nestes paths não disparam refresh nem redirect (evita loop em /entrar e /)
+const NO_REFRESH_PATHS = [
+  '/auth/refresh',
+  '/auth/login',
+  '/auth/mfa',
+  '/auth/logout',
+  '/auth/me',
+];
 
 // Rotas públicas do frontend — não redirecionar para /entrar se já estiver nelas
 const PUBLIC_FRONTEND_PATHS = ['/', '/entrar', '/cadastro', '/verificar-email'];

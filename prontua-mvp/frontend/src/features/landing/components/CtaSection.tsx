@@ -1,5 +1,4 @@
-import { ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { CtaEmailForm } from './CtaEmailForm';
 
 export function CtaSection() {
   return (
@@ -12,13 +11,7 @@ export function CtaSection() {
           Junte prontuário seguro, agenda e financeiro em um sistema feito para
           quem atende com responsabilidade ética e técnica.
         </p>
-        <Link
-          to="/cadastro"
-          className="btn-primary mt-8 inline-flex bg-sage hover:bg-sage-dark"
-        >
-          Experimente grátis agora
-          <ArrowRight className="h-4 w-4" aria-hidden />
-        </Link>
+        <CtaEmailForm />
       </div>
     </section>
   );

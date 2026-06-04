@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryProvider } from '@app/providers/QueryProvider';
 import { AppRoutes } from '@app/routes/AppRoutes';
+import 'driver.js/dist/driver.css';
 import '@/styles/index.css';
 
 const root = document.getElementById('root');
